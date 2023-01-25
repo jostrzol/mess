@@ -4,28 +4,40 @@ import (
 	"flag"
 	"log"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
 type Config struct {
-	IOMode  string        `hcl:"io_mode"`
-	Service ServiceConfig `hcl:"service,block"`
+	Board        BoardConfig        `hcl:"board,block"`
+	Pieces       PiecesConfig       `hcl:"pieces,block"`
+	InitialState InitialStateConfig `hcl:"initial_state,block"`
 }
 
-type ServiceConfig struct {
-	Protocol   string          `hcl:"protocol,label"`
-	Type       string          `hcl:"type,label"`
-	ListenAddr string          `hcl:"listen_addr"`
-	Processes  []ProcessConfig `hcl:"process,block"`
+type BoardConfig struct {
+	Height uint `hcl:"height"`
+	Width  uint `hcl:"width"`
 }
 
-type ProcessConfig struct {
-	Type    string   `hcl:"type,label"`
-	Command []string `hcl:"command"`
+type PiecesConfig struct {
+	Pieces []PieceConfig `hcl:"piece,block"`
+}
+
+type PieceConfig struct {
+	Name string `hcl:"piece_name,label"`
+}
+
+type InitialStateConfig struct {
+	PiecePlacements []PiecePlacementConfig `hcl:"piece_placement,block"`
+}
+
+type PiecePlacementConfig struct {
+	PlayerName string         `hcl:"player_name,label"`
+	Placements hcl.Attributes `hcl:",remain"`
 }
 
 func main() {
-	var configFilepath = flag.String("config", "./config.hcl", "path to a config file")
+	var configFilepath = flag.String("rules", "./rules.hcl", "path to a rules config file")
 	flag.Parse()
 
 	var config Config
