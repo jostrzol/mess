@@ -26,18 +26,31 @@ func (c FunctionsConfig) DecideWinner(state *game.GameState) (*game.Player, erro
 }
 
 func gameStateToCty(state *game.GameState) cty.Value {
+	piecesPerPlayer := state.PiecesPerPlayer()
 	players := make(map[string]cty.Value, len(state.Players))
 	for _, player := range state.Players {
-		players[player.Color.String()] = playerToCty(player)
+		pieces := piecesPerPlayer[player]
+		players[player.Color.String()] = playerToCty(player, pieces)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"players": cty.MapVal(players),
 	})
 }
 
-func playerToCty(player *game.Player) cty.Value {
+func playerToCty(player *game.Player, pieces []*game.PieceOnSquare) cty.Value {
+	piecesCty := make([]cty.Value, len(pieces))
+	for i, piece := range pieces {
+		piecesCty[i] = pieceOnSquareToCty(piece)
+	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color": cty.StringVal(player.Color.String()),
+	})
+}
+
+func pieceOnSquareToCty(pieceOnSquare *game.PieceOnSquare) cty.Value {
+	return cty.ObjectVal(map[string]cty.Value{
+		"type":   cty.StringVal(pieceOnSquare.Piece.Type.Name),
+		"square": cty.StringVal(pieceOnSquare.Square.String()),
 	})
 }
 

@@ -17,12 +17,16 @@ import (
 
 var defaultEvalContext = &hcl.EvalContext{
 	Functions: map[string]function.Function{
-		"upper":  stdlib.UpperFunc,
-		"lower":  stdlib.LowerFunc,
-		"min":    stdlib.MinFunc,
-		"max":    stdlib.MaxFunc,
-		"strlen": stdlib.StrlenFunc,
-		"substr": stdlib.SubstrFunc,
+		"upper":   stdlib.UpperFunc,
+		"lower":   stdlib.LowerFunc,
+		"min":     stdlib.MinFunc,
+		"max":     stdlib.MaxFunc,
+		"strlen":  stdlib.StrlenFunc,
+		"substr":  stdlib.SubstrFunc,
+		"lookup":  stdlib.LookupFunc,
+		"keys":    stdlib.KeysFunc,
+		"values":  stdlib.ValuesFunc,
+		"element": stdlib.ElementFunc,
 	},
 }
 
