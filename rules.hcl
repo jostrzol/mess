@@ -1,23 +1,28 @@
 board {
-  height = 10
-  width = 10
+  height = 8
+  width = 8
 }
 
 pieces {
-  piece "king" {}
-  piece "queen" {}
-  piece "tower" {}
-  piece "knight" {}
-  piece "bishop" {}
-  piece "pawn" {}
+  piece king {}
+  piece queen {}
+  piece rook {}
+  piece knight {}
+  piece bishop {}
+  piece pawn {}
 }
 
 initial_state {
-  piece_placement "white" {
+  piece_placements white {
     A1 = king
   }
-  piece_placement "black" {
+  piece_placements black {
     A2 = king
     B3 = queen
   }
+}
+
+function "decide_winner" {
+  params = [game]
+  result = game.players[0]
 }
