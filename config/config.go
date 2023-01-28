@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/hashicorp/hcl/v2"
@@ -10,7 +11,20 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/game"
 	"github.com/mitchellh/mapstructure"
+	"github.com/zclconf/go-cty/cty/function"
+	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
+
+var defaultEvalContext = &hcl.EvalContext{
+	Functions: map[string]function.Function{
+		"upper":  stdlib.UpperFunc,
+		"lower":  stdlib.LowerFunc,
+		"min":    stdlib.MinFunc,
+		"max":    stdlib.MaxFunc,
+		"strlen": stdlib.StrlenFunc,
+		"substr": stdlib.SubstrFunc,
+	},
+}
 
 type Config struct {
 	Board        BoardConfig        `hcl:"board,block"`
@@ -52,16 +66,24 @@ func ParseFile(filename string) (*Config, error) {
 		return nil, diags
 	}
 
-	funcs, body, diags := userfunc.DecodeUserFunctions(file.Body, "function", nil)
+	ctx := *defaultEvalContext
+
+	funcs, body, diags := userfunc.DecodeUserFunctions(file.Body, "function", func() *hcl.EvalContext {
+		return &ctx
+	})
 	if diags.HasErrors() {
 		return nil, diags
 	}
-	ctx := &hcl.EvalContext{
-		Functions: funcs,
+
+	for name, f := range funcs {
+		if _, ok := defaultEvalContext.Functions[name]; ok {
+			log.Printf("user overwrote standard function %q!", name)
+		}
+		ctx.Functions[name] = f
 	}
 
 	config := &Config{}
-	diags = gohcl.DecodeBody(body, ctx, config)
+	diags = gohcl.DecodeBody(body, &ctx, config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
