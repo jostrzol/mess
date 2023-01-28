@@ -43,7 +43,8 @@ func playerToCty(player *game.Player, pieces []*game.PieceOnSquare) cty.Value {
 		piecesCty[i] = pieceOnSquareToCty(piece)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
-		"color": cty.StringVal(player.Color.String()),
+		"color":  cty.StringVal(player.Color.String()),
+		"pieces": cty.ListVal(piecesCty),
 	})
 }
 
@@ -55,6 +56,9 @@ func pieceOnSquareToCty(pieceOnSquare *game.PieceOnSquare) cty.Value {
 }
 
 func playerFromCty(state *game.GameState, player cty.Value) (*game.Player, error) {
+	if player.IsNull() {
+		return nil, nil
+	}
 	winnerColorStr := player.GetAttr("color").AsString()
 	winnerColor, err := game.ColorString(winnerColorStr)
 	if err != nil {
@@ -66,3 +70,22 @@ func playerFromCty(state *game.GameState, player cty.Value) (*game.Player, error
 	}
 	return winner, nil
 }
+
+var SumFunc = function.New(&function.Spec{
+	Description: `Sums all the given numbers`,
+	Params:      []function.Parameter{},
+	VarParam: &function.Parameter{
+		Name:             "numbers",
+		Type:             cty.Number,
+		AllowDynamicType: true,
+	},
+	Type: function.StaticReturnType(cty.Number),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		sum := cty.Zero
+		for _, num := range args {
+			sum = sum.Add(num)
+		}
+
+		return sum, nil
+	},
+})

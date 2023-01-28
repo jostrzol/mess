@@ -15,29 +15,47 @@ piece_types {
 initial_state {
   pieces "white" {
     A1 = "king"
+    C5 = "queen"
   }
   pieces "black" {
     A2 = "king"
     B3 = "queen"
+    B5 = "pawn"
   }
 }
 
-function "calculate_points" {
+variable "piece_points" {
+  value = {
+    king = 1000
+    queen = 9
+    rook = 5
+    knight = 3
+    bishop = 3
+    pawn = 1
+  }
+}
+
+function "calc_player_points" {
   params = [player]
-  result = player.color == "white" ? 7 : 3
+  result = sum([for i, piece in player.pieces: piece_points[piece.type]]...)
 }
 
-function "points_to_players" {
+function "calc_points_per_player" {
   params = [players]
-  result = {for i, player in players: calculate_points(player) => player}
+  result = {for i, player in players: calc_player_points(player) => player...}
 }
 
-function "max_points" {
-  params = [players]
-  result = max([for i, player in players: calculate_points(player)]...)
+function "best_players" {
+  params = [points_per_player]
+  result = points_per_player[max(keys(points_per_player)...)]
+}
+
+function "pick_winner_or_draw" {
+  params = [best_players]
+  result = length(best_players) == 1 ? best_players[0] : null
 }
 
 function "decide_winner" {
   params = [game]
-  result = points_to_players(game.players)[max_points(game.players)]
+  result = pick_winner_or_draw(best_players(calc_points_per_player(game.players)))
 }

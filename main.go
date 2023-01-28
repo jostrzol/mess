@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/jostrzol/mess/config"
@@ -29,5 +30,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to resolve game: %s", err)
 	}
-	log.Printf("Winner is %v", winner)
+
+	if winner == nil {
+		fmt.Printf("Draw!")
+	} else {
+		fmt.Printf("Winner is %v!", winner)
+	}
 }

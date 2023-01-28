@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/game"
 	"github.com/mitchellh/mapstructure"
+	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
@@ -27,7 +28,10 @@ var defaultEvalContext = &hcl.EvalContext{
 		"keys":    stdlib.KeysFunc,
 		"values":  stdlib.ValuesFunc,
 		"element": stdlib.ElementFunc,
+		"length":  stdlib.LengthFunc,
+		"sum":     SumFunc,
 	},
+	Variables: make(map[string]cty.Value, 0),
 }
 
 type Config struct {
@@ -59,6 +63,16 @@ type PiecesConfig struct {
 	Placements  hcl.Attributes `hcl:",remain"`
 }
 
+type VariablesConfig struct {
+	Variables []VariableConfig `hcl:"variable,block"`
+	Remain    hcl.Body         `hcl:",remain"`
+}
+
+type VariableConfig struct {
+	Name  string         `hcl:"name,label"`
+	Value hcl.Expression `hcl:"value"`
+}
+
 func ParseFile(filename string) (*Config, error) {
 	src, err := os.ReadFile(filename)
 	if err != nil {
@@ -72,7 +86,24 @@ func ParseFile(filename string) (*Config, error) {
 
 	ctx := *defaultEvalContext
 
-	funcs, body, diags := userfunc.DecodeUserFunctions(file.Body, "function", func() *hcl.EvalContext {
+	variables := &VariablesConfig{}
+	diags = gohcl.DecodeBody(file.Body, &ctx, variables)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	for _, v := range variables.Variables {
+		if _, ok := defaultEvalContext.Variables[v.Name]; ok {
+			log.Printf("user overwrote standard variable %q!", v.Name)
+		}
+
+		ctx.Variables[v.Name], diags = v.Value.Value(&ctx)
+		if diags.HasErrors() {
+			return nil, diags
+		}
+	}
+
+	funcs, body, diags := userfunc.DecodeUserFunctions(variables.Remain, "function", func() *hcl.EvalContext {
 		return &ctx
 	})
 	if diags.HasErrors() {
@@ -152,7 +183,7 @@ func placePieces(state *game.GameState, pieces []PiecesConfig, pieceTypes map[st
 			}
 			pieceType := pieceTypes[pieceTypeName.AsString()]
 			if pieceType == nil {
-				return fmt.Errorf("piece type %q not defined", pieceTypeName)
+				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
 			}
 
 			piece := &game.Piece{
@@ -160,7 +191,7 @@ func placePieces(state *game.GameState, pieces []PiecesConfig, pieceTypes map[st
 				Owner: player,
 			}
 
-			err = state.Board.Place(piece, *square)
+			err = state.Board.Place(piece, square)
 			if err != nil {
 				return fmt.Errorf("placing a piece: %w", err)
 			}
