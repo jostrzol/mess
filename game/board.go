@@ -46,7 +46,7 @@ func ParseSquare(text string) (*Square, error) {
 		return nil, errors.New("malformed position")
 	}
 
-	file := int(strings.ToUpper(text)[0] - 'A')
+	file := int(strings.ToUpper(text)[0]-'A') + 1
 	rank, err := strconv.Atoi(string(text[1]))
 	if err != nil {
 		return nil, fmt.Errorf("parsing rank: %v", err)

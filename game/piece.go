@@ -5,6 +5,6 @@ type PieceType struct {
 }
 
 type Piece struct {
-	Type  PieceType
-	Owner Player
+	Type  *PieceType
+	Owner *Player
 }
