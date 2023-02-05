@@ -4,17 +4,22 @@ board {
 }
 
 // ===== HELPER FUNCTIONS ======================================
-
-// Checks if square is occupied by a piece of a given player
+// Checks if square is occupied by a piece of a given player.
 function "is_square_owned_by" {
   params = [square, player]
   result = square.piece != null && square.piece.owner == player
 }
 
+// Checks if the given piece has ever moved in the current game.
+function "has_ever_moved" {
+  params = [piece]
+  result = length([move for move in game.record if move.piece == piece]) != 0
+}
+
 // ===== MOVE FUNCTIONS ========================================
 // They receive 2 parameters:
-//  * square - the current square
-//  * piece - the current piece
+//  * square - the current square,
+//  * piece - the current piece,
 // and generate all the squares that the given piece can move to from the given square.
 
 // Generates moves to the straight neighbours (top, right, bottom, left)
