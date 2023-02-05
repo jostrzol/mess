@@ -5,7 +5,7 @@ board {
 }
 
 // ===== PIECE TYPES SPECIFICATION =============================
-// Each piece type should specify the motions it should be able to perform.
+// Each piece type should specify the motions it is able to perform.
 //
 // Motions are specified by giving a generator function name, which generates all possible destination
 // squares given:
