@@ -23,6 +23,12 @@ function "last_or_null" {
   result = length(collection) == 0 ? null : collection[length(collection) - 1]
 }
 
+// Returns all the squares connecting two given end-squares (including the end-squares)
+function "squares_connecting_horizontal" {
+  params = [end1, end2]
+  result = [get_square_absolute([x, end1.position[1]]) for x in range(end1.position[0], end2.position[0] + 1)]
+}
+
 // ===== MOVE FUNCTIONS ========================================
 // They receive 2 parameters:
 //  * square - the current square,
@@ -31,14 +37,32 @@ function "last_or_null" {
 
 // Generates moves to the straight neighbours (top, right, bottom, left)
 // of the current square, given that they are not occupied by the player
-// owning the current piece. Additionaly moving to checked squares (ones
+// owning the current piece. Additionaly moving to attacked squares (ones
 // which can be reached by any opponent's piece in the next turn) is blocked also.
 composite_function "move_neighbours_straight" {
   params = [square, piece]
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [get_square_relative(square, dpos) for dpos in dposes]
-    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !is_checked(square)]
+    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !is_attacked(square)]
+  }
+}
+
+// Generates castling moves (both queen-side and king-side).
+// Conditions:
+//   * the king must have never moved in this game,
+//   * the rook at the appropriate side must have never moved in this game,
+//   * there must be no pieces between the king and the rook,
+//   * squares on the king's path must not be attacked (including both ends).
+composite_function "move_castling" {
+  params = [square, piece]
+  result = {
+    rooks       = [_piece for _piece in piece.owner.pieces if _piece.type_name == "rook" && !has_ever_moved(_piece)]
+    paths       = [squares_connecting_horizontal(piece.square, rook.square) for rook in rooks]
+    king_paths  = [slice(path, 0, 3) for path in paths]
+    inner_paths = [slice(path, 1, -1) for path in paths]
+    king_dests  = [path[2] for path in paths]
+    return      = [dest for i, dest in king_dests if all([!s.is_attacked for s in king_paths[i]]...) && all([s.piece == null for s in inner_paths[i]]...) && !has_ever_moved(king)]
   }
 }
 
@@ -88,7 +112,7 @@ composite_function "move_en_passant" {
     dests     = [get_square_relative(square, dpos) for dpos in dposes]
     last_move = last_or_null(game.record)
     backward  = [-1 * dcoord for dcoord in piece.owner.forward_direction]
-    return    = [dest for dest in dests if dest != null && dest.piece == null && last_move != null && last_move.piece.type_name == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
+    return    = [dest for dest in dests if dest != null && dest.piece == null && last_move != null && last_move.piece.type_name == "rook" == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
   }
 }
 
@@ -140,10 +164,10 @@ composite_function "promote" {
   params = [piece, src, dest, game]
   result = {
     valid_piece_types = [type for type in piece_types if !contains(["king", "pawn"], type.name)]
-    forward_y = piece.owner.forward_direction[1]
-    last_rank = forward_y == 1 ? board.height : 1
-    _ = dest.rank == last_rank ? exchange_piece(piece, valid_piece_types) : null
-    return = null
+    forward_y         = piece.owner.forward_direction[1]
+    last_rank         = forward_y == 1 ? board.height : 1
+    _                 = dest.rank == last_rank ? exchange_piece(piece, valid_piece_types) : null
+    return            = null
   }
 }
 
@@ -151,9 +175,22 @@ composite_function "promote" {
 composite_function "capture_en_passant" {
   params = [piece, src, dest, game]
   result = {
-    backward = [-1 * dcoord for dcoord in piece.owner.forward_direction]
+    backward         = [-1 * dcoord for dcoord in piece.owner.forward_direction]
     piece_to_capture = get_square_relative(dest, backward).piece
-    _ = capture(piece_to_capture)
+    _                = capture(piece_to_capture)
+    return           = null
+  }
+}
+
+// Displaces the rook to the appropriate square after castling.
+composite_function "displace_rook_after_castling" {
+  params = [piece, src, dest, game]
+  result = {
+    dx = dest.position[0] - src.position[0]
+    rook_src_x = dx > 0 ? board.width
+    rook_src = get_square_absolute([rook_src_x, src.position[1]])
+    rook_dest = get_square_relative(dest, [dx > 0 ? -1 : 1, 0])
+    _ = move(rook_square.piece, rook_dest)
     return = null
   }
 }
@@ -176,7 +213,10 @@ composite_function "capture_en_passant" {
 
 piece_types {
   piece_type "king" {
-    // TODO: castling
+    move {
+      generator = "move_castling"
+      action = "displace_rook_after_castling"
+    }
     move {
       generator = "move_neighbours_straight"
     }
@@ -212,19 +252,18 @@ piece_types {
   piece_type "pawn" {
     move {
       generator = "move_forward_straight"
-      action = "promote"
+      action    = "promote"
     }
     move {
       generator = "move_forward_straight_double"
-      action = "promote"
     }
     move {
       generator = "move_forward_diagonal"
-      action = "promote"
+      action    = "promote"
     }
     move {
-      generator ="move_en_passant"
-      action = "capture_en_passant"
+      generator = "move_en_passant"
+      action    = "capture_en_passant"
     }
   }
 }
@@ -280,9 +319,9 @@ function "other_player" {
 function "check_mated_king" {
   params = [game]
   result = {
-    kings   = [piece for piece in game.players.*.pieces if piece.type_name == "king"]
-    checked = [king for king in kings if is_checked(king.square)]
-    mated   = [king for king in checked if length(valid_moves(king)) == 0]
+    kings   = [piece for piece in game.players.*.pieces if piece.type_name == "rook" == "king"]
+    checked = [king for king in kings if is_attacked(king.square)]
+    mated   = [king for king in attacked if length(valid_moves(king)) == 0]
     return  = length(mated) == 0 ? null : mated[0]
   }
 }
