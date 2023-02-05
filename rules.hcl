@@ -17,6 +17,12 @@ function "has_ever_moved" {
   result = length([move for move in game.record if move.piece == piece]) != 0
 }
 
+// Returns the last element in the given collection or null if empty.
+function "last_or_null" {
+  params = [collection]
+  result = length(collection) == 0 ? null : collection[length(collection) - 1]
+}
+
 // ===== MOVE FUNCTIONS ========================================
 // They receive 2 parameters:
 //  * square - the current square,
@@ -70,6 +76,22 @@ composite_function "move_forward_diagonal" {
   }
 }
 
+// Generates 2 moves (en passant): one square forwards and to either side, given that the
+// destination squares are free, and the last move was a "forward_straight_double"
+// by a pawn forwards to the destination file.
+composite_function "move_en_passant" {
+  params = [square, piece]
+  result = {
+    forward   = piece.owner.forward_direction
+    forward_y = forward[1]
+    dposes    = [[-1, forward_y], [1, forward_y]]
+    dests     = [get_square_relative(square, dpos) for dpos in dposes]
+    last_move = last_or_null(game.record)
+    backward  = [-1 * dcoord for dcoord in piece.owner.forward_direction]
+    return    = [dest for dest in dests if dest != null && dest.piece == null && last_move != null && last_move.piece.type_name == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
+  }
+}
+
 // Generates a maximum of 8 moves, meeting criteria:
 //   * first go 2 to any side,
 //   * then go 1 to any side, but the direction is perpendicular to the one of previous move.
@@ -111,7 +133,6 @@ composite_function "move_line_straight" {
   }
 }
 
-
 // ===== ACTION FUNCTIONS ========================================
 // Exchanges a piece for any other piece type except pawn and king. Works only on the last square
 // of the board.
@@ -122,6 +143,17 @@ composite_function "promote" {
     forward_y = piece.owner.forward_direction[1]
     last_rank = forward_y == 1 ? board.height : 1
     _ = dest.rank == last_rank ? exchange_piece(piece, valid_piece_types) : null
+    return = null
+  }
+}
+
+// Captures an opposing pawn after an en passant.
+composite_function "capture_en_passant" {
+  params = [piece, src, dest, game]
+  result = {
+    backward = [-1 * dcoord for dcoord in piece.owner.forward_direction]
+    piece_to_capture = get_square_relative(dest, backward).piece
+    _ = capture(piece_to_capture)
     return = null
   }
 }
@@ -178,7 +210,6 @@ piece_types {
   }
 
   piece_type "pawn" {
-    // TODO: en passant
     move {
       generator = "move_forward_straight"
       action = "promote"
@@ -190,6 +221,10 @@ piece_types {
     move {
       generator = "move_forward_diagonal"
       action = "promote"
+    }
+    move {
+      generator ="move_en_passant"
+      action = "capture_en_passant"
     }
   }
 }
@@ -259,7 +294,7 @@ function "check_mated_king" {
 function "pick_winner" {
   params = [game]
   result = {
-    losers_king = check_mated_king(game)
-    return      = losers_king == null ? [false, null] : [true, other_player(losers_king.owner)]
+    losing_king = check_mated_king(game)
+    return      = losing_king == null ? [false, null] : [true, other_player(losing_king.owner)]
   }
 }
