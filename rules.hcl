@@ -25,14 +25,14 @@ function "has_ever_moved" {
 
 // Generates moves to the straight neighbours (top, right, bottom, left)
 // of the current square, given that they are not occupied by the player
-// owning the current piece. Additionaly moving to dangerous squares (ones
+// owning the current piece. Additionaly moving to checked squares (ones
 // which can be reached by any opponent's piece in the next turn) is blocked also.
 composite_function "move_neighbours_straight" {
   params = [square, piece]
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [get_square_relative(square, dpos) for dpos in dposes]
-    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !is_dangerous(square)]
+    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !is_checked(square)]
   }
 }
 
@@ -228,7 +228,7 @@ function "check_mated_king" {
   params = [game]
   result = {
     kings = [piece for piece in game.players.*.pieces if piece.type_name == "king"]
-    checked = [king for king in kings if is_dangerous(king.square)]
+    checked = [king for king in kings if is_checked(king.square)]
     mated = [king for king in checked if length(valid_moves(king)) == 0]
     return = length(mated) == 0 ? null : mated[0]
   }
