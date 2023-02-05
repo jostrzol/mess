@@ -4,30 +4,81 @@ board {
   width  = 8
 }
 
-// ===== HELPER FUNCTIONS ======================================
-// Checks if square is occupied by a piece of a given player.
-function "is_square_owned_by" {
-  params = [square, player]
-  result = square.piece != null && square.piece.owner == player
+// ===== PIECE TYPES SPECIFICATION =============================
+// Each piece type should specify the moves it should be able to perform.
+//
+// Moves are specified by giving a generator function name, which generates all possible destination
+// squares given:
+//   * the current square of the piece,
+//   * the piece that is about to move.
+//
+// Moves can specify special actions that can alter the game state after the move is taken via
+// attribute "actions", pointing to functions that receive:
+//   * the piece that moved,
+//   * the starting square,
+//   * the destination square,
+//   * the current game state.
+//  Such an action can be for example pawn promotion.
+//
+// Both generator and action functions are specified below the piece types definition.
+
+piece_types {
+  piece_type "king" {
+    move {
+      generator = "move_castling"
+      actions   = ["displace_rook_after_castling"]
+    }
+    move {
+      generator = "move_neighbours_straight"
+    }
+  }
+
+  piece_type "queen" {
+    move {
+      generator = "move_line_diagonal"
+    }
+    move {
+      generator = "move_line_straight"
+    }
+  }
+
+  piece_type "rook" {
+    move {
+      generator = "move_line_straight"
+    }
+  }
+
+  piece_type "knight" {
+    move {
+      generator = "move_hook"
+    }
+  }
+
+  piece_type "bishop" {
+    move {
+      generator = "move_line_diagonal"
+    }
+  }
+
+  piece_type "pawn" {
+    move {
+      generator = "move_forward_straight"
+      actions   = ["promote"]
+    }
+    move {
+      generator = "move_forward_straight_double"
+    }
+    move {
+      generator = "move_forward_diagonal"
+      actions   = ["promote"]
+    }
+    move {
+      generator = "move_en_passant"
+      actions   = ["capture_en_passant"]
+    }
+  }
 }
 
-// Checks if the given piece has ever moved in the current game.
-function "has_ever_moved" {
-  params = [piece]
-  result = length([move for move in game.record if move.piece == piece]) != 0
-}
-
-// Returns the last element in the given collection or null if empty.
-function "last_or_null" {
-  params = [collection]
-  result = length(collection) == 0 ? null : collection[length(collection) - 1]
-}
-
-// Returns all the squares connecting two given end-squares (including the end-squares)
-function "squares_connecting_horizontal" {
-  params = [end1, end2]
-  result = [get_square_absolute([x, end1.position[1]]) for x in range(end1.position[0], end2.position[0] + 1)]
-}
 
 // ===== MOVE FUNCTIONS ========================================
 // They receive 2 parameters:
@@ -38,7 +89,7 @@ function "squares_connecting_horizontal" {
 // Generates moves to the straight neighbours (top, right, bottom, left)
 // of the current square, given that they are not occupied by the player
 // owning the current piece. Additionaly moving to attacked squares (ones
-// which can be reached by any opponent's piece in the next turn) is blocked also.
+// which can be reached by any opponent's piece in the next turn) is blocked.
 composite_function "move_neighbours_straight" {
   params = [square, piece]
   result = {
@@ -89,7 +140,7 @@ composite_function "move_forward_straight_double" {
 }
 
 // Generates 2 moves: one square forwards and to either side, given that the
-// destination squares are occupied, but not by the player owning the current piece.
+// destination squares are occupied by the opposing player.
 composite_function "move_forward_diagonal" {
   params = [square, piece]
   result = {
@@ -102,7 +153,7 @@ composite_function "move_forward_diagonal" {
 
 // Generates 2 moves (en passant): one square forwards and to either side, given that the
 // destination squares are free, and the last move was a "forward_straight_double"
-// by a pawn forwards to the destination file.
+// by an opposing pawn placed the destination file.
 composite_function "move_en_passant" {
   params = [square, piece]
   result = {
@@ -130,9 +181,9 @@ composite_function "move_hook" {
 }
 
 // Generates moves from current position (param 'square') in the given direction (param 'dpos' in
-// form [dx, dy]) until end of board or a piece is encountered. If said piece has the same owner as
-// the one in param 'piece', the last square is excluded from the generated square, else it is
-// included.
+// form [dx, dy]) until end of board or a piece is encountered. If said piece belongs to the same
+// player as the one in param 'piece', the last square is excluded from the generated square, else
+// it is included.
 composite_function "move_line" {
   params = [square, piece, dpos]
   result = {
@@ -158,8 +209,15 @@ composite_function "move_line_straight" {
 }
 
 // ===== ACTION FUNCTIONS ========================================
-// Exchanges a piece for any other piece type except pawn and king. Works only on the last square
-// of the board.
+// Actions executed after piece movement. They receive 4 parameters:
+//  * piece - the piece that just moved,
+//  * src - the source square,
+//  * dest - the destination square,
+//  * game - the current state,
+// and can alter the game's state.
+
+// Exchanges a piece for a new one of any type except pawn and king. Works only if moved to the last
+// rank.
 composite_function "promote" {
   params = [piece, src, dest, game]
   result = {
@@ -186,86 +244,38 @@ composite_function "capture_en_passant" {
 composite_function "displace_rook_after_castling" {
   params = [piece, src, dest, game]
   result = {
-    dx = dest.position[0] - src.position[0]
+    dx         = dest.position[0] - src.position[0]
     rook_src_x = dx > 0 ? board.width
-    rook_src = get_square_absolute([rook_src_x, src.position[1]])
-    rook_dest = get_square_relative(dest, [dx > 0 ? -1 : 1, 0])
-    _ = move(rook_square.piece, rook_dest)
-    return = null
+    rook_src   = get_square_absolute([rook_src_x, src.position[1]])
+    rook_dest  = get_square_relative(dest, [dx > 0 ? -1 : 1, 0])
+    _          = move(rook_square.piece, rook_dest)
+    return     = null
   }
 }
 
-// ===== PIECE TYPES SPECIFICATION =============================
-// Each piece type should specify the moves it should be able to perform.
-//
-// Moves are specified by giving a generator function, which generates all possible destination
-// squares given:
-//   * the current square of the piece,
-//   * the piece that is about to move.
-//
-// Moves can specify special actions that can alter the game state after the move is taken via
-// attribute "action", pointing to a function that receives:
-//   * the piece that moved,
-//   * the starting square,
-//   * the destination square,
-//   * the current game state.
-//  Such an action can be for example pawn promotion.
+// ===== HELPER FUNCTIONS ======================================
+// Checks if square is occupied by a piece of a given player.
+function "is_square_owned_by" {
+  params = [square, player]
+  result = square.piece != null && square.piece.owner == player
+}
 
-piece_types {
-  piece_type "king" {
-    move {
-      generator = "move_castling"
-      action = "displace_rook_after_castling"
-    }
-    move {
-      generator = "move_neighbours_straight"
-    }
-  }
+// Checks if the given piece has ever moved in the current game.
+function "has_ever_moved" {
+  params = [piece]
+  result = length([move for move in game.record if move.piece == piece]) != 0
+}
 
-  piece_type "queen" {
-    move {
-      generator = "move_line_diagonal"
-    }
-    move {
-      generator = "move_line_straight"
-    }
-  }
+// Returns the last element in the given collection or null if empty.
+function "last_or_null" {
+  params = [collection]
+  result = length(collection) == 0 ? null : collection[length(collection) - 1]
+}
 
-  piece_type "rook" {
-    move {
-      generator = "move_line_straight"
-    }
-  }
-
-  piece_type "knight" {
-    move {
-      generator = "move_hook"
-    }
-  }
-
-  piece_type "bishop" {
-    move {
-      generator = "move_line_diagonal"
-    }
-  }
-
-  piece_type "pawn" {
-    move {
-      generator = "move_forward_straight"
-      action    = "promote"
-    }
-    move {
-      generator = "move_forward_straight_double"
-    }
-    move {
-      generator = "move_forward_diagonal"
-      action    = "promote"
-    }
-    move {
-      generator = "move_en_passant"
-      action    = "capture_en_passant"
-    }
-  }
+// Returns all the squares connecting two given end-squares (including the end-squares)
+function "squares_connecting_horizontal" {
+  params = [end1, end2]
+  result = [get_square_absolute([x, end1.position[1]]) for x in range(end1.position[0], end2.position[0] + 1)]
 }
 
 // ===== INITIAL GAME STATE SPECIFICATION ======================
@@ -309,14 +319,22 @@ initial_state {
 }
 
 // ===== GAME RESOLVING FUNCTIONS ==============================
-// Returns the other player than the one given.
-function "other_player" {
-  params = [this_player]
-  result = [player for player in game.players if player != this_player]
+// Namely the function "pick_winner" and its helpers
+
+// This function is called at the start of every turn.
+// Returns a tuple in form [is_finished, winner]. If is_finished == true and winner == null
+// then draw is concluded. Stalemate is "hardcoded" into the game - the rules don't have
+// to specify it explicitly.
+composite_function "pick_winner" {
+  params = [game]
+  result = {
+    losing_king = check_mated_king(game)
+    return      = losing_king == null ? [false, null] : [true, other_player(losing_king.owner)]
+  }
 }
 
 // Returns the check_mated king, if any - else returns null.
-function "check_mated_king" {
+composite_function "check_mated_king" {
   params = [game]
   result = {
     kings   = [piece for piece in game.players.*.pieces if piece.type_name == "rook" == "king"]
@@ -326,14 +344,8 @@ function "check_mated_king" {
   }
 }
 
-// This function is called at the start of every turn.
-// Returns a tuple in form [is_finished, winner]. If is_finished == true and winner == null
-// then draw is concluded. Stalemate is "hardcoded" into the game - the rules don't have
-// to specify it explicitly.
-function "pick_winner" {
-  params = [game]
-  result = {
-    losing_king = check_mated_king(game)
-    return      = losing_king == null ? [false, null] : [true, other_player(losing_king.owner)]
-  }
+// Returns the other player than the one given.
+function "other_player" {
+  params = [this_player]
+  result = [player for player in game.players if player != this_player]
 }
