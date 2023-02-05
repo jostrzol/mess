@@ -46,7 +46,7 @@ composite_function "move_forward_straight_double" {
   result = {
     dpos = [dcoord * 2 for dcoord in piece.owner.forward_direction]
     dest = get_square_relative(square, dpos)
-    return = dest != null && dest.piece == null && ? [dest] : []
+    return = dest != null && dest.piece == null && !has_ever_moved(piece) ? [dest] : []
   }
 }
 
@@ -108,15 +108,52 @@ composite_function "move_line_straight" {
 
 piece_types {
   piece_type "king" {
+    // TODO: castling
+    // TODO: block moving to dangerous squares
     move {
-
+      generator = "move_neighbours_straight"
     }
   }
-  piece_type "queen" {}
-  piece_type "rook" {}
-  piece_type "knight" {}
-  piece_type "bishop" {}
-  piece_type "pawn" {}
+
+  piece_type "queen" {
+    move {
+      generator = "move_line_diagonal"
+    }
+    move {
+      generator = "move_line_straight"
+    }
+  }
+
+  piece_type "rook" {
+    move {
+      generator = "move_line_straight"
+    }
+  }
+
+  piece_type "knight" {
+    move {
+      generator = "move_hook"
+    }
+  }
+
+  piece_type "bishop" {
+    move {
+      generator = "move_line_diagonal"
+    }
+  }
+
+  piece_type "pawn" {
+    // TODO: en passant
+    move {
+      generator = "move_forward_straight"
+    }
+    move {
+      generator = "move_forward_straight_double"
+    }
+    move {
+      generator = "move_forward_diagonal"
+    }
+  }
 }
 
 initial_state {
