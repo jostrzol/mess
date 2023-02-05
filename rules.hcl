@@ -228,10 +228,10 @@ function "other_player" {
 function "check_mated_king" {
   params = [game]
   result = {
-    kings = [piece for piece in game.players.*.pieces if piece.type_name == "king"]
+    kings   = [piece for piece in game.players.*.pieces if piece.type_name == "king"]
     checked = [king for king in kings if is_checked(king.square)]
-    mated = [king for king in checked if length(valid_moves(king)) == 0]
-    return = length(mated) == 0 ? null : mated[0]
+    mated   = [king for king in checked if length(valid_moves(king)) == 0]
+    return  = length(mated) == 0 ? null : mated[0]
   }
 }
 
@@ -243,6 +243,6 @@ function "pick_winner" {
   params = [game]
   result = {
     losers_king = check_mated_king(game)
-    return = losers_king == null ? [false, null] : [true, other_player(losers_king.owner)]
+    return      = losers_king == null ? [false, null] : [true, other_player(losers_king.owner)]
   }
 }
