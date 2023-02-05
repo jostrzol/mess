@@ -56,7 +56,7 @@ composite_function "move_forward_straight_double" {
 }
 
 // Generates 2 moves: one square forwards and to either side, given that the
-// destination squares are not occupied by the player owning the current piece.
+// destination squares are occupied, but not by the player owning the current piece.
 composite_function "move_forward_diagonal" {
   params = [square, piece]
   result = {
@@ -66,7 +66,7 @@ composite_function "move_forward_diagonal" {
     dest1 = get_square_relative(square, forward_left)
     dest2 = get_square_relative(square, forward_right)
     dests = [dest1, dest2]
-    return = [dest for dest in dests if dest != null && !is_square_owned_by(piece.owner)]
+    return = [dest for dest in dests if dest != null && dest.piece != null && dest.piece.owner != piece.owner)]
   }
 }
 
