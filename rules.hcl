@@ -337,7 +337,7 @@ composite_function "pick_winner" {
 composite_function "check_mated_king" {
   params = [game]
   result = {
-    kings   = [piece for piece in game.players.*.pieces if piece.type_name == "rook" == "king"]
+    kings   = [piece for piece in game.players.*.pieces if piece.type_name == "king"]
     checked = [king for king in kings if is_attacked(king.square)]
     mated   = [king for king in attacked if length(valid_moves(king)) == 0]
     return  = length(mated) == 0 ? null : mated[0]
