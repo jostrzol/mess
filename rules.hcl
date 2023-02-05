@@ -1,6 +1,6 @@
 board {
   height = 8
-  width = 8
+  width  = 8
 }
 
 // ===== HELPER FUNCTIONS ======================================
@@ -30,7 +30,7 @@ composite_function "move_neighbours_straight" {
   params = [square, piece]
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
-    neighbours_straight = [get_square_relative(square, dpos) for dpos in dposes]
+    dests  = [get_square_relative(square, dpos) for dpos in dposes]
     return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !square.is_dangerous]
   }
 }
@@ -40,7 +40,7 @@ composite_function "move_neighbours_straight" {
 composite_function "move_forward_straight" {
   params = [square, piece]
   result = {
-    dest = get_square_relative(square, piece.owner.forward_direction)
+    dest   = get_square_relative(square, piece.owner.forward_direction)
     return = dest != null && dest.piece == null ? [dest] : []
   }
 }
@@ -50,8 +50,8 @@ composite_function "move_forward_straight" {
 composite_function "move_forward_straight_double" {
   params = [square, piece]
   result = {
-    dpos = [dcoord * 2 for dcoord in piece.owner.forward_direction]
-    dest = get_square_relative(square, dpos)
+    dpos   = [dcoord * 2 for dcoord in piece.owner.forward_direction]
+    dest   = get_square_relative(square, dpos)
     return = dest != null && dest.piece == null && !has_ever_moved(piece) ? [dest] : []
   }
 }
@@ -62,12 +62,9 @@ composite_function "move_forward_diagonal" {
   params = [square, piece]
   result = {
     forward_y = piece.owner.forward_direction[1]
-    forward_left = [-1, forward_y]
-    forward_right = [1, forward_y]
-    dest1 = get_square_relative(square, forward_left)
-    dest2 = get_square_relative(square, forward_right)
-    dests = [dest1, dest2]
-    return = [dest for dest in dests if dest != null && dest.piece != null && dest.piece.owner != piece.owner)]
+    dposes    = [[-1, forward_y], [1, forward_y]]
+    dests     = [get_square_relative(square, dpos) for dpos in dposes]
+    return    = [dest for dest in dests if dest != null && dest.piece != null && dest.piece.owner != piece.owner]
   }
 }
 
@@ -79,7 +76,7 @@ composite_function "move_hook" {
   params = [square, piece]
   result = {
     dposes = [[2, 1], [2, -1], [-2, 1], [-2, -1], [1, 2], [-1, 2], [1, -2], [-1, -2]]
-    dests = [get_square_relative(square, dpos) for dpos in dposes]
+    dests  = [get_square_relative(square, dpos) for dpos in dposes]
     return = [dest for dest in dests if dest != null && !is_square_owned_by(piece.owner)]
   }
 }
@@ -91,7 +88,7 @@ composite_function "move_hook" {
 composite_function "move_line" {
   params = [square, piece, dpos]
   result = {
-    next = get_square_relative(square, dpos)
+    next   = get_square_relative(square, dpos)
     return = next == null ? [] : next.piece == null ? [next, moves_line(next, piece, dpos)...] : is_square_owned_by(next, piece.owner) ? [] : [next]
   }
 }
@@ -202,23 +199,23 @@ initial_state {
 
 variable "piece_points" {
   value = {
-    king = 1000
-    queen = 9
-    rook = 5
+    king   = 1000
+    queen  = 9
+    rook   = 5
     knight = 3
     bishop = 3
-    pawn = 1
+    pawn   = 1
   }
 }
 
 function "calc_player_points" {
   params = [player]
-  result = sum([for i, piece in player.pieces: piece_points[piece.type]]...)
+  result = sum([for i, piece in player.pieces : piece_points[piece.type]]...)
 }
 
 function "calc_points_per_player" {
   params = [players]
-  result = {for i, player in players: calc_player_points(player) => player...}
+  result = { for i, player in players : calc_player_points(player) => player... }
 }
 
 function "best_players" {
