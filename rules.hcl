@@ -1,3 +1,4 @@
+// ===== BOARD SPECIFICATION ===================================
 board {
   height = 8
   width  = 8
@@ -31,7 +32,7 @@ composite_function "move_neighbours_straight" {
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [get_square_relative(square, dpos) for dpos in dposes]
-    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !square.is_dangerous]
+    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !is_dangerous(square)]
   }
 }
 
@@ -45,8 +46,8 @@ composite_function "move_forward_straight" {
   }
 }
 
-// Generates a move two square forwards, given that the destination square
-// is not occupied by any piece and that the piece has not moved yet before.
+// Generates a move two square forwards, given that both the destination square and the transitional
+// square are not occupied by any piece and that the piece has not moved yet before.
 composite_function "move_forward_straight_double" {
   params = [square, piece]
   result = {
@@ -109,6 +110,22 @@ composite_function "move_line_straight" {
   }
 }
 
+// ===== PIECE TYPES SPECIFICATION =============================
+// Each piece type should specify the moves it should be able to perform.
+//
+// Moves are specified by giving a generator function, which generates all possible destination
+// squares given:
+//   * the current square of the piece,
+//   * the piece that is about to move.
+//
+// Moves can specify special actions that can alter the game state after the move is taken via
+// attribute "action", pointing to a function that receives:
+//   * the piece that moved,
+//   * the starting square,
+//   * the destination square,
+//   * the current game state.
+//  Such an action can be for example pawn promotion.
+
 piece_types {
   piece_type "king" {
     // TODO: castling
@@ -145,6 +162,7 @@ piece_types {
   }
 
   piece_type "pawn" {
+    // TODO: promotion
     // TODO: en passant
     move {
       generator = "move_forward_straight"
@@ -158,6 +176,7 @@ piece_types {
   }
 }
 
+// ===== INITIAL GAME STATE SPECIFICATION ======================
 initial_state {
   pieces "white" {
     A1 = "rook"
@@ -197,38 +216,32 @@ initial_state {
   }
 }
 
-variable "piece_points" {
-  value = {
-    king   = 1000
-    queen  = 9
-    rook   = 5
-    knight = 3
-    bishop = 3
-    pawn   = 1
+// ===== GAME RESOLVING FUNCTIONS ==============================
+// Returns the other player than the one given.
+function "other_player" {
+  params = [this_player]
+  result = [player for player in game.players if player != this_player]
+}
+
+// Returns the check_mated king, if any - else returns null.
+function "check_mated_king" {
+  params = [game]
+  result = {
+    kings = [piece for piece in game.players.*.pieces if piece.type_name == "king"]
+    checked = [king for king in kings if is_dangerous(king.square)]
+    mated = [king for king in checked if length(valid_moves(king)) == 0]
+    return = length(mated) == 0 ? null : mated[0]
   }
 }
 
-function "calc_player_points" {
-  params = [player]
-  result = sum([for i, piece in player.pieces : piece_points[piece.type]]...)
-}
-
-function "calc_points_per_player" {
-  params = [players]
-  result = { for i, player in players : calc_player_points(player) => player... }
-}
-
-function "best_players" {
-  params = [points_per_player]
-  result = points_per_player[max(keys(points_per_player)...)]
-}
-
-function "pick_winner_or_draw" {
-  params = [best_players]
-  result = length(best_players) == 1 ? best_players[0] : null
-}
-
-function "decide_winner" {
+// This function is called at the start of every turn.
+// Returns a tuple in form [is_finished, winner]. If is_finished == true and winner == null
+// then draw is concluded. Stalemate is "hardcoded" into the game - the rules don't have
+// to specify it explicitly.
+function "pick_winner" {
   params = [game]
-  result = pick_winner_or_draw(best_players(calc_points_per_player(game.players)))
+  result = {
+    losers_king = check_mated_king(game)
+    return = losers_king == null ? [false, null] : [true, other_player(losers_king.owner)]
+  }
 }
