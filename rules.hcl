@@ -24,13 +24,14 @@ function "has_ever_moved" {
 
 // Generates moves to the straight neighbours (top, right, bottom, left)
 // of the current square, given that they are not occupied by the player
-// owning the current piece.
+// owning the current piece. Additionaly moving to dangerous squares (ones
+// which can be reached by any opponent's piece in the next turn) is blocked also.
 composite_function "move_neighbours_straight" {
   params = [square, piece]
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     neighbours_straight = [get_square_relative(square, dpos) for dpos in dposes]
-    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner)]
+    return = [neighbour for neighbour in neighbours_straight if !is_square_owned_by(square, piece.owner) && !square.is_dangerous]
   }
 }
 
@@ -114,7 +115,6 @@ composite_function "move_line_straight" {
 piece_types {
   piece_type "king" {
     // TODO: castling
-    // TODO: block moving to dangerous squares
     move {
       generator = "move_neighbours_straight"
     }
