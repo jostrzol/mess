@@ -53,7 +53,8 @@ composite_function "move_forward_straight_double" {
   result = {
     dpos   = [dcoord * 2 for dcoord in piece.owner.forward_direction]
     dest   = get_square_relative(square, dpos)
-    return = dest != null && dest.piece == null && !has_ever_moved(piece) ? [dest] : []
+    middle = get_square_relative(square, piece.owner.forward_direction)
+    return = dest != null && dest.piece == null && middle.piece == null && !has_ever_moved(piece) ? [dest] : []
   }
 }
 
