@@ -80,7 +80,7 @@ piece_types {
 }
 
 
-// ===== MOTION FUNCTIONS ======================================
+// ===== MOTION GENERATOR FUNCTIONS ============================
 // They receive 2 parameters:
 //  * square - the current square,
 //  * piece - the current piece,
