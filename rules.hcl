@@ -163,7 +163,7 @@ composite_function "motion_en_passant" {
     dests     = [get_square_relative(square, dpos) for dpos in dposes]
     last_move = last_or_null(game.record)
     backward  = [-1 * dcoord for dcoord in piece.owner.forward_direction]
-    return    = [dest for dest in dests if dest != null && dest.piece == null && last_move != null && last_move.piece.type_name == "rook" == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
+    return    = [dest for dest in dests if dest != null && dest.piece == null && last_move != null && last_move.piece.type_name == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
   }
 }
 
