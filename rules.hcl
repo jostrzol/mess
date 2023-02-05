@@ -188,7 +188,7 @@ composite_function "move_line" {
   params = [square, piece, dpos]
   result = {
     next   = get_square_relative(square, dpos)
-    return = next == null ? [] : next.piece == null ? [next, moves_line(next, piece, dpos)...] : is_square_owned_by(next, piece.owner) ? [] : [next]
+    return = next == null ? [] : next.piece == null ? [next, move_line(next, piece, dpos)...] : is_square_owned_by(next, piece.owner) ? [] : [next]
   }
 }
 
@@ -196,7 +196,7 @@ composite_function "move_line_diagonal" {
   params = [square, piece]
   result = {
     dposes = [[-1, 1], [1, 1], [1, -1], [-1, -1]]
-    return = [moves_line(square, piece, dpos)... for dpos in dposes]
+    return = [move_line(square, piece, dpos)... for dpos in dposes]
   }
 }
 
@@ -204,7 +204,7 @@ composite_function "move_line_straight" {
   params = [square, piece]
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
-    return = [moves_line(square, piece, dpos)... for dpos in dposes]
+    return = [move_line(square, piece, dpos)... for dpos in dposes]
   }
 }
 
