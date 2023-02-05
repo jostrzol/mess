@@ -111,10 +111,19 @@ composite_function "move_line_straight" {
   }
 }
 
-// Exchanges a piece for any other piece type except pawn and king.
-function "promote" {
+
+// ===== ACTION FUNCTIONS ========================================
+// Exchanges a piece for any other piece type except pawn and king. Works only on the last square
+// of the board.
+composite_function "promote" {
   params = [piece, src, dest, game]
-  return = exchange_piece(piece, [type for type in piece_types if !contains(["king", "pawn"], type.name)])
+  result = {
+    valid_piece_types = [type for type in piece_types if !contains(["king", "pawn"], type.name)]
+    forward_y = piece.owner.forward_direction[1]
+    last_rank = forward_y == 1 ? board.height : 1
+    _ = dest.rank == last_rank ? exchange_piece(piece, valid_piece_types) : null
+    return = null
+  }
 }
 
 // ===== PIECE TYPES SPECIFICATION =============================
@@ -176,9 +185,11 @@ piece_types {
     }
     move {
       generator = "move_forward_straight_double"
+      action = "promote"
     }
     move {
       generator = "move_forward_diagonal"
+      action = "promote"
     }
   }
 }
