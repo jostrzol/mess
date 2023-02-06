@@ -208,6 +208,21 @@ composite_function "motion_line_straight" {
   }
 }
 
+// ===== GAME STATE VALIDATORS ===================================
+// Validators are called just after a move is taken. If any validator returns false, then the move
+// is reversed - it cannot be completed.
+// Validators receive:
+//   * the current game state,
+//   * the last move,
+// and return true if the state is valid or false otherwise.
+
+state_validators {
+  function "is_king_safe" {
+    params = [game, move]
+    result = all([!is_attacked(piece.square) for piece in move.player.pieces if piece.type_name == "king"]...)
+  }
+}
+
 // ===== ACTION FUNCTIONS ========================================
 // Actions executed after piece movement. They receive 4 parameters:
 //  * piece - the piece that just moved,
