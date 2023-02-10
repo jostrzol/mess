@@ -55,7 +55,11 @@ function "pick_winner_or_draw" {
   result = length(best_players) == 1 ? best_players[0] : null
 }
 
-function "decide_winner" {
+composite_function "decide_winner" {
   params = [game]
-  result = pick_winner_or_draw(best_players(calc_points_per_player(game.players)))
+  result = {
+    points_per_player = calc_points_per_player(game.players)
+    best_players = best_players(points_per_player)
+    return = pick_winner_or_draw(best_players)
+  }
 }
