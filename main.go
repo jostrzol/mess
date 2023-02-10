@@ -12,7 +12,7 @@ func main() {
 	var configFilename = flag.String("rules", "./rules.hcl", "path to a rules config file")
 	flag.Parse()
 
-	config, err := config.ParseFile(*configFilename)
+	config, err := config.DecodeConfig(*configFilename)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %s", err)
 	}

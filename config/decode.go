@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/config/composeuserfunc"
-	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/config/messfuncs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
@@ -30,51 +30,51 @@ var defaultEvalContext = &hcl.EvalContext{
 		"values":  stdlib.ValuesFunc,
 		"element": stdlib.ElementFunc,
 		"length":  stdlib.LengthFunc,
-		"sum":     SumFunc,
+		"sum":     messfuncs.SumFunc,
 	},
 	Variables: make(map[string]cty.Value, 0),
 }
 
-type Config struct {
-	Board        BoardConfig        `hcl:"board,block"`
-	PieceTypes   PieceTypesConfig   `hcl:"piece_types,block"`
-	InitialState InitialStateConfig `hcl:"initial_state,block"`
-	Functions    FunctionsConfig
+type config struct {
+	Board        boardConfig        `hcl:"board,block"`
+	PieceTypes   pieceTypesConfig   `hcl:"piece_types,block"`
+	InitialState initialStateConfig `hcl:"initial_state,block"`
+	Functions    CallbackFunctionsConfig
 }
 
-type BoardConfig struct {
+type boardConfig struct {
 	Height uint `hcl:"height"`
 	Width  uint `hcl:"width"`
 }
 
-type PieceTypesConfig struct {
-	PieceTypes []PieceTypeConfig `hcl:"piece_type,block"`
+type pieceTypesConfig struct {
+	PieceTypes []pieceTypeConfig `hcl:"piece_type,block"`
 }
 
-type PieceTypeConfig struct {
+type pieceTypeConfig struct {
 	Name string `hcl:"piece_name,label"`
 }
 
-type InitialStateConfig struct {
-	Pieces []PiecesConfig `hcl:"pieces,block"`
+type initialStateConfig struct {
+	Pieces []piecesConfig `hcl:"pieces,block"`
 }
 
-type PiecesConfig struct {
+type piecesConfig struct {
 	PlayerColor string         `hcl:"player_name,label"`
 	Placements  hcl.Attributes `hcl:",remain"`
 }
 
-type VariablesConfig struct {
-	Variables []VariableConfig `hcl:"variable,block"`
+type variablesConfig struct {
+	Variables []variableConfig `hcl:"variable,block"`
 	Remain    hcl.Body         `hcl:",remain"`
 }
 
-type VariableConfig struct {
+type variableConfig struct {
 	Name  string         `hcl:"name,label"`
 	Value hcl.Expression `hcl:"value"`
 }
 
-func ParseFile(filename string) (*Config, error) {
+func DecodeConfig(filename string) (*config, error) {
 	src, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func ParseFile(filename string) (*Config, error) {
 
 	ctx := *defaultEvalContext
 
-	variables := &VariablesConfig{}
+	variables := &variablesConfig{}
 	diags = gohcl.DecodeBody(file.Body, &ctx, variables)
 	if diags.HasErrors() {
 		return nil, diags
@@ -134,7 +134,7 @@ func ParseFile(filename string) (*Config, error) {
 		ctx.Functions[name] = f
 	}
 
-	config := &Config{}
+	config := &config{}
 	diags = gohcl.DecodeBody(body, &ctx, config)
 	if diags.HasErrors() {
 		return nil, diags
@@ -146,77 +146,4 @@ func ParseFile(filename string) (*Config, error) {
 	}
 
 	return config, nil
-}
-
-func (c *Config) ToGame() (*game.GameState, error) {
-	board, err := game.NewBoard(int(c.Board.Width), int(c.Board.Height))
-	if err != nil {
-		return nil, fmt.Errorf("creating board: %w", err)
-	}
-
-	pieceTypes := make(map[string]*game.PieceType, len(c.PieceTypes.PieceTypes))
-	for _, pieceType := range c.PieceTypes.PieceTypes {
-		pieceTypes[pieceType.Name] = &game.PieceType{
-			Name: pieceType.Name,
-		}
-	}
-
-	players := game.NewPlayers()
-
-	state := &game.GameState{
-		Board:   board,
-		Players: players,
-	}
-
-	err = placePieces(state, c.InitialState.Pieces, pieceTypes)
-	if err != nil {
-		return nil, fmt.Errorf("placing initial pieces: %w", err)
-	}
-
-	return state, nil
-}
-
-func placePieces(state *game.GameState, pieces []PiecesConfig, pieceTypes map[string]*game.PieceType) error {
-	for _, pieces := range pieces {
-		color, err := game.ColorString(pieces.PlayerColor)
-		if err != nil {
-			return fmt.Errorf("parsing player color: %w", err)
-		}
-		player, err := state.GetPlayer(color)
-		if err != nil {
-			return fmt.Errorf("getting player: %w", err)
-		}
-
-		for _, piecePlacement := range pieces.Placements {
-			squareString := piecePlacement.Name
-			square, err := game.ParseSquare(squareString)
-			if err != nil {
-				return fmt.Errorf("parsing square: %w", err)
-			}
-
-			pieceTypeName, diags := piecePlacement.Expr.Value(nil)
-			if diags.HasErrors() {
-				return fmt.Errorf("parsing piece type: %w", diags)
-			}
-			pieceType := pieceTypes[pieceTypeName.AsString()]
-			if pieceType == nil {
-				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
-			}
-
-			piece := &game.Piece{
-				Type:  pieceType,
-				Owner: player,
-			}
-
-			err = state.Board.Place(piece, square)
-			if err != nil {
-				return fmt.Errorf("placing a piece: %w", err)
-			}
-		}
-	}
-	return nil
-}
-
-func (c *Config) ToController() game.GameController {
-	return c.Functions
 }
