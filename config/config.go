@@ -126,8 +126,10 @@ func ParseFile(filename string) (*Config, error) {
 	}
 
 	for name, f := range compositeFuncs {
-		if _, ok := defaultEvalContext.Functions[name]; ok {
-			log.Printf("user overwrote standard or simple function %q!", name)
+		if _, ok := funcs[name]; ok {
+			return nil, fmt.Errorf("user function name clash: %q", name)
+		} else if _, ok := defaultEvalContext.Functions[name]; ok {
+			log.Printf("user overwrote standard function %q!", name)
 		}
 		ctx.Functions[name] = f
 	}
