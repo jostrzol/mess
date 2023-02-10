@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/hcl/v2/ext/userfunc"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jostrzol/mess/config/composeuserfunc"
 	"github.com/jostrzol/mess/game"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
@@ -103,9 +104,11 @@ func ParseFile(filename string) (*Config, error) {
 		}
 	}
 
-	funcs, body, diags := userfunc.DecodeUserFunctions(variables.Remain, "function", func() *hcl.EvalContext {
+	contextFunc := func() *hcl.EvalContext {
 		return &ctx
-	})
+	}
+
+	funcs, body, diags := userfunc.DecodeUserFunctions(variables.Remain, "function", contextFunc)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -117,13 +120,25 @@ func ParseFile(filename string) (*Config, error) {
 		ctx.Functions[name] = f
 	}
 
+	compositeFuncs, body, diags := composeuserfunc.DecodeCompositeUserFunctions(body, "composite_function", contextFunc)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	for name, f := range compositeFuncs {
+		if _, ok := defaultEvalContext.Functions[name]; ok {
+			log.Printf("user overwrote standard or simple function %q!", name)
+		}
+		ctx.Functions[name] = f
+	}
+
 	config := &Config{}
 	diags = gohcl.DecodeBody(body, &ctx, config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-	err = mapstructure.Decode(funcs, &config.Functions)
+	err = mapstructure.Decode(ctx.Functions, &config.Functions)
 	if err != nil {
 		return nil, err
 	}
