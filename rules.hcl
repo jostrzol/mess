@@ -40,26 +40,11 @@ function "calc_player_points" {
   result = sum([for i, piece in player.pieces: piece_points[piece.type]]...)
 }
 
-function "calc_points_per_player" {
-  params = [players]
-  result = {for i, player in players: calc_player_points(player) => player...}
-}
-
-function "best_players" {
-  params = [points_per_player]
-  result = points_per_player[max(keys(points_per_player)...)]
-}
-
-function "pick_winner_or_draw" {
-  params = [best_players]
-  result = length(best_players) == 1 ? best_players[0] : null
-}
-
 composite_function "decide_winner" {
   params = [game]
   result = {
-    points_per_player = calc_points_per_player(game.players)
-    best_players = best_players(points_per_player)
-    return = pick_winner_or_draw(best_players)
+    points_per_player = {for i, player in game.players: calc_player_points(player) => player...}
+    best_players = points_per_player[max(keys(points_per_player)...)]
+    return = length(best_players) == 1 ? best_players[0] : null
   }
 }
