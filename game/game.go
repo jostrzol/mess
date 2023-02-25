@@ -21,7 +21,7 @@ func (g *GameState) GetPlayer(color player.Color) (*player.Player, error) {
 }
 
 func (g *GameState) PiecesPerPlayer() map[*player.Player][]*board.PieceOnSquare {
-	pieces := g.Board.Pieces()
+	pieces := g.Board.AllPieces()
 	perPlayer := make(map[*player.Player][]*board.PieceOnSquare, len(pieces))
 	for _, player := range g.Players {
 		perPlayer[player] = make([]*board.PieceOnSquare, 0)

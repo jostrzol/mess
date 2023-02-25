@@ -27,26 +27,41 @@ func (b Board) Size() (int, int) {
 	return len(row), len(b)
 }
 
-func (b Board) Place(piece *piece.Piece, square *Square) error {
-	width, height := b.Size()
+type PieceOnSquare struct {
+	Piece  *piece.Piece
+	Square *Square
+}
+
+func (b Board) PieceOn(square *Square) (PieceOnSquare, error) {
+	if !b.contains(square) {
+		err := fmt.Errorf("square %s out of board's bound", square)
+		return PieceOnSquare{Square: square}, err
+	}
 	x, y := square.toCoords()
-	if x >= width || y >= height {
-		return fmt.Errorf("square %s out of board's bound (size: %dx%d)", square, width, height)
+	piece := b[y][x]
+	return PieceOnSquare{Piece: piece, Square: square}, nil
+}
+
+func (b Board) contains(square *Square) bool {
+	x, y := square.toCoords()
+	width, height := b.Size()
+	return x < width && y < height
+}
+
+func (b Board) Place(piece *piece.Piece, square *Square) error {
+	old, err := b.PieceOn(square)
+	if err != nil {
+		return fmt.Errorf("retrieving piece: %w", err)
 	}
-	old := b[y][x]
-	if old != nil {
-		log.Printf("replacing piece %q on %s with %q", old, square, piece)
+	if old.Piece != nil {
+		log.Printf("replacing piece %q on %s with %q", old.Piece, square, piece)
 	}
+	x, y := square.toCoords()
 	b[y][x] = piece
 	return nil
 }
 
-type PieceOnSquare struct {
-	Piece  *piece.Piece
-	Square Square
-}
-
-func (b Board) Pieces() []PieceOnSquare {
+func (b Board) AllPieces() []PieceOnSquare {
 	pieces := make([]PieceOnSquare, 0)
 	for y, row := range b {
 		for x, piece := range row {

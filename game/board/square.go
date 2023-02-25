@@ -45,8 +45,8 @@ func (s *Square) toCoords() (int, int) {
 	return x, y
 }
 
-func fromCoords(x int, y int) Square {
-	return Square{
+func fromCoords(x int, y int) *Square {
+	return &Square{
 		File: x + 1,
 		Rank: y + 1,
 	}
