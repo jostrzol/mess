@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func TestNew(t *testing.T) {
+func TestNewBoard(t *testing.T) {
 	tests := []struct {
 		x int
 		y int
@@ -36,7 +36,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewNotPositive(t *testing.T) {
+func TestNewBoardNotPositive(t *testing.T) {
 	tests := []struct {
 		x int
 		y int
