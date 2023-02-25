@@ -1,6 +1,10 @@
-package game
+package piece
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jostrzol/mess/game/player"
+)
 
 type PieceType struct {
 	Name string
@@ -12,7 +16,7 @@ func (pt *PieceType) String() string {
 
 type Piece struct {
 	Type  *PieceType
-	Owner *Player
+	Owner *player.Player
 }
 
 func (p *Piece) String() string {

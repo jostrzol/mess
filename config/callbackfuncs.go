@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/game/board"
+	plr "github.com/jostrzol/mess/game/player"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 )
@@ -12,7 +14,7 @@ type CallbackFunctionsConfig struct {
 	DecideWinnerFunc function.Function `mapstructure:"decide_winner"`
 }
 
-func (c CallbackFunctionsConfig) DecideWinner(state *game.GameState) (*game.Player, error) {
+func (c CallbackFunctionsConfig) DecideWinner(state *game.GameState) (*plr.Player, error) {
 	ctyState := gameStateToCty(state)
 	ctyWinner, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
@@ -37,7 +39,7 @@ func gameStateToCty(state *game.GameState) cty.Value {
 	})
 }
 
-func playerToCty(player *game.Player, pieces []*game.PieceOnSquare) cty.Value {
+func playerToCty(player *plr.Player, pieces []*board.PieceOnSquare) cty.Value {
 	piecesCty := make([]cty.Value, len(pieces))
 	for i, piece := range pieces {
 		piecesCty[i] = pieceOnSquareToCty(piece)
@@ -48,19 +50,19 @@ func playerToCty(player *game.Player, pieces []*game.PieceOnSquare) cty.Value {
 	})
 }
 
-func pieceOnSquareToCty(pieceOnSquare *game.PieceOnSquare) cty.Value {
+func pieceOnSquareToCty(pieceOnSquare *board.PieceOnSquare) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
 		"type":   cty.StringVal(pieceOnSquare.Piece.Type.Name),
 		"square": cty.StringVal(pieceOnSquare.Square.String()),
 	})
 }
 
-func playerFromCty(state *game.GameState, player cty.Value) (*game.Player, error) {
+func playerFromCty(state *game.GameState, player cty.Value) (*plr.Player, error) {
 	if player.IsNull() {
 		return nil, nil
 	}
 	winnerColorStr := player.GetAttr("color").AsString()
-	winnerColor, err := game.ColorString(winnerColorStr)
+	winnerColor, err := plr.ColorString(winnerColorStr)
 	if err != nil {
 		return nil, fmt.Errorf("parsing player color: %w", err)
 	}

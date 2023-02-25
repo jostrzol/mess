@@ -4,22 +4,25 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/game/piece"
+	"github.com/jostrzol/mess/game/player"
 )
 
 func (c *config) ToGame() (*game.GameState, error) {
-	board, err := game.NewBoard(int(c.Board.Width), int(c.Board.Height))
+	board, err := board.NewBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating board: %w", err)
 	}
 
-	pieceTypes := make(map[string]*game.PieceType, len(c.PieceTypes.PieceTypes))
+	pieceTypes := make(map[string]*piece.PieceType, len(c.PieceTypes.PieceTypes))
 	for _, pieceType := range c.PieceTypes.PieceTypes {
-		pieceTypes[pieceType.Name] = &game.PieceType{
+		pieceTypes[pieceType.Name] = &piece.PieceType{
 			Name: pieceType.Name,
 		}
 	}
 
-	players := game.NewPlayers()
+	players := player.NewPlayers()
 
 	state := &game.GameState{
 		Board:   board,
@@ -34,9 +37,9 @@ func (c *config) ToGame() (*game.GameState, error) {
 	return state, nil
 }
 
-func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[string]*game.PieceType) error {
+func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[string]*piece.PieceType) error {
 	for _, pieces := range pieces {
-		color, err := game.ColorString(pieces.PlayerColor)
+		color, err := player.ColorString(pieces.PlayerColor)
 		if err != nil {
 			return fmt.Errorf("parsing player color: %w", err)
 		}
@@ -47,7 +50,7 @@ func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[st
 
 		for _, piecePlacement := range pieces.Placements {
 			squareString := piecePlacement.Name
-			square, err := game.ParseSquare(squareString)
+			square, err := board.ParseSquare(squareString)
 			if err != nil {
 				return fmt.Errorf("parsing square: %w", err)
 			}
@@ -61,7 +64,7 @@ func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[st
 				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
 			}
 
-			piece := &game.Piece{
+			piece := &piece.Piece{
 				Type:  pieceType,
 				Owner: player,
 			}

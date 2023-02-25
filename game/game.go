@@ -1,13 +1,18 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/game/player"
+)
 
 type GameState struct {
-	Board   Board
-	Players map[Color]*Player
+	Board   board.Board
+	Players map[player.Color]*player.Player
 }
 
-func (g *GameState) GetPlayer(color Color) (*Player, error) {
+func (g *GameState) GetPlayer(color player.Color) (*player.Player, error) {
 	player, ok := g.Players[color]
 	if !ok {
 		return nil, fmt.Errorf("player of color %q not found", color)
@@ -15,11 +20,11 @@ func (g *GameState) GetPlayer(color Color) (*Player, error) {
 	return player, nil
 }
 
-func (g *GameState) PiecesPerPlayer() map[*Player][]*PieceOnSquare {
+func (g *GameState) PiecesPerPlayer() map[*player.Player][]*board.PieceOnSquare {
 	pieces := g.Board.Pieces()
-	perPlayer := make(map[*Player][]*PieceOnSquare, len(pieces))
+	perPlayer := make(map[*player.Player][]*board.PieceOnSquare, len(pieces))
 	for _, player := range g.Players {
-		perPlayer[player] = make([]*PieceOnSquare, 0)
+		perPlayer[player] = make([]*board.PieceOnSquare, 0)
 	}
 	for _, pieceOnSquare := range pieces {
 		owner := pieceOnSquare.Piece.Owner
@@ -29,5 +34,5 @@ func (g *GameState) PiecesPerPlayer() map[*Player][]*PieceOnSquare {
 }
 
 type GameController interface {
-	DecideWinner(state *GameState) (*Player, error)
+	DecideWinner(state *GameState) (*player.Player, error)
 }

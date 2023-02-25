@@ -1,4 +1,4 @@
-package game
+package player
 
 //go:generate enumer -type=Color -transform=snake
 type Color int
