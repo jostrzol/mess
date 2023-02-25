@@ -50,7 +50,7 @@ func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[st
 
 		for _, piecePlacement := range pieces.Placements {
 			squareString := piecePlacement.Name
-			square, err := board.ParseSquare(squareString)
+			square, err := board.NewSquare(squareString)
 			if err != nil {
 				return fmt.Errorf("parsing square: %w", err)
 			}

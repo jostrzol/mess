@@ -78,7 +78,7 @@ func (s *BoardSuite) TestPieceOn() {
 	tests := []string{"A1", "B1", "A2", "B2", "F8"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
-			square, _ := ParseSquare(squareStr)
+			square, _ := NewSquare(squareStr)
 			result, err := s.board.PieceOn(square)
 			s.NoError(err)
 			s.Nil(result.Piece)
@@ -91,7 +91,7 @@ func (s *BoardSuite) TestPieceOnOutOfBound() {
 	tests := []string{"G8", "F9", "G9"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
-			square, _ := ParseSquare(squareStr)
+			square, _ := NewSquare(squareStr)
 			_, err := s.board.PieceOn(square)
 			s.Error(err)
 		})
@@ -100,7 +100,7 @@ func (s *BoardSuite) TestPieceOnOutOfBound() {
 
 func (s *BoardSuite) TestPlace() {
 	rook := piece.Rook(s.T())
-	square, _ := ParseSquare("B3")
+	square, _ := NewSquare("B3")
 
 	err := s.board.Place(rook, square)
 	s.NoError(err)
@@ -112,7 +112,7 @@ func (s *BoardSuite) TestPlace() {
 func (s *BoardSuite) TestPlaceReplace() {
 	rook := piece.Rook(s.T())
 	knight := piece.Knight(s.T())
-	square, _ := ParseSquare("B3")
+	square, _ := NewSquare("B3")
 
 	err := s.board.Place(rook, square)
 	err = s.board.Place(knight, square)
@@ -125,8 +125,8 @@ func (s *BoardSuite) TestPlaceReplace() {
 func (s *BoardSuite) TestAllPieces() {
 	rook := piece.Rook(s.T())
 	knight := piece.Knight(s.T())
-	square1, _ := ParseSquare("B3")
-	square2, _ := ParseSquare("D6")
+	square1, _ := NewSquare("B3")
+	square2, _ := NewSquare("D6")
 	s.board.Place(rook, square1)
 	s.board.Place(knight, square2)
 

@@ -12,7 +12,7 @@ type Square struct {
 	Rank int
 }
 
-func ParseSquare(text string) (*Square, error) {
+func NewSquare(text string) (*Square, error) {
 	if len(text) != 2 {
 		return nil, errors.New("malformed position: expected 2 characters")
 	}
