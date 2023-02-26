@@ -9,22 +9,22 @@ import (
 	"github.com/jostrzol/mess/game/player"
 )
 
-func (c *config) ToGame() (*game.GameState, error) {
+func (c *config) ToGame() (*game.State, error) {
 	board, err := board.NewBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating board: %w", err)
 	}
 
-	pieceTypes := make(map[string]*piece.PieceType, len(c.PieceTypes.PieceTypes))
+	pieceTypes := make(map[string]*piece.Type, len(c.PieceTypes.PieceTypes))
 	for _, pieceType := range c.PieceTypes.PieceTypes {
-		pieceTypes[pieceType.Name] = &piece.PieceType{
+		pieceTypes[pieceType.Name] = &piece.Type{
 			Name: pieceType.Name,
 		}
 	}
 
 	players := player.NewPlayers()
 
-	state := &game.GameState{
+	state := &game.State{
 		Board:   board,
 		Players: players,
 	}
@@ -37,7 +37,7 @@ func (c *config) ToGame() (*game.GameState, error) {
 	return state, nil
 }
 
-func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[string]*piece.PieceType) error {
+func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string]*piece.Type) error {
 	for _, pieces := range pieces {
 		color, err := player.ColorString(pieces.PlayerColor)
 		if err != nil {
@@ -78,6 +78,6 @@ func placePieces(state *game.GameState, pieces []piecesConfig, pieceTypes map[st
 	return nil
 }
 
-func (c *config) ToController() game.GameController {
+func (c *config) ToController() game.Controller {
 	return c.Functions
 }

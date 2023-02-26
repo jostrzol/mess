@@ -1,23 +1,20 @@
 package piece
 
-import "testing"
-
-func Rook(t *testing.T) *Piece {
-	t.Helper()
-	return &Piece{
-		Type: &PieceType{
-			Name: "rook",
-		},
-		Owner: nil,
+func Rook() *Type {
+	return &Type{
+		Name: "rook",
 	}
 }
 
-func Knight(t *testing.T) *Piece {
-	t.Helper()
+func Knight() *Type {
+	return &Type{
+		Name: "knight",
+	}
+}
+
+func Noones(pieceType *Type) *Piece {
 	return &Piece{
-		Type: &PieceType{
-			Name: "knight",
-		},
+		Type:  pieceType,
 		Owner: nil,
 	}
 }

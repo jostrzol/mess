@@ -99,7 +99,7 @@ func (s *BoardSuite) TestPieceOnOutOfBound() {
 }
 
 func (s *BoardSuite) TestPlace() {
-	rook := piece.Rook(s.T())
+	rook := piece.Noones(piece.Rook())
 	square, _ := NewSquare("B3")
 
 	err := s.board.Place(rook, square)
@@ -110,11 +110,12 @@ func (s *BoardSuite) TestPlace() {
 }
 
 func (s *BoardSuite) TestPlaceReplace() {
-	rook := piece.Rook(s.T())
-	knight := piece.Knight(s.T())
+	rook := piece.Noones(piece.Rook())
+	knight := piece.Noones(piece.Knight())
 	square, _ := NewSquare("B3")
 
 	err := s.board.Place(rook, square)
+	s.NoError(err)
 	err = s.board.Place(knight, square)
 	s.NoError(err)
 
@@ -123,8 +124,8 @@ func (s *BoardSuite) TestPlaceReplace() {
 }
 
 func (s *BoardSuite) TestAllPieces() {
-	rook := piece.Rook(s.T())
-	knight := piece.Knight(s.T())
+	rook := piece.Noones(piece.Rook())
+	knight := piece.Noones(piece.Knight())
 	square1, _ := NewSquare("B3")
 	square2, _ := NewSquare("D6")
 	s.board.Place(rook, square1)

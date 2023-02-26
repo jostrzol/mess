@@ -14,7 +14,7 @@ type CallbackFunctionsConfig struct {
 	DecideWinnerFunc function.Function `mapstructure:"decide_winner"`
 }
 
-func (c CallbackFunctionsConfig) DecideWinner(state *game.GameState) (*plr.Player, error) {
+func (c CallbackFunctionsConfig) DecideWinner(state *game.State) (*plr.Player, error) {
 	ctyState := gameStateToCty(state)
 	ctyWinner, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
@@ -27,7 +27,7 @@ func (c CallbackFunctionsConfig) DecideWinner(state *game.GameState) (*plr.Playe
 	return winner, nil
 }
 
-func gameStateToCty(state *game.GameState) cty.Value {
+func gameStateToCty(state *game.State) cty.Value {
 	piecesPerPlayer := state.PiecesPerPlayer()
 	players := make(map[string]cty.Value, len(state.Players))
 	for _, player := range state.Players {
@@ -39,10 +39,10 @@ func gameStateToCty(state *game.GameState) cty.Value {
 	})
 }
 
-func playerToCty(player *plr.Player, pieces []*board.PieceOnSquare) cty.Value {
+func playerToCty(player *plr.Player, pieces []board.PieceOnSquare) cty.Value {
 	piecesCty := make([]cty.Value, len(pieces))
 	for i, piece := range pieces {
-		piecesCty[i] = pieceOnSquareToCty(piece)
+		piecesCty[i] = pieceOnSquareToCty(&piece)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color":  cty.StringVal(player.Color.String()),
@@ -57,7 +57,7 @@ func pieceOnSquareToCty(pieceOnSquare *board.PieceOnSquare) cty.Value {
 	})
 }
 
-func playerFromCty(state *game.GameState, player cty.Value) (*plr.Player, error) {
+func playerFromCty(state *game.State, player cty.Value) (*plr.Player, error) {
 	if player.IsNull() {
 		return nil, nil
 	}

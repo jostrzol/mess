@@ -6,16 +6,16 @@ import (
 	"github.com/jostrzol/mess/game/player"
 )
 
-type PieceType struct {
+type Type struct {
 	Name string
 }
 
-func (pt *PieceType) String() string {
+func (pt *Type) String() string {
 	return pt.Name
 }
 
 type Piece struct {
-	Type  *PieceType
+	Type  *Type
 	Owner *player.Player
 }
 
