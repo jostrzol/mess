@@ -32,7 +32,7 @@ type PieceOnSquare struct {
 	Square *Square
 }
 
-func (b Board) PieceOn(square *Square) (PieceOnSquare, error) {
+func (b Board) At(square *Square) (PieceOnSquare, error) {
 	if !b.contains(square) {
 		err := fmt.Errorf("square %s out of board's bound", square)
 		return PieceOnSquare{Square: square}, err
@@ -49,7 +49,7 @@ func (b Board) contains(square *Square) bool {
 }
 
 func (b Board) Place(piece *piece.Piece, square *Square) error {
-	old, err := b.PieceOn(square)
+	old, err := b.At(square)
 	if err != nil {
 		return fmt.Errorf("retrieving piece: %w", err)
 	}

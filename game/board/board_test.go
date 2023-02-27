@@ -74,12 +74,12 @@ func (s *BoardSuite) TestSize() {
 	s.Equal(8, y)
 }
 
-func (s *BoardSuite) TestPieceOn() {
+func (s *BoardSuite) TestAt() {
 	tests := []string{"A1", "B1", "A2", "B2", "F8"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
 			square, _ := NewSquare(squareStr)
-			result, err := s.board.PieceOn(square)
+			result, err := s.board.At(square)
 			s.NoError(err)
 			s.Nil(result.Piece)
 			s.Equal(square, result.Square)
@@ -87,12 +87,12 @@ func (s *BoardSuite) TestPieceOn() {
 	}
 }
 
-func (s *BoardSuite) TestPieceOnOutOfBound() {
+func (s *BoardSuite) TestAtOutOfBound() {
 	tests := []string{"G8", "F9", "G9"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
 			square, _ := NewSquare(squareStr)
-			_, err := s.board.PieceOn(square)
+			_, err := s.board.At(square)
 			s.Error(err)
 		})
 	}
@@ -105,7 +105,7 @@ func (s *BoardSuite) TestPlace() {
 	err := s.board.Place(rook, square)
 	s.NoError(err)
 
-	result, _ := s.board.PieceOn(square)
+	result, _ := s.board.At(square)
 	s.Equal(rook, result.Piece)
 }
 
@@ -119,7 +119,7 @@ func (s *BoardSuite) TestPlaceReplace() {
 	err = s.board.Place(knight, square)
 	s.NoError(err)
 
-	result, _ := s.board.PieceOn(square)
+	result, _ := s.board.At(square)
 	s.Equal(knight, result.Piece)
 }
 
