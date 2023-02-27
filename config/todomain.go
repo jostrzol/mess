@@ -10,7 +10,7 @@ import (
 )
 
 func (c *config) ToGame() (*game.State, error) {
-	board, err := board.NewBoard(int(c.Board.Width), int(c.Board.Height))
+	board, err := board.NewBoard[*piece.Piece](int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating board: %w", err)
 	}

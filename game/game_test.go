@@ -16,7 +16,7 @@ type GameSuite struct {
 
 func (s *GameSuite) SetupTest() {
 	players := player.NewPlayers()
-	board, err := board.NewBoard(8, 8)
+	board, err := board.NewBoard[*piece.Piece](8, 8)
 	s.NoError(err)
 
 	s.game = &State{
@@ -59,12 +59,12 @@ func (s *GameSuite) TestPiecesPerPlayer() {
 	results := s.game.PiecesPerPlayer()
 	s.Len(results, 2)
 
-	s.ElementsMatch(results[white], []board.PieceOnSquare{
-		{Piece: rookW, Square: square1},
-		{Piece: knightW, Square: square2},
+	s.ElementsMatch(results[white], []PieceOnSquare{
+		{Item: rookW, Square: square1},
+		{Item: knightW, Square: square2},
 	})
-	s.ElementsMatch(results[black], []board.PieceOnSquare{
-		{Piece: rookB, Square: square3},
+	s.ElementsMatch(results[black], []PieceOnSquare{
+		{Item: rookB, Square: square3},
 	})
 }
 

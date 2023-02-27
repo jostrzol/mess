@@ -4,11 +4,15 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/player"
 )
 
+type PieceBoard = board.Board[*piece.Piece]
+type PieceOnSquare = board.ItemOnSquare[*piece.Piece]
+
 type State struct {
-	Board   board.Board
+	Board   PieceBoard
 	Players map[player.Color]*player.Player
 }
 
@@ -20,14 +24,14 @@ func (g *State) GetPlayer(color player.Color) (*player.Player, error) {
 	return player, nil
 }
 
-func (g *State) PiecesPerPlayer() map[*player.Player][]board.PieceOnSquare {
-	pieces := g.Board.AllPieces()
-	perPlayer := make(map[*player.Player][]board.PieceOnSquare, len(pieces))
+func (g *State) PiecesPerPlayer() map[*player.Player][]PieceOnSquare {
+	pieces := g.Board.AllItems()
+	perPlayer := make(map[*player.Player][]PieceOnSquare, len(pieces))
 	for _, player := range g.Players {
-		perPlayer[player] = make([]board.PieceOnSquare, 0)
+		perPlayer[player] = make([]PieceOnSquare, 0)
 	}
 	for _, pieceOnSquare := range pieces {
-		owner := pieceOnSquare.Piece.Owner
+		owner := pieceOnSquare.Item.Owner
 		perPlayer[owner] = append(perPlayer[owner], pieceOnSquare)
 	}
 	return perPlayer

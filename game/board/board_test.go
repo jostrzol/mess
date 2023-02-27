@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jostrzol/mess/game/piece"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,13 +22,13 @@ func TestNewBoard(t *testing.T) {
 	for _, tt := range tests {
 		name := fmt.Sprintf("%dx%d", tt.x, tt.y)
 		t.Run(name, func(t *testing.T) {
-			board, err := NewBoard(tt.x, tt.y)
+			board, err := NewBoard[int](tt.x, tt.y)
 			assert.NoError(t, err)
 			assert.Len(t, board, tt.y)
 			for _, row := range board {
 				assert.Len(t, row, tt.x)
 				for _, value := range row {
-					assert.Nil(t, value)
+					assert.Zero(t, value)
 				}
 			}
 		})
@@ -51,7 +50,7 @@ func TestNewBoardNotPositive(t *testing.T) {
 	for _, tt := range tests {
 		name := fmt.Sprintf("%dx%d", tt.x, tt.y)
 		t.Run(name, func(t *testing.T) {
-			_, err := NewBoard(tt.x, tt.y)
+			_, err := NewBoard[int](tt.x, tt.y)
 			assert.Error(t, err)
 		})
 	}
@@ -59,11 +58,11 @@ func TestNewBoardNotPositive(t *testing.T) {
 
 type BoardSuite struct {
 	suite.Suite
-	board Board
+	board Board[int]
 }
 
 func (s *BoardSuite) SetupTest() {
-	board, err := NewBoard(6, 8)
+	board, err := NewBoard[int](6, 8)
 	s.NoError(err)
 	s.board = board
 }
@@ -74,15 +73,14 @@ func (s *BoardSuite) TestSize() {
 	s.Equal(8, y)
 }
 
-func (s *BoardSuite) TestAt() {
+func (s *BoardSuite) TestAtEmpty() {
 	tests := []string{"A1", "B1", "A2", "B2", "F8"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
 			square, _ := NewSquare(squareStr)
-			result, err := s.board.At(square)
+			item, err := s.board.At(square)
 			s.NoError(err)
-			s.Nil(result.Piece)
-			s.Equal(square, result.Square)
+			s.Zero(item)
 		})
 	}
 }
@@ -99,43 +97,38 @@ func (s *BoardSuite) TestAtOutOfBound() {
 }
 
 func (s *BoardSuite) TestPlace() {
-	rook := piece.Noones(piece.Rook())
 	square, _ := NewSquare("B3")
 
-	err := s.board.Place(rook, square)
+	err := s.board.Place(1, square)
 	s.NoError(err)
 
-	result, _ := s.board.At(square)
-	s.Equal(rook, result.Piece)
+	item, _ := s.board.At(square)
+	s.Equal(1, item)
 }
 
 func (s *BoardSuite) TestPlaceReplace() {
-	rook := piece.Noones(piece.Rook())
-	knight := piece.Noones(piece.Knight())
 	square, _ := NewSquare("B3")
 
-	err := s.board.Place(rook, square)
+	err := s.board.Place(1, square)
 	s.NoError(err)
-	err = s.board.Place(knight, square)
+	err = s.board.Place(2, square)
 	s.NoError(err)
 
-	result, _ := s.board.At(square)
-	s.Equal(knight, result.Piece)
+	item, _ := s.board.At(square)
+	s.Equal(2, item)
 }
 
 func (s *BoardSuite) TestAllPieces() {
-	rook := piece.Noones(piece.Rook())
-	knight := piece.Noones(piece.Knight())
 	square1, _ := NewSquare("B3")
 	square2, _ := NewSquare("D6")
-	s.board.Place(rook, square1)
-	s.board.Place(knight, square2)
+	s.board.Place(1, square1)
+	s.board.Place(2, square2)
 
-	pieces := s.board.AllPieces()
+	items := s.board.AllItems()
 
-	s.ElementsMatch(pieces, []PieceOnSquare{
-		{rook, square1},
-		{knight, square2},
+	s.ElementsMatch(items, []ItemOnSquare[int]{
+		{1, square1},
+		{2, square2},
 	})
 }
 

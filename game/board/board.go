@@ -4,75 +4,76 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
-	"github.com/jostrzol/mess/game/piece"
 )
 
-type Board [][]*piece.Piece
+type Board[T comparable] [][]T
 
-func NewBoard(width int, height int) (Board, error) {
+func NewBoard[T comparable](width int, height int) (Board[T], error) {
 	if height <= 0 || width <= 0 {
 		return nil, errors.New("one of board dimentions is non-positive")
 	}
 
-	board := make(Board, height)
+	board := make(Board[T], height)
 	for i := range board {
-		board[i] = make([]*piece.Piece, width)
+		board[i] = make([]T, width)
 	}
 	return board, nil
 }
 
-func (b Board) Size() (int, int) {
+func (b Board[T]) Size() (int, int) {
 	row := b[0]
 	return len(row), len(b)
 }
 
-type PieceOnSquare struct {
-	Piece  *piece.Piece
-	Square *Square
-}
-
-func (b Board) At(square *Square) (PieceOnSquare, error) {
+func (b Board[T]) At(square *Square) (T, error) {
+	var zero T
 	if !b.contains(square) {
 		err := fmt.Errorf("square %s out of board's bound", square)
-		return PieceOnSquare{Square: square}, err
+		return zero, err
 	}
 	x, y := square.toCoords()
-	piece := b[y][x]
-	return PieceOnSquare{Piece: piece, Square: square}, nil
+	item := b[y][x]
+	return item, nil
 }
 
-func (b Board) contains(square *Square) bool {
+func (b Board[T]) contains(square *Square) bool {
 	x, y := square.toCoords()
 	width, height := b.Size()
 	return x < width && y < height
 }
 
-func (b Board) Place(piece *piece.Piece, square *Square) error {
+func (b Board[T]) Place(item T, square *Square) error {
+	var zero T
 	old, err := b.At(square)
 	if err != nil {
-		return fmt.Errorf("retrieving piece: %w", err)
+		return fmt.Errorf("retrieving item: %w", err)
 	}
-	if old.Piece != nil {
-		log.Printf("replacing piece %q on %s with %q", old.Piece, square, piece)
+	if old != zero {
+		log.Printf("replacing item '%v' on %s with '%v'", old, square, item)
 	}
 	x, y := square.toCoords()
-	b[y][x] = piece
+	b[y][x] = item
 	return nil
 }
 
-func (b Board) AllPieces() []PieceOnSquare {
-	pieces := make([]PieceOnSquare, 0)
+type ItemOnSquare[T comparable] struct {
+	Item   T
+	Square *Square
+}
+
+func (b Board[T]) AllItems() []ItemOnSquare[T] {
+	var zero T
+	items := make([]ItemOnSquare[T], 0)
 	for y, row := range b {
-		for x, piece := range row {
-			if piece == nil {
+		for x, item := range row {
+			if item == zero {
 				continue
 			}
-			pieces = append(pieces, PieceOnSquare{
-				Piece:  piece,
+			items = append(items, ItemOnSquare[T]{
+				Item:   item,
 				Square: fromCoords(x, y),
 			})
 		}
 	}
-	return pieces
+	return items
 }

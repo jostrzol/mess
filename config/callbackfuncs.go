@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/game"
-	"github.com/jostrzol/mess/game/board"
 	plr "github.com/jostrzol/mess/game/player"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
@@ -39,7 +38,7 @@ func gameStateToCty(state *game.State) cty.Value {
 	})
 }
 
-func playerToCty(player *plr.Player, pieces []board.PieceOnSquare) cty.Value {
+func playerToCty(player *plr.Player, pieces []game.PieceOnSquare) cty.Value {
 	piecesCty := make([]cty.Value, len(pieces))
 	for i, piece := range pieces {
 		piecesCty[i] = pieceOnSquareToCty(&piece)
@@ -50,9 +49,9 @@ func playerToCty(player *plr.Player, pieces []board.PieceOnSquare) cty.Value {
 	})
 }
 
-func pieceOnSquareToCty(pieceOnSquare *board.PieceOnSquare) cty.Value {
+func pieceOnSquareToCty(pieceOnSquare *game.PieceOnSquare) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
-		"type":   cty.StringVal(pieceOnSquare.Piece.Type.Name),
+		"type":   cty.StringVal(pieceOnSquare.Item.Type.Name),
 		"square": cty.StringVal(pieceOnSquare.Square.String()),
 	})
 }
