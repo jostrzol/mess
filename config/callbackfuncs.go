@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/game/piece"
 	plr "github.com/jostrzol/mess/game/player"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
@@ -38,10 +39,10 @@ func gameStateToCty(state *game.State) cty.Value {
 	})
 }
 
-func playerToCty(player *plr.Player, pieces []game.PieceOnSquare) cty.Value {
+func playerToCty(player *plr.Player, pieces []*piece.Piece) cty.Value {
 	piecesCty := make([]cty.Value, len(pieces))
 	for i, piece := range pieces {
-		piecesCty[i] = pieceOnSquareToCty(&piece)
+		piecesCty[i] = pieceToCty(piece)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color":  cty.StringVal(player.Color.String()),
@@ -49,10 +50,10 @@ func playerToCty(player *plr.Player, pieces []game.PieceOnSquare) cty.Value {
 	})
 }
 
-func pieceOnSquareToCty(pieceOnSquare *game.PieceOnSquare) cty.Value {
+func pieceToCty(piece *piece.Piece) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
-		"type":   cty.StringVal(pieceOnSquare.Item.Type.Name),
-		"square": cty.StringVal(pieceOnSquare.Square.String()),
+		"type":   cty.StringVal(piece.Type.Name),
+		"square": cty.StringVal(piece.Square.String()),
 	})
 }
 

@@ -64,12 +64,9 @@ func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string
 				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
 			}
 
-			piece := &piece.Piece{
-				Type:  pieceType,
-				Owner: player,
-			}
+			piece := piece.NewPiece(pieceType, player)
 
-			err = state.Board.Place(piece, square)
+			err = piece.PlaceOn(state.Board, square)
 			if err != nil {
 				return fmt.Errorf("placing a piece: %w", err)
 			}

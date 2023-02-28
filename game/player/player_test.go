@@ -1,16 +1,17 @@
-package player
+package player_test
 
 import (
 	"testing"
 
+	plr "github.com/jostrzol/mess/game/player"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPlayers(t *testing.T) {
-	players := NewPlayers()
+	players := plr.NewPlayers()
 	assert.Len(t, players, 2)
 
-	for _, color := range ColorValues() {
+	for _, color := range plr.ColorValues() {
 		assert.Contains(t, players, color)
 		player := players[color]
 		assert.Equal(t, player.Color, color)
@@ -18,7 +19,7 @@ func TestNewPlayers(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	player := NewPlayers()[White]
+	player := plr.NewPlayers()[plr.White]
 
-	assert.Equal(t, player.String(), White.String())
+	assert.Equal(t, player.String(), plr.White.String())
 }

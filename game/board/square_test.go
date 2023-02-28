@@ -1,8 +1,9 @@
-package board
+package board_test
 
 import (
 	"testing"
 
+	"github.com/jostrzol/mess/game/board"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestNewSquare(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.str, func(t *testing.T) {
-			square, err := NewSquare(tt.str)
+			square, err := board.NewSquare(tt.str)
 			assert.NoError(t, err)
 			assert.Equal(t, square.File, tt.file)
 			assert.Equal(t, square.Rank, tt.rank)
@@ -34,7 +35,7 @@ func TestNewSquareMalformed(t *testing.T) {
 	tests := []string{"A10", "Ż1", "A", "1", "AB1", "hello", "-", " ", "", " A1", "A1 ", " A1 "}
 	for _, str := range tests {
 		t.Run(str, func(t *testing.T) {
-			_, err := NewSquare(str)
+			_, err := board.NewSquare(str)
 			assert.Error(t, err)
 		})
 	}
@@ -55,7 +56,7 @@ func TestString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			square, err := NewSquare(tt.input)
+			square, err := board.NewSquare(tt.input)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, square.String())
 		})

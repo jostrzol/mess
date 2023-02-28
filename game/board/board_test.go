@@ -1,9 +1,10 @@
-package board
+package board_test
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/jostrzol/mess/game/board"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,7 +23,7 @@ func TestNewBoard(t *testing.T) {
 	for _, tt := range tests {
 		name := fmt.Sprintf("%dx%d", tt.x, tt.y)
 		t.Run(name, func(t *testing.T) {
-			board, err := NewBoard[int](tt.x, tt.y)
+			board, err := board.NewBoard[int](tt.x, tt.y)
 			assert.NoError(t, err)
 			assert.Len(t, board, tt.y)
 			for _, row := range board {
@@ -50,7 +51,7 @@ func TestNewBoardNotPositive(t *testing.T) {
 	for _, tt := range tests {
 		name := fmt.Sprintf("%dx%d", tt.x, tt.y)
 		t.Run(name, func(t *testing.T) {
-			_, err := NewBoard[int](tt.x, tt.y)
+			_, err := board.NewBoard[int](tt.x, tt.y)
 			assert.Error(t, err)
 		})
 	}
@@ -58,11 +59,11 @@ func TestNewBoardNotPositive(t *testing.T) {
 
 type BoardSuite struct {
 	suite.Suite
-	board Board[int]
+	board board.Board[int]
 }
 
 func (s *BoardSuite) SetupTest() {
-	board, err := NewBoard[int](6, 8)
+	board, err := board.NewBoard[int](6, 8)
 	s.NoError(err)
 	s.board = board
 }
@@ -77,8 +78,8 @@ func (s *BoardSuite) TestAtEmpty() {
 	tests := []string{"A1", "B1", "A2", "B2", "F8"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
-			square, _ := NewSquare(squareStr)
-			item, err := s.board.At(square)
+			square, _ := board.NewSquare(squareStr)
+			item, err := s.board.At(&square)
 			s.NoError(err)
 			s.Zero(item)
 		})
@@ -89,47 +90,44 @@ func (s *BoardSuite) TestAtOutOfBound() {
 	tests := []string{"G8", "F9", "G9"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
-			square, _ := NewSquare(squareStr)
-			_, err := s.board.At(square)
+			square, _ := board.NewSquare(squareStr)
+			_, err := s.board.At(&square)
 			s.Error(err)
 		})
 	}
 }
 
 func (s *BoardSuite) TestPlace() {
-	square, _ := NewSquare("B3")
+	square, _ := board.NewSquare("B3")
 
-	err := s.board.Place(1, square)
+	err := s.board.Place(1, &square)
 	s.NoError(err)
 
-	item, _ := s.board.At(square)
+	item, _ := s.board.At(&square)
 	s.Equal(1, item)
 }
 
 func (s *BoardSuite) TestPlaceReplace() {
-	square, _ := NewSquare("B3")
+	square, _ := board.NewSquare("B3")
 
-	err := s.board.Place(1, square)
+	err := s.board.Place(1, &square)
 	s.NoError(err)
-	err = s.board.Place(2, square)
+	err = s.board.Place(2, &square)
 	s.NoError(err)
 
-	item, _ := s.board.At(square)
+	item, _ := s.board.At(&square)
 	s.Equal(2, item)
 }
 
 func (s *BoardSuite) TestAllPieces() {
-	square1, _ := NewSquare("B3")
-	square2, _ := NewSquare("D6")
-	s.board.Place(1, square1)
-	s.board.Place(2, square2)
+	square1, _ := board.NewSquare("B3")
+	square2, _ := board.NewSquare("D6")
+	s.board.Place(1, &square1)
+	s.board.Place(2, &square2)
 
 	items := s.board.AllItems()
 
-	s.ElementsMatch(items, []ItemOnSquare[int]{
-		{1, square1},
-		{2, square2},
-	})
+	s.ElementsMatch(items, []int{1, 2})
 }
 
 func TestBoardSuite(t *testing.T) {

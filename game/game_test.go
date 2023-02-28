@@ -1,17 +1,19 @@
-package game
+package game_test
 
 import (
 	"testing"
 
+	"github.com/jostrzol/mess/game"
 	"github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/piece"
+	"github.com/jostrzol/mess/game/piece/piecetest"
 	"github.com/jostrzol/mess/game/player"
 	"github.com/stretchr/testify/suite"
 )
 
 type GameSuite struct {
 	suite.Suite
-	game *State
+	game *game.State
 }
 
 func (s *GameSuite) SetupTest() {
@@ -19,7 +21,7 @@ func (s *GameSuite) SetupTest() {
 	board, err := board.NewBoard[*piece.Piece](8, 8)
 	s.NoError(err)
 
-	s.game = &State{
+	s.game = &game.State{
 		Board:   board,
 		Players: players,
 	}
@@ -41,6 +43,7 @@ func (s *GameSuite) TestGetPlayerNotFound() {
 }
 
 func (s *GameSuite) TestPiecesPerPlayer() {
+	t := s.T()
 	square1, _ := board.NewSquare("A1")
 	square2, _ := board.NewSquare("B4")
 	square3, _ := board.NewSquare("F2")
@@ -48,24 +51,19 @@ func (s *GameSuite) TestPiecesPerPlayer() {
 	white := s.game.Players[player.White]
 	black := s.game.Players[player.Black]
 
-	rookW := &piece.Piece{Type: piece.Rook(), Owner: white}
-	knightW := &piece.Piece{Type: piece.Knight(), Owner: white}
-	rookB := &piece.Piece{Type: piece.Rook(), Owner: black}
+	rookW := &piece.Piece{Type: piecetest.Rook(t), Owner: white}
+	knightW := &piece.Piece{Type: piecetest.Knight(t), Owner: white}
+	rookB := &piece.Piece{Type: piecetest.Rook(t), Owner: black}
 
-	s.game.Board.Place(rookW, square1)
-	s.game.Board.Place(knightW, square2)
-	s.game.Board.Place(rookB, square3)
+	s.game.Board.Place(rookW, &square1)
+	s.game.Board.Place(knightW, &square2)
+	s.game.Board.Place(rookB, &square3)
 
 	results := s.game.PiecesPerPlayer()
 	s.Len(results, 2)
 
-	s.ElementsMatch(results[white], []PieceOnSquare{
-		{Item: rookW, Square: square1},
-		{Item: knightW, Square: square2},
-	})
-	s.ElementsMatch(results[black], []PieceOnSquare{
-		{Item: rookB, Square: square3},
-	})
+	s.ElementsMatch(results[white], []*piece.Piece{rookW, knightW})
+	s.ElementsMatch(results[black], []*piece.Piece{rookB})
 }
 
 func TestGameSuite(t *testing.T) {

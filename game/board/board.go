@@ -56,23 +56,15 @@ func (b Board[T]) Place(item T, square *Square) error {
 	return nil
 }
 
-type ItemOnSquare[T comparable] struct {
-	Item   T
-	Square *Square
-}
-
-func (b Board[T]) AllItems() []ItemOnSquare[T] {
+func (b Board[T]) AllItems() []T {
 	var zero T
-	items := make([]ItemOnSquare[T], 0)
-	for y, row := range b {
-		for x, item := range row {
+	items := make([]T, 0)
+	for _, row := range b {
+		for _, item := range row {
 			if item == zero {
 				continue
 			}
-			items = append(items, ItemOnSquare[T]{
-				Item:   item,
-				Square: fromCoords(x, y),
-			})
+			items = append(items, item)
 		}
 	}
 	return items

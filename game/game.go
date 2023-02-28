@@ -9,7 +9,6 @@ import (
 )
 
 type PieceBoard = board.Board[*piece.Piece]
-type PieceOnSquare = board.ItemOnSquare[*piece.Piece]
 
 type State struct {
 	Board   PieceBoard
@@ -24,15 +23,15 @@ func (g *State) GetPlayer(color player.Color) (*player.Player, error) {
 	return player, nil
 }
 
-func (g *State) PiecesPerPlayer() map[*player.Player][]PieceOnSquare {
+func (g *State) PiecesPerPlayer() map[*player.Player][]*piece.Piece {
 	pieces := g.Board.AllItems()
-	perPlayer := make(map[*player.Player][]PieceOnSquare, len(pieces))
+	perPlayer := make(map[*player.Player][]*piece.Piece, len(pieces))
 	for _, player := range g.Players {
-		perPlayer[player] = make([]PieceOnSquare, 0)
+		perPlayer[player] = make([]*piece.Piece, 0)
 	}
-	for _, pieceOnSquare := range pieces {
-		owner := pieceOnSquare.Item.Owner
-		perPlayer[owner] = append(perPlayer[owner], pieceOnSquare)
+	for _, piece := range pieces {
+		owner := piece.Owner
+		perPlayer[owner] = append(perPlayer[owner], piece)
 	}
 	return perPlayer
 }
