@@ -50,6 +50,36 @@ func (s *PieceSuite) TestGenerateMotionsKnight() {
 	})
 }
 
+func (s *PieceSuite) TestMove() {
+	startSquare := boardtest.NewSquare("B2")
+	endSquare := boardtest.NewSquare("C4")
+
+	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight.PlaceOn(s.board, startSquare)
+
+	err := knight.MoveTo(endSquare)
+	s.NoError(err)
+
+	empty, err := s.board.At(&startSquare)
+	s.NoError(err)
+	s.Nil(empty)
+
+	piece, err := s.board.At(&endSquare)
+	s.NoError(err)
+	s.Equal(knight, piece)
+}
+
+func (s *PieceSuite) TestMoveOutOfBounds() {
+	startSquare := boardtest.NewSquare("B2")
+	endSquare := boardtest.NewSquare("Z1")
+
+	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight.PlaceOn(s.board, startSquare)
+
+	err := knight.MoveTo(endSquare)
+	s.Error(err)
+}
+
 func TestPieceSuite(t *testing.T) {
 	suite.Run(t, new(PieceSuite))
 }

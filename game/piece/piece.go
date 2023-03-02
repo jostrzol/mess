@@ -64,3 +64,15 @@ func (p *Piece) PlaceOn(board Board, square brd.Square) error {
 func (p *Piece) GenerateMotions() []brd.Square {
 	return p.Type.generateMotions(p)
 }
+
+func (p *Piece) MoveTo(square brd.Square) error {
+	// TODO: add capturing on destination square
+	if p.Board == nil {
+		return fmt.Errorf("piece not on board")
+	}
+	err := p.Board.Place(p, &square)
+	if err != nil {
+		return err
+	}
+	return nil
+}
