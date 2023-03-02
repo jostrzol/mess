@@ -7,18 +7,27 @@ import (
 	"github.com/jostrzol/mess/game/board/boardtest"
 	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/piece/piecetest"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestGenerateMotionsRook(t *testing.T) {
-	board, err := brd.NewBoard[*piece.Piece](4, 4)
-	assert.NoError(t, err)
+type PieceSuite struct {
+	suite.Suite
+	board piece.Board
+}
 
-	rook := piecetest.Noones(piecetest.Rook(t))
-	rook.PlaceOn(board, boardtest.NewSquare("B2"))
+func (s *PieceSuite) SetupTest() {
+	board, err := brd.NewBoard[*piece.Piece](4, 4)
+	s.NoError(err)
+
+	s.board = board
+}
+
+func (s *PieceSuite) TestGenerateMotionsRook() {
+	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
 	motions := rook.GenerateMotions()
-	assert.ElementsMatch(t, motions, []brd.Square{
+	s.ElementsMatch(motions, []brd.Square{
 		boardtest.NewSquare("B1"),
 		boardtest.NewSquare("B3"),
 		boardtest.NewSquare("B4"),
@@ -28,18 +37,19 @@ func TestGenerateMotionsRook(t *testing.T) {
 	})
 }
 
-func TestGenerateMotionsKnight(t *testing.T) {
-	board, err := brd.NewBoard[*piece.Piece](4, 4)
-	assert.NoError(t, err)
-
-	knight := piecetest.Noones(piecetest.Knight(t))
-	knight.PlaceOn(board, boardtest.NewSquare("B2"))
+func (s *PieceSuite) TestGenerateMotionsKnight() {
+	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
 	motions := knight.GenerateMotions()
-	assert.ElementsMatch(t, motions, []brd.Square{
+	s.ElementsMatch(motions, []brd.Square{
 		boardtest.NewSquare("A4"),
 		boardtest.NewSquare("C4"),
 		boardtest.NewSquare("D1"),
 		boardtest.NewSquare("D3"),
 	})
+}
+
+func TestPieceSuite(t *testing.T) {
+	suite.Run(t, new(PieceSuite))
 }
