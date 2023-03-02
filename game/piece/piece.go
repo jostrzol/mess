@@ -70,25 +70,25 @@ func (p *Piece) GenerateMotions() []brd.Square {
 	return p.Type.generateMotions(p)
 }
 
-func (p *Piece) MoveTo(square *brd.Square) error {
+func (p *Piece) MoveTo(square *brd.Square) (*Piece, error) {
 	// TODO: add capturing on destination square
 	if p.Board == nil {
-		return fmt.Errorf("piece not on board")
+		return nil, fmt.Errorf("piece not on board")
 	}
 
 	_, err := p.Board.Place(nil, &p.Square)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	old, err := p.Board.Place(p, square)
 	if err != nil {
 		p.Board.Place(p, &p.Square)
-		return err
+		return nil, err
 	}
 
 	p.Square = *square
 	if old != nil {
 		old.Board = nil
 	}
-	return nil
+	return old, nil
 }

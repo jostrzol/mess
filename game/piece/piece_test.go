@@ -94,10 +94,11 @@ func (s *PieceSuite) TestMove() {
 	knight := piecetest.Noones(piecetest.Knight(s.T()))
 	knight.PlaceOn(s.board, startSquare)
 
-	err := knight.MoveTo(endSquare)
+	replaced, err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
 	s.Equal(*endSquare, knight.Square)
+	s.Nil(replaced)
 
 	empty, err := s.board.At(startSquare)
 	s.NoError(err)
@@ -117,11 +118,12 @@ func (s *PieceSuite) TestMoveReplace() {
 	rook := piecetest.Noones(piecetest.Rook(s.T()))
 	rook.PlaceOn(s.board, endSquare)
 
-	err := knight.MoveTo(endSquare)
+	replaced, err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
 	s.Equal(*endSquare, knight.Square)
 	s.Nil(rook.Board)
+	s.Equal(replaced, rook)
 
 	empty, err := s.board.At(startSquare)
 	s.NoError(err)
@@ -139,7 +141,7 @@ func (s *PieceSuite) TestMoveOutOfBounds() {
 	knight := piecetest.Noones(piecetest.Knight(s.T()))
 	knight.PlaceOn(s.board, startSquare)
 
-	err := knight.MoveTo(endSquare)
+	_, err := knight.MoveTo(endSquare)
 	s.Error(err)
 }
 
