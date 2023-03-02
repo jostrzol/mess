@@ -6,6 +6,7 @@ import (
 	"github.com/jostrzol/mess/game"
 	"github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/piece"
+	"github.com/jostrzol/mess/game/piece/color"
 	"github.com/jostrzol/mess/game/player"
 )
 
@@ -39,7 +40,7 @@ func (c *config) ToGame() (*game.State, error) {
 
 func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string]*piece.Type) error {
 	for _, pieces := range pieces {
-		color, err := player.ColorString(pieces.PlayerColor)
+		color, err := color.ColorString(pieces.PlayerColor)
 		if err != nil {
 			return fmt.Errorf("parsing player color: %w", err)
 		}

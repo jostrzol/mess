@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/jostrzol/mess/game"
 	"github.com/jostrzol/mess/game/piece"
@@ -32,7 +33,7 @@ func gameStateToCty(state *game.State) cty.Value {
 	players := make(map[string]cty.Value, len(state.Players))
 	for _, player := range state.Players {
 		pieces := piecesPerPlayer[player]
-		players[player.Color.String()] = playerToCty(player, pieces)
+		players[color.Color.String()] = playerToCty(player, pieces)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"players": cty.MapVal(players),
@@ -45,7 +46,7 @@ func playerToCty(player *plr.Player, pieces []*piece.Piece) cty.Value {
 		piecesCty[i] = pieceToCty(piece)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
-		"color":  cty.StringVal(player.Color.String()),
+		"color":  cty.StringVal(color.Color.String()),
 		"pieces": cty.ListVal(piecesCty),
 	})
 }

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	brd "github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/player"
+	"github.com/jostrzol/mess/game/piece/color"
 )
 
 type Board = brd.Board[*Piece]
@@ -36,12 +36,16 @@ func (t *Type) generateMotions(piece *Piece) []brd.Square {
 
 type Piece struct {
 	Type   *Type
-	Owner  *player.Player
+	Owner  Owner
 	Board  Board
 	Square brd.Square
 }
 
-func NewPiece(pieceType *Type, owner *player.Player) *Piece {
+type Owner interface {
+	Color() color.Color
+}
+
+func NewPiece(pieceType *Type, owner Owner) *Piece {
 	return &Piece{
 		Type:  pieceType,
 		Owner: owner,
@@ -49,7 +53,11 @@ func NewPiece(pieceType *Type, owner *player.Player) *Piece {
 }
 
 func (p *Piece) String() string {
-	return fmt.Sprintf("%s %s", p.Owner.Color, p.Type)
+	return fmt.Sprintf("%s %s", p.Color(), p.Type)
+}
+
+func (p *Piece) Color() color.Color {
+	return p.Owner.Color()
 }
 
 func (p *Piece) PlaceOn(board Board, square *brd.Square) error {

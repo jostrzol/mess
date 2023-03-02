@@ -7,6 +7,7 @@ import (
 	"github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/board/boardtest"
 	"github.com/jostrzol/mess/game/piece"
+	"github.com/jostrzol/mess/game/piece/color"
 	"github.com/jostrzol/mess/game/piece/piecetest"
 	"github.com/jostrzol/mess/game/player"
 	"github.com/stretchr/testify/suite"
@@ -29,25 +30,25 @@ func (s *GameSuite) SetupTest() {
 }
 
 func (s *GameSuite) TestGetPlayer() {
-	for _, color := range player.ColorValues() {
+	for _, color := range color.ColorValues() {
 		s.Run(color.String(), func() {
 			player, err := s.game.GetPlayer(color)
 			s.NoError(err)
-			s.Equal(player.Color, color)
+			s.Equal(player.Color(), color)
 		})
 	}
 }
 
 func (s *GameSuite) TestGetPlayerNotFound() {
-	_, err := s.game.GetPlayer(player.Color(-1))
+	_, err := s.game.GetPlayer(color.Color(-1))
 	s.Error(err)
 }
 
 func (s *GameSuite) TestPiecesPerPlayer() {
 	t := s.T()
 
-	white := s.game.Players[player.White]
-	black := s.game.Players[player.Black]
+	white := s.game.Players[color.White]
+	black := s.game.Players[color.Black]
 
 	rookW := &piece.Piece{Type: piecetest.Rook(t), Owner: white}
 	knightW := &piece.Piece{Type: piecetest.Knight(t), Owner: white}
