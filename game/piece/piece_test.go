@@ -22,6 +22,43 @@ func (s *PieceSuite) SetupTest() {
 	s.board = board
 }
 
+func (s *PieceSuite) TestPlaceOn() {
+	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	square := boardtest.NewSquare("B2")
+
+	err := rook.PlaceOn(s.board, square)
+	s.NoError(err)
+
+	s.Equal(s.board, rook.Board)
+	s.Equal(*square, rook.Square)
+
+	piece, err := s.board.At(square)
+	s.NoError(err)
+
+	s.Equal(rook, piece)
+}
+
+func (s *PieceSuite) TestPlaceOnReplace() {
+	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	square := boardtest.NewSquare("B2")
+
+	err := knight.PlaceOn(s.board, square)
+	s.NoError(err)
+	err = rook.PlaceOn(s.board, square)
+	s.NoError(err)
+
+	s.NoError(err)
+	s.Equal(s.board, rook.Board)
+	s.Equal(*square, rook.Square)
+	s.Nil(knight.Board)
+
+	piece, err := s.board.At(square)
+	s.NoError(err)
+
+	s.Equal(rook, piece)
+}
+
 func (s *PieceSuite) TestGenerateMotionsRook() {
 	rook := piecetest.Noones(piecetest.Rook(s.T()))
 	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
