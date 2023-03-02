@@ -97,6 +97,32 @@ func (s *PieceSuite) TestMove() {
 	err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
+	s.Equal(*endSquare, knight.Square)
+
+	empty, err := s.board.At(startSquare)
+	s.NoError(err)
+	s.Nil(empty)
+
+	piece, err := s.board.At(endSquare)
+	s.NoError(err)
+	s.Equal(knight, piece)
+}
+
+func (s *PieceSuite) TestMoveReplace() {
+	startSquare := boardtest.NewSquare("B2")
+	endSquare := boardtest.NewSquare("C4")
+
+	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight.PlaceOn(s.board, startSquare)
+	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	rook.PlaceOn(s.board, endSquare)
+
+	err := knight.MoveTo(endSquare)
+	s.NoError(err)
+
+	s.Equal(*endSquare, knight.Square)
+	s.Nil(rook.Board)
+
 	empty, err := s.board.At(startSquare)
 	s.NoError(err)
 	s.Nil(empty)
