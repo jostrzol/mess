@@ -2,6 +2,7 @@ package piece
 
 import (
 	"fmt"
+	"log"
 
 	brd "github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/player"
@@ -52,9 +53,13 @@ func (p *Piece) String() string {
 }
 
 func (p *Piece) PlaceOn(board Board, square brd.Square) error {
-	err := board.Place(p, &square)
+	old, err := board.Place(p, &square)
 	if err != nil {
 		return err
+	}
+	if old != nil {
+		old.Board = nil
+		log.Printf("replacing %v with %v on %v", old, p, &square)
 	}
 	p.Board = board
 	p.Square = &square
@@ -70,9 +75,20 @@ func (p *Piece) MoveTo(square brd.Square) error {
 	if p.Board == nil {
 		return fmt.Errorf("piece not on board")
 	}
-	err := p.Board.Place(p, &square)
+
+	_, err := p.Board.Place(nil, p.Square)
 	if err != nil {
 		return err
+	}
+	old, err := p.Board.Place(p, &square)
+	if err != nil {
+		p.Board.Place(p, p.Square)
+		return err
+	}
+
+	p.Square = &square
+	if old != nil {
+		old.Board = nil
 	}
 	return nil
 }

@@ -100,7 +100,8 @@ func (s *BoardSuite) TestAtOutOfBound() {
 func (s *BoardSuite) TestPlace() {
 	square, _ := board.NewSquare("B3")
 
-	err := s.board.Place(1, &square)
+	old, err := s.board.Place(1, &square)
+	s.Zero(old)
 	s.NoError(err)
 
 	item, _ := s.board.At(&square)
@@ -110,9 +111,10 @@ func (s *BoardSuite) TestPlace() {
 func (s *BoardSuite) TestPlaceReplace() {
 	square, _ := board.NewSquare("B3")
 
-	err := s.board.Place(1, &square)
+	_, err := s.board.Place(1, &square)
 	s.NoError(err)
-	err = s.board.Place(2, &square)
+	old, err := s.board.Place(2, &square)
+	s.Equal(1, old)
 	s.NoError(err)
 
 	item, _ := s.board.At(&square)

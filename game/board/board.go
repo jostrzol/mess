@@ -3,7 +3,6 @@ package board
 import (
 	"errors"
 	"fmt"
-	"log"
 )
 
 type Board[T comparable] [][]T
@@ -42,18 +41,15 @@ func (b Board[T]) Contains(square *Square) bool {
 	return x < width && x >= 0 && y < height && y >= 0
 }
 
-func (b Board[T]) Place(item T, square *Square) error {
+func (b Board[T]) Place(item T, square *Square) (T, error) {
 	var zero T
 	old, err := b.At(square)
 	if err != nil {
-		return fmt.Errorf("retrieving item: %w", err)
-	}
-	if old != zero {
-		log.Printf("replacing item '%v' on %s with '%v'", old, square, item)
+		return zero, fmt.Errorf("retrieving item: %w", err)
 	}
 	x, y := square.toCoords()
 	b[y][x] = item
-	return nil
+	return old, nil
 }
 
 func (b Board[T]) AllItems() []T {
