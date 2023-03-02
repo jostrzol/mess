@@ -6,6 +6,12 @@ type MotionGenerator interface {
 	GenerateMotions(piece *Piece) []brd.Square
 }
 
+type FuncMotionGenerator func(piece *Piece) []brd.Square
+
+func (g FuncMotionGenerator) GenerateMotions(piece *Piece) []brd.Square {
+	return g(piece)
+}
+
 type MotionGenerators []MotionGenerator
 
 func (g MotionGenerators) GenerateMotions(piece *Piece) []brd.Square {
