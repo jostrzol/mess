@@ -7,7 +7,6 @@ import (
 	"github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/piece/color"
-	"github.com/jostrzol/mess/game/player"
 )
 
 func (c *config) ToGame() (*game.State, error) {
@@ -15,19 +14,13 @@ func (c *config) ToGame() (*game.State, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating board: %w", err)
 	}
+	state := game.NewState(board)
 
 	pieceTypes := make(map[string]*piece.Type, len(c.PieceTypes.PieceTypes))
 	for _, pieceType := range c.PieceTypes.PieceTypes {
 		pieceTypes[pieceType.Name] = &piece.Type{
 			Name: pieceType.Name,
 		}
-	}
-
-	players := player.NewPlayers()
-
-	state := &game.State{
-		Board:   board,
-		Players: players,
 	}
 
 	err = placePieces(state, c.InitialState.Pieces, pieceTypes)
@@ -44,10 +37,7 @@ func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string
 		if err != nil {
 			return fmt.Errorf("parsing player color: %w", err)
 		}
-		player, err := state.GetPlayer(color)
-		if err != nil {
-			return fmt.Errorf("getting player: %w", err)
-		}
+		player := state.GetPlayer(color)
 
 		for _, piecePlacement := range pieces.Placements {
 			squareString := piecePlacement.Name

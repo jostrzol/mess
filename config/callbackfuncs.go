@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/jostrzol/mess/game"
 	"github.com/jostrzol/mess/game/piece"
+	"github.com/jostrzol/mess/game/piece/color"
 	plr "github.com/jostrzol/mess/game/player"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
@@ -33,7 +33,7 @@ func gameStateToCty(state *game.State) cty.Value {
 	players := make(map[string]cty.Value, len(state.Players))
 	for _, player := range state.Players {
 		pieces := piecesPerPlayer[player]
-		players[color.Color.String()] = playerToCty(player, pieces)
+		players[player.Color().String()] = playerToCty(player, pieces)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"players": cty.MapVal(players),
@@ -46,7 +46,7 @@ func playerToCty(player *plr.Player, pieces []*piece.Piece) cty.Value {
 		piecesCty[i] = pieceToCty(piece)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
-		"color":  cty.StringVal(color.Color.String()),
+		"color":  cty.StringVal(player.Color().String()),
 		"pieces": cty.ListVal(piecesCty),
 	})
 }
@@ -63,13 +63,10 @@ func playerFromCty(state *game.State, player cty.Value) (*plr.Player, error) {
 		return nil, nil
 	}
 	winnerColorStr := player.GetAttr("color").AsString()
-	winnerColor, err := plr.ColorString(winnerColorStr)
+	winnerColor, err := color.ColorString(winnerColorStr)
 	if err != nil {
 		return nil, fmt.Errorf("parsing player color: %w", err)
 	}
-	winner, err := state.GetPlayer(winnerColor)
-	if err != nil {
-		return nil, fmt.Errorf("finding player in game: %w", err)
-	}
+	winner := state.GetPlayer(winnerColor)
 	return winner, nil
 }
