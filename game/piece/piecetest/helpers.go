@@ -11,7 +11,7 @@ func Rook(t *testing.T) *piece.Type {
 	pieceType := &piece.Type{
 		Name: "rook",
 	}
-	pieceType.AddMotionGenerator(NewStubMotionGenerator(t, "A1", "A2"))
+	pieceType.AddMotionGenerator(NewStaticMotionGenerator(t, "A1", "A2"))
 	return pieceType
 }
 
@@ -20,7 +20,7 @@ func Knight(t *testing.T) *piece.Type {
 	pieceType := &piece.Type{
 		Name: "knight",
 	}
-	pieceType.AddMotionGenerator(NewStubMotionGenerator(t, "B1", "B2"))
+	pieceType.AddMotionGenerator(NewStaticMotionGenerator(t, "B1", "B2"))
 	return pieceType
 }
 

@@ -26,7 +26,7 @@ func TestGenerateMotionsZero(t *testing.T) {
 
 func TestGenerateMotionsOne(t *testing.T) {
 	generators := piece.MotionGenerators([]piece.MotionGenerator{
-		piecetest.NewStubMotionGenerator(t, "A1"),
+		piecetest.NewStaticMotionGenerator(t, "A1"),
 	})
 	motions := generators.GenerateMotions(nil)
 	assertSquaresMatch(t, motions, "A1")
@@ -34,8 +34,8 @@ func TestGenerateMotionsOne(t *testing.T) {
 
 func TestGenerateMotionsTwo(t *testing.T) {
 	generators := piece.MotionGenerators([]piece.MotionGenerator{
-		piecetest.NewStubMotionGenerator(t, "A1"),
-		piecetest.NewStubMotionGenerator(t, "B1"),
+		piecetest.NewStaticMotionGenerator(t, "A1"),
+		piecetest.NewStaticMotionGenerator(t, "B1"),
 	})
 	motions := generators.GenerateMotions(nil)
 	assertSquaresMatch(t, motions, "A1", "B1")
@@ -43,8 +43,8 @@ func TestGenerateMotionsTwo(t *testing.T) {
 
 func TestGenerateMotionsTwoOverlapping(t *testing.T) {
 	generators := piece.MotionGenerators([]piece.MotionGenerator{
-		piecetest.NewStubMotionGenerator(t, "A1"),
-		piecetest.NewStubMotionGenerator(t, "A1"),
+		piecetest.NewStaticMotionGenerator(t, "A1"),
+		piecetest.NewStaticMotionGenerator(t, "A1"),
 	})
 	motions := generators.GenerateMotions(nil)
 	assertSquaresMatch(t, motions, "A1")
@@ -52,9 +52,9 @@ func TestGenerateMotionsTwoOverlapping(t *testing.T) {
 
 func TestGenerateMotionsMany(t *testing.T) {
 	generators := piece.MotionGenerators([]piece.MotionGenerator{
-		piecetest.NewStubMotionGenerator(t, "A1", "B2"),
-		piecetest.NewStubMotionGenerator(t, "C5"),
-		piecetest.NewStubMotionGenerator(t, "B2", "D4", "C5"),
+		piecetest.NewStaticMotionGenerator(t, "A1", "B2"),
+		piecetest.NewStaticMotionGenerator(t, "C5"),
+		piecetest.NewStaticMotionGenerator(t, "B2", "D4", "C5"),
 	})
 	motions := generators.GenerateMotions(nil)
 	assertSquaresMatch(t, motions, "A1", "B2", "C5", "D4")
