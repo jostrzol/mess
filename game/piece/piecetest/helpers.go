@@ -18,7 +18,7 @@ func Rook(t *testing.T) *piece.Type {
 			square := piece.Square.Offset(offset.x, offset.y)
 			for piece.Board.Contains(&square) {
 				result = append(result, square)
-				square = piece.Square.Offset(offset.x, offset.y)
+				square = square.Offset(offset.x, offset.y)
 			}
 		}
 		return result

@@ -39,7 +39,7 @@ func (b Board[T]) At(square *Square) (T, error) {
 func (b Board[T]) Contains(square *Square) bool {
 	x, y := square.toCoords()
 	width, height := b.Size()
-	return x < width && y < height
+	return x < width && x >= 0 && y < height && y >= 0
 }
 
 func (b Board[T]) Place(item T, square *Square) error {
