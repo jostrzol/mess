@@ -1,6 +1,7 @@
 package board_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/jostrzol/mess/game/board"
@@ -59,6 +60,37 @@ func TestString(t *testing.T) {
 			square, err := board.NewSquare(tt.input)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, square.String())
+		})
+	}
+}
+
+func TestOffset(t *testing.T) {
+	tests := []struct {
+		input    string
+		x        int
+		y        int
+		expected string
+	}{
+		{"B2", 0, 0, "B2"},
+		{"B2", 1, 0, "C2"},
+		{"B2", 1, 1, "C3"},
+		{"B2", 0, 1, "B3"},
+		{"B2", -1, 1, "A3"},
+		{"B2", -1, 0, "A2"},
+		{"B2", -1, -1, "A1"},
+		{"B2", 0, -1, "B1"},
+		{"B2", 1, -1, "C1"},
+		{"G5", -3, 4, "D9"},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s->%s", tt.input, tt.expected), func(t *testing.T) {
+			square, err := board.NewSquare(tt.input)
+			assert.NoError(t, err)
+			expectedSquare, err := board.NewSquare(tt.expected)
+			assert.NoError(t, err)
+
+			newSquare := square.Offset(tt.x, tt.y)
+			assert.Equal(t, expectedSquare, newSquare)
 		})
 	}
 }

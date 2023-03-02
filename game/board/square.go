@@ -40,15 +40,15 @@ func (s *Square) String() string {
 	return fmt.Sprintf("%s%d", file, s.Rank)
 }
 
+func (s *Square) Offset(x int, y int) Square {
+	return Square{
+		File: s.File + x,
+		Rank: s.Rank + y,
+	}
+}
+
 func (s *Square) toCoords() (int, int) {
 	x := s.File - 1
 	y := s.Rank - 1
 	return x, y
-}
-
-func fromCoords(x int, y int) *Square {
-	return &Square{
-		File: x + 1,
-		Rank: y + 1,
-	}
 }
