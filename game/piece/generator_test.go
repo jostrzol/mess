@@ -14,7 +14,7 @@ func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
 	for _, str := range expected {
 		square, err := brd.NewSquare(str)
 		assert.NoError(t, err)
-		assert.Containsf(t, actual, square, "%v doesnt contain square %v", actual, square)
+		assert.Containsf(t, actual, *square, "%v doesnt contain square %v", actual, square)
 	}
 }
 

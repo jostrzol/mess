@@ -15,7 +15,7 @@ func NewStaticMotionGenerator(t *testing.T, strings ...string) piece.MotionGener
 		for _, squareStr := range strings {
 			square, err := brd.NewSquare(squareStr)
 			assert.NoError(t, err)
-			destinations = append(destinations, square)
+			destinations = append(destinations, *square)
 		}
 		return destinations
 	})
@@ -32,8 +32,8 @@ func NewOffsetMotionGenerator(t *testing.T, offsets ...Offset) piece.MotionGener
 		destinations := make([]brd.Square, 0, len(offsets))
 		for _, offset := range offsets {
 			square := piece.Square.Offset(offset.x, offset.y)
-			if piece.Board.Contains(&square) {
-				destinations = append(destinations, square)
+			if piece.Board.Contains(square) {
+				destinations = append(destinations, *square)
 			}
 		}
 		return destinations

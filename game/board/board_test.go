@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/game/board/boardtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -78,8 +79,7 @@ func (s *BoardSuite) TestAtEmpty() {
 	tests := []string{"A1", "B1", "A2", "B2", "F8"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
-			square, _ := board.NewSquare(squareStr)
-			item, err := s.board.At(&square)
+			item, err := s.board.At(boardtest.NewSquare(squareStr))
 			s.NoError(err)
 			s.Zero(item)
 		})
@@ -90,42 +90,41 @@ func (s *BoardSuite) TestAtOutOfBound() {
 	tests := []string{"G8", "F9", "G9"}
 	for _, squareStr := range tests {
 		s.Run(squareStr, func() {
-			square, _ := board.NewSquare(squareStr)
-			_, err := s.board.At(&square)
+			_, err := s.board.At(boardtest.NewSquare(squareStr))
 			s.Error(err)
 		})
 	}
 }
 
 func (s *BoardSuite) TestPlace() {
-	square, _ := board.NewSquare("B3")
+	square := boardtest.NewSquare("B3")
 
-	old, err := s.board.Place(1, &square)
+	old, err := s.board.Place(1, square)
 	s.Zero(old)
 	s.NoError(err)
 
-	item, _ := s.board.At(&square)
+	item, _ := s.board.At(square)
 	s.Equal(1, item)
 }
 
 func (s *BoardSuite) TestPlaceReplace() {
-	square, _ := board.NewSquare("B3")
+	square := boardtest.NewSquare("B3")
 
-	_, err := s.board.Place(1, &square)
+	_, err := s.board.Place(1, square)
 	s.NoError(err)
-	old, err := s.board.Place(2, &square)
+	old, err := s.board.Place(2, square)
 	s.Equal(1, old)
 	s.NoError(err)
 
-	item, _ := s.board.At(&square)
+	item, _ := s.board.At(square)
 	s.Equal(2, item)
 }
 
 func (s *BoardSuite) TestAllPieces() {
-	square1, _ := board.NewSquare("B3")
-	square2, _ := board.NewSquare("D6")
-	s.board.Place(1, &square1)
-	s.board.Place(2, &square2)
+	square1 := boardtest.NewSquare("B3")
+	square2 := boardtest.NewSquare("D6")
+	s.board.Place(1, square1)
+	s.board.Place(2, square2)
 
 	items := s.board.AllItems()
 

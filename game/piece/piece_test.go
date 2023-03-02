@@ -28,12 +28,12 @@ func (s *PieceSuite) TestGenerateMotionsRook() {
 
 	motions := rook.GenerateMotions()
 	s.ElementsMatch(motions, []brd.Square{
-		boardtest.NewSquare("B1"),
-		boardtest.NewSquare("B3"),
-		boardtest.NewSquare("B4"),
-		boardtest.NewSquare("A2"),
-		boardtest.NewSquare("C2"),
-		boardtest.NewSquare("D2"),
+		*boardtest.NewSquare("B1"),
+		*boardtest.NewSquare("B3"),
+		*boardtest.NewSquare("B4"),
+		*boardtest.NewSquare("A2"),
+		*boardtest.NewSquare("C2"),
+		*boardtest.NewSquare("D2"),
 	})
 }
 
@@ -43,10 +43,10 @@ func (s *PieceSuite) TestGenerateMotionsKnight() {
 
 	motions := knight.GenerateMotions()
 	s.ElementsMatch(motions, []brd.Square{
-		boardtest.NewSquare("A4"),
-		boardtest.NewSquare("C4"),
-		boardtest.NewSquare("D1"),
-		boardtest.NewSquare("D3"),
+		*boardtest.NewSquare("A4"),
+		*boardtest.NewSquare("C4"),
+		*boardtest.NewSquare("D1"),
+		*boardtest.NewSquare("D3"),
 	})
 }
 
@@ -60,11 +60,11 @@ func (s *PieceSuite) TestMove() {
 	err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
-	empty, err := s.board.At(&startSquare)
+	empty, err := s.board.At(startSquare)
 	s.NoError(err)
 	s.Nil(empty)
 
-	piece, err := s.board.At(&endSquare)
+	piece, err := s.board.At(endSquare)
 	s.NoError(err)
 	s.Equal(knight, piece)
 }

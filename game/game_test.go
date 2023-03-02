@@ -5,6 +5,7 @@ import (
 
 	"github.com/jostrzol/mess/game"
 	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/game/board/boardtest"
 	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/piece/piecetest"
 	"github.com/jostrzol/mess/game/player"
@@ -44,9 +45,6 @@ func (s *GameSuite) TestGetPlayerNotFound() {
 
 func (s *GameSuite) TestPiecesPerPlayer() {
 	t := s.T()
-	square1, _ := board.NewSquare("A1")
-	square2, _ := board.NewSquare("B4")
-	square3, _ := board.NewSquare("F2")
 
 	white := s.game.Players[player.White]
 	black := s.game.Players[player.Black]
@@ -55,9 +53,9 @@ func (s *GameSuite) TestPiecesPerPlayer() {
 	knightW := &piece.Piece{Type: piecetest.Knight(t), Owner: white}
 	rookB := &piece.Piece{Type: piecetest.Rook(t), Owner: black}
 
-	s.game.Board.Place(rookW, &square1)
-	s.game.Board.Place(knightW, &square2)
-	s.game.Board.Place(rookB, &square3)
+	s.game.Board.Place(rookW, boardtest.NewSquare("A1"))
+	s.game.Board.Place(knightW, boardtest.NewSquare("B4"))
+	s.game.Board.Place(rookB, boardtest.NewSquare("F2"))
 
 	results := s.game.PiecesPerPlayer()
 	s.Len(results, 2)

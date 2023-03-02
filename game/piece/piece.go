@@ -38,7 +38,7 @@ type Piece struct {
 	Type   *Type
 	Owner  *player.Player
 	Board  Board
-	Square *brd.Square
+	Square brd.Square
 }
 
 func NewPiece(pieceType *Type, owner *player.Player) *Piece {
@@ -52,8 +52,8 @@ func (p *Piece) String() string {
 	return fmt.Sprintf("%s %s", p.Owner.Color, p.Type)
 }
 
-func (p *Piece) PlaceOn(board Board, square brd.Square) error {
-	old, err := board.Place(p, &square)
+func (p *Piece) PlaceOn(board Board, square *brd.Square) error {
+	old, err := board.Place(p, square)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (p *Piece) PlaceOn(board Board, square brd.Square) error {
 		log.Printf("replacing %v with %v on %v", old, p, &square)
 	}
 	p.Board = board
-	p.Square = &square
+	p.Square = *square
 	return nil
 }
 
@@ -70,23 +70,23 @@ func (p *Piece) GenerateMotions() []brd.Square {
 	return p.Type.generateMotions(p)
 }
 
-func (p *Piece) MoveTo(square brd.Square) error {
+func (p *Piece) MoveTo(square *brd.Square) error {
 	// TODO: add capturing on destination square
 	if p.Board == nil {
 		return fmt.Errorf("piece not on board")
 	}
 
-	_, err := p.Board.Place(nil, p.Square)
+	_, err := p.Board.Place(nil, &p.Square)
 	if err != nil {
 		return err
 	}
-	old, err := p.Board.Place(p, &square)
+	old, err := p.Board.Place(p, square)
 	if err != nil {
-		p.Board.Place(p, p.Square)
+		p.Board.Place(p, &p.Square)
 		return err
 	}
 
-	p.Square = &square
+	p.Square = *square
 	if old != nil {
 		old.Board = nil
 	}

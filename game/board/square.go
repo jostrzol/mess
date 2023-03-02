@@ -12,27 +12,26 @@ type Square struct {
 	Rank int
 }
 
-func NewSquare(text string) (Square, error) {
-	var zero Square
+func NewSquare(text string) (*Square, error) {
 	if len(text) != 2 {
-		return zero, errors.New("malformed position: expected 2 characters")
+		return nil, errors.New("malformed position: expected 2 characters")
 	}
 
 	fileRune := int(strings.ToUpper(text)[0])
 	if fileRune < 'A' || fileRune > 'Z' {
-		return zero, fmt.Errorf("expected letter, not %q", fileRune)
+		return nil, fmt.Errorf("expected letter, not %q", fileRune)
 	}
 	file := fileRune - 'A' + 1
 
 	rank, err := strconv.Atoi(string(text[1]))
 	if err != nil {
-		return zero, fmt.Errorf("parsing rank: %v", err)
+		return nil, fmt.Errorf("parsing rank: %v", err)
 	}
 	if rank <= 0 {
-		return zero, fmt.Errorf("rank not positive: %d", rank)
+		return nil, fmt.Errorf("rank not positive: %d", rank)
 	}
 
-	return Square{File: file, Rank: rank}, nil
+	return &Square{File: file, Rank: rank}, nil
 }
 
 func (s *Square) String() string {
@@ -40,8 +39,8 @@ func (s *Square) String() string {
 	return fmt.Sprintf("%s%d", file, s.Rank)
 }
 
-func (s *Square) Offset(x int, y int) Square {
-	return Square{
+func (s *Square) Offset(x int, y int) *Square {
+	return &Square{
 		File: s.File + x,
 		Rank: s.Rank + y,
 	}
