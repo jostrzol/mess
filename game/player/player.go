@@ -1,17 +1,13 @@
 package player
 
-import "github.com/jostrzol/mess/game/piece/color"
+import (
+	"github.com/jostrzol/mess/game/piece"
+	"github.com/jostrzol/mess/game/piece/color"
+)
 
 type Player struct {
-	color color.Color
-}
-
-func (p *Player) Color() color.Color {
-	return p.color
-}
-
-func (p *Player) String() string {
-	return p.color.String()
+	color     color.Color
+	Prisoners []*piece.Piece
 }
 
 func NewPlayers() map[color.Color]*Player {
@@ -23,4 +19,16 @@ func NewPlayers() map[color.Color]*Player {
 		}
 	}
 	return players
+}
+
+func (p *Player) Color() color.Color {
+	return p.color
+}
+
+func (p *Player) String() string {
+	return p.color.String()
+}
+
+func (p *Player) Capture(piece *piece.Piece) {
+	p.Prisoners = append(p.Prisoners, piece)
 }

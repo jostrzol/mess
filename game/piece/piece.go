@@ -79,7 +79,6 @@ func (p *Piece) GenerateMotions() []brd.Square {
 }
 
 func (p *Piece) MoveTo(square *brd.Square) (*Piece, error) {
-	// TODO: add capturing on destination square
 	if p.Board == nil {
 		return nil, fmt.Errorf("piece not on board")
 	}
