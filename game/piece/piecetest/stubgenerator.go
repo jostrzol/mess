@@ -20,3 +20,22 @@ func NewStaticMotionGenerator(t *testing.T, strings ...string) piece.MotionGener
 		return destinations
 	})
 }
+
+type Offset struct {
+	x int
+	y int
+}
+
+func NewOffsetMotionGenerator(t *testing.T, offsets ...Offset) piece.MotionGenerator {
+	t.Helper()
+	return piece.FuncMotionGenerator(func(piece *piece.Piece) []brd.Square {
+		destinations := make([]brd.Square, 0, len(offsets))
+		for _, offset := range offsets {
+			square := piece.Square.Offset(offset.x, offset.y)
+			if piece.Board.Contains(&square) {
+				destinations = append(destinations, square)
+			}
+		}
+		return destinations
+	})
+}

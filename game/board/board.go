@@ -27,7 +27,7 @@ func (b Board[T]) Size() (int, int) {
 
 func (b Board[T]) At(square *Square) (T, error) {
 	var zero T
-	if !b.contains(square) {
+	if !b.Contains(square) {
 		err := fmt.Errorf("square %s out of board's bound", square)
 		return zero, err
 	}
@@ -36,7 +36,7 @@ func (b Board[T]) At(square *Square) (T, error) {
 	return item, nil
 }
 
-func (b Board[T]) contains(square *Square) bool {
+func (b Board[T]) Contains(square *Square) bool {
 	x, y := square.toCoords()
 	width, height := b.Size()
 	return x < width && y < height
