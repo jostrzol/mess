@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/hashicorp/hcl/v2"
@@ -11,28 +10,32 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/config/composeuserfunc"
 	"github.com/jostrzol/mess/config/messfuncs"
+	"github.com/jostrzol/mess/game"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
 
-var defaultEvalContext = &hcl.EvalContext{
-	Functions: map[string]function.Function{
-		"upper":   stdlib.UpperFunc,
-		"lower":   stdlib.LowerFunc,
-		"min":     stdlib.MinFunc,
-		"max":     stdlib.MaxFunc,
-		"strlen":  stdlib.StrlenFunc,
-		"substr":  stdlib.SubstrFunc,
-		"lookup":  stdlib.LookupFunc,
-		"keys":    stdlib.KeysFunc,
-		"values":  stdlib.ValuesFunc,
-		"element": stdlib.ElementFunc,
-		"length":  stdlib.LengthFunc,
-		"sum":     messfuncs.SumFunc,
-	},
-	Variables: make(map[string]cty.Value, 0),
+func newEvalContext(state *game.State) *hcl.EvalContext {
+	return &hcl.EvalContext{
+		Functions: map[string]function.Function{
+			"upper":               stdlib.UpperFunc,
+			"lower":               stdlib.LowerFunc,
+			"min":                 stdlib.MinFunc,
+			"max":                 stdlib.MaxFunc,
+			"strlen":              stdlib.StrlenFunc,
+			"substr":              stdlib.SubstrFunc,
+			"lookup":              stdlib.LookupFunc,
+			"keys":                stdlib.KeysFunc,
+			"values":              stdlib.ValuesFunc,
+			"element":             stdlib.ElementFunc,
+			"length":              stdlib.LengthFunc,
+			"sum":                 messfuncs.SumFunc,
+			"get_square_relative": messfuncs.GetSquareRelativeFunc(state),
+		},
+		Variables: make(map[string]cty.Value, 0),
+	}
 }
 
 type config struct {
@@ -76,80 +79,126 @@ type variablesConfig struct {
 }
 
 type variableConfig struct {
-	Name  string         `hcl:"name,label"`
-	Value hcl.Expression `hcl:"value"`
+	Name       string         `hcl:"name,label"`
+	Expression hcl.Expression `hcl:"value"`
 }
 
-func decodeConfig(filename string) (*config, error) {
+func decodeConfig(filename string, state *game.State) (*config, error) {
+	diags := make(hcl.Diagnostics, 0)
+
 	src, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	file, diags := hclsyntax.ParseConfig(src, filename, hcl.InitialPos)
+	file, parseDiags := hclsyntax.ParseConfig(src, filename, hcl.InitialPos)
+	diags.Extend(parseDiags)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-	ctx := *defaultEvalContext
+	ctx := newEvalContext(state)
 
-	variables := &variablesConfig{}
-	diags = gohcl.DecodeBody(file.Body, &ctx, variables)
-	if diags.HasErrors() {
-		return nil, diags
-	}
+	userFuncs, body, funcDiags := decodeUserFunctions(file.Body, ctx)
+	diags.Extend(funcDiags)
 
-	for _, v := range variables.Variables {
-		if _, ok := defaultEvalContext.Variables[v.Name]; ok {
-			log.Printf("user overwrote standard variable %q!", v.Name)
-		}
-
-		ctx.Variables[v.Name], diags = v.Value.Value(&ctx)
-		if diags.HasErrors() {
-			return nil, diags
-		}
-	}
-
-	contextFunc := func() *hcl.EvalContext {
-		return &ctx
-	}
-
-	funcs, body, diags := userfunc.DecodeUserFunctions(variables.Remain, "function", contextFunc)
-	if diags.HasErrors() {
-		return nil, diags
-	}
-
-	for name, f := range funcs {
-		if _, ok := defaultEvalContext.Functions[name]; ok {
-			log.Printf("user overwrote standard function %q!", name)
+	for name, f := range userFuncs {
+		if _, ok := ctx.Functions[name]; ok {
+			diags.Append(&hcl.Diagnostic{
+				Severity:    hcl.DiagWarning,
+				EvalContext: ctx,
+				Detail:      fmt.Sprintf("overwrote standard function %q", name),
+			})
 		}
 		ctx.Functions[name] = f
 	}
 
-	compositeFuncs, body, diags := composeuserfunc.DecodeCompositeUserFunctions(body, "composite_function", contextFunc)
-	if diags.HasErrors() {
-		return nil, diags
-	}
-
-	for name, f := range compositeFuncs {
-		if _, ok := funcs[name]; ok {
-			return nil, fmt.Errorf("user function name clash: %q", name)
-		} else if _, ok := defaultEvalContext.Functions[name]; ok {
-			log.Printf("user overwrote standard function %q!", name)
-		}
-		ctx.Functions[name] = f
-	}
+	userVariables, body, varDiags := decodeUserVariables(file.Body, ctx)
+	diags.Extend(varDiags)
+	ctx.Variables = userVariables
 
 	config := &config{}
-	diags = gohcl.DecodeBody(body, &ctx, config)
-	if diags.HasErrors() {
-		return nil, diags
-	}
+	configDiags := gohcl.DecodeBody(body, ctx, config)
+	diags.Extend(configDiags)
 
 	err = mapstructure.Decode(ctx.Functions, &config.Functions)
 	if err != nil {
-		return nil, err
+		diags.Append(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Detail:   fmt.Sprintf("populating callback functions: %v", err),
+		})
 	}
 
 	return config, nil
+}
+
+func decodeUserFunctions(
+	body hcl.Body, ctx *hcl.EvalContext,
+) (map[string]function.Function, hcl.Body, hcl.Diagnostics) {
+	diags := make(hcl.Diagnostics, 0)
+
+	contextFunc := func() *hcl.EvalContext {
+		return ctx
+	}
+
+	userFuncs, remain, tmpDiags := userfunc.DecodeUserFunctions(body, "function", contextFunc)
+	diags.Extend(tmpDiags)
+
+	if userFuncs == nil {
+		userFuncs = make(map[string]function.Function)
+	}
+
+	compositeFuncs, remain, tmpDiags := composeuserfunc.DecodeCompositeUserFunctions(remain, "composite_function", contextFunc)
+	diags.Extend(tmpDiags)
+
+	if compositeFuncs == nil {
+		compositeFuncs = make(map[string]function.Function)
+	}
+
+	for name, f := range compositeFuncs {
+		if _, present := userFuncs[name]; present {
+			diags.Append(&hcl.Diagnostic{
+				Severity:    hcl.DiagError,
+				EvalContext: ctx,
+				Detail:      fmt.Sprintf("function named %q already defined", name),
+			})
+		} else {
+			userFuncs[name] = f
+		}
+	}
+
+	return userFuncs, remain, diags
+}
+
+func decodeUserVariables(
+	body hcl.Body, ctx *hcl.EvalContext,
+) (map[string]cty.Value, hcl.Body, hcl.Diagnostics) {
+	diags := make(hcl.Diagnostics, 0)
+	var variables variablesConfig
+
+	tmpDiags := gohcl.DecodeBody(body, ctx, &variables)
+	diags.Extend(tmpDiags)
+
+	if variables.Variables == nil {
+		variables.Variables = make([]variableConfig, 0)
+	}
+
+	userVariables := make(map[string]cty.Value)
+	for _, variable := range variables.Variables {
+		if _, ok := userVariables[variable.Name]; ok {
+			diags.Append(&hcl.Diagnostic{
+				Severity:    hcl.DiagError,
+				Subject:     variable.Expression.Range().Ptr(),
+				Expression:  variable.Expression,
+				EvalContext: ctx,
+				Detail:      fmt.Sprintf("variable named %q already defined", variable.Name),
+			})
+		} else {
+			value, evalDiags := variable.Expression.Value(ctx)
+			diags.Extend(evalDiags)
+			userVariables[variable.Name] = value
+		}
+	}
+
+	return userVariables, variables.Remain, diags
 }

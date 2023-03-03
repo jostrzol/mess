@@ -67,8 +67,7 @@ func TestString(t *testing.T) {
 func TestOffset(t *testing.T) {
 	tests := []struct {
 		input    string
-		x        int
-		y        int
+		offset   board.Offset
 		expected string
 	}{
 		{"B2", 0, 0, "B2"},

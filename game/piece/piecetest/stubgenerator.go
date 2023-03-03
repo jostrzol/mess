@@ -21,11 +21,6 @@ func NewStaticMotionGenerator(t *testing.T, strings ...string) piece.MotionGener
 	})
 }
 
-type Offset struct {
-	x int
-	y int
-}
-
 func NewOffsetMotionGenerator(t *testing.T, offsets ...Offset) piece.MotionGenerator {
 	t.Helper()
 	return piece.FuncMotionGenerator(func(piece *piece.Piece) []brd.Square {

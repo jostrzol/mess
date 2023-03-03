@@ -94,7 +94,7 @@ composite_function "motion_neighbours_straight" {
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for neighbour in neighbours_straight: neighbour if !is_square_owned_by(square, piece.owner) && !is_attacked(square)]
+    return = [for dest in dests: dest if !is_square_owned_by(square, piece.owner) && !is_attacked(square)]
   }
 }
 

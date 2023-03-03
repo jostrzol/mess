@@ -9,12 +9,12 @@ import (
 	"github.com/jostrzol/mess/game/piece/color"
 )
 
-func (c *config) toGameState() (*game.State, error) {
+func (c *config) toGameState(state *game.State) error {
 	board, err := board.NewBoard[*piece.Piece](int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
-		return nil, fmt.Errorf("creating board: %w", err)
+		return fmt.Errorf("creating board: %w", err)
 	}
-	state := game.NewState(board)
+	*state = *game.NewState(board)
 
 	pieceTypes := make(map[string]*piece.Type, len(c.PieceTypes.PieceTypes))
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
@@ -22,7 +22,7 @@ func (c *config) toGameState() (*game.State, error) {
 		for _, motionConfig := range pieceTypeConfig.Motions {
 			motionGenerator, err := c.Functions.GetCustomFuncAsGenerator(motionConfig.GeneratorName)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			pieceType.AddMotionGenerator(motionGenerator)
 		}
@@ -31,10 +31,9 @@ func (c *config) toGameState() (*game.State, error) {
 
 	err = placePieces(state, c.InitialState.Pieces, pieceTypes)
 	if err != nil {
-		return nil, fmt.Errorf("placing initial pieces: %w", err)
+		return fmt.Errorf("placing initial pieces: %w", err)
 	}
-
-	return state, nil
+	return nil
 }
 
 func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string]*piece.Type) error {

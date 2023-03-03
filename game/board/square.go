@@ -39,10 +39,15 @@ func (s *Square) String() string {
 	return fmt.Sprintf("%s%d", file, s.Rank)
 }
 
-func (s *Square) Offset(x int, y int) *Square {
+type Offset struct {
+	x int
+	y int
+}
+
+func (s *Square) Offset(offset Offset) *Square {
 	return &Square{
-		File: s.File + x,
-		Rank: s.Rank + y,
+		File: s.File + offset.x,
+		Rank: s.Rank + offset.y,
 	}
 }
 

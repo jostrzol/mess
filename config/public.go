@@ -8,18 +8,19 @@ import (
 )
 
 func DecodeConfig(filename string) (*game.State, game.Controller, error) {
-	config, err := decodeConfig(filename)
+	var state game.State
+	config, err := decodeConfig(filename, &state)
 	if err != nil {
 		return nil, nil, fmt.Errorf("decoding config: %w", err)
 	}
 	log.Printf("Loaded config: %#v", config)
 
-	state, err := config.toGameState()
+	err = config.toGameState(&state)
 	if err != nil {
 		return nil, nil, fmt.Errorf("initializing game state: %w", err)
 	}
 
 	controller := config.toController()
 
-	return state, controller, nil
+	return &state, controller, nil
 }
