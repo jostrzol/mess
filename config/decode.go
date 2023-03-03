@@ -115,7 +115,7 @@ func decodeConfig(filename string, state *game.State) (*config, error) {
 		ctx.Functions[name] = f
 	}
 
-	userVariables, body, varDiags := decodeUserVariables(file.Body, ctx)
+	userVariables, body, varDiags := decodeUserVariables(body, ctx)
 	diags.Extend(varDiags)
 	ctx.Variables = userVariables
 
