@@ -21,6 +21,10 @@ func NewState(board piece.Board) *State {
 	}
 }
 
+func (g *State) String() string {
+	return fmt.Sprintf("Board:\n%v", g.Board)
+}
+
 func (g *State) GetPlayer(color color.Color) *player.Player {
 	player, ok := g.Players[color]
 	if !ok {

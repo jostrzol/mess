@@ -17,6 +17,8 @@ func main() {
 		log.Fatalf("loading game rules: %s", err)
 	}
 
+	print(state.String())
+
 	winner := controller.DecideWinner(state)
 
 	if winner == nil {

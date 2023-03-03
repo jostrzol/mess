@@ -3,6 +3,7 @@ package board
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type Board[T comparable] [][]T
@@ -17,6 +18,20 @@ func NewBoard[T comparable](width int, height int) (Board[T], error) {
 		board[i] = make([]T, width)
 	}
 	return board, nil
+}
+
+func (b Board[T]) String() string {
+	var zero T
+	var builder strings.Builder
+	for y, row := range b {
+		for x, item := range row {
+			if item != zero {
+				square := fromCoords(x, y)
+				fmt.Fprintf(&builder, "%v: %v\n", square, item)
+			}
+		}
+	}
+	return builder.String()
 }
 
 func (b Board[T]) Size() (int, int) {

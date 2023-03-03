@@ -51,3 +51,10 @@ func (s *Square) toCoords() (int, int) {
 	y := s.Rank - 1
 	return x, y
 }
+
+func fromCoords(x int, y int) *Square {
+	return &Square{
+		File: x + 1,
+		Rank: y + 1,
+	}
+}
