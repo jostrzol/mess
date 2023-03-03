@@ -45,7 +45,7 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (piece.M
 		squareCty := squareToCty(&piece.Square)
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
-			log.Printf("calling motion generator for %v at %v", piece, piece.Square)
+			log.Printf("calling motion generator for %v at %v: %v", piece, piece.Square, err)
 			return make([]board.Square, 0)
 		}
 
@@ -105,23 +105,26 @@ func (errors manyErrors) Error() string {
 }
 
 func squaresFromCty(value *cty.Value) ([]board.Square, error) {
-	errors := make(manyErrors, 0)
-	if ty := value.Type(); ty == cty.List(cty.String) {
-		destinations := make([]board.Square, value.LengthInt())
-		for _, squareCty := range value.AsValueSlice() {
-			squareStr := squareCty.AsString()
-			square, err := board.NewSquare(squareStr)
-			if err != nil {
-				errors = append(errors, fmt.Errorf("parsing square %q: %w", squareStr, err))
-			} else {
-				destinations = append(destinations, *square)
-			}
-		}
-		return destinations, errors
-	} else {
+	ty := value.Type()
+	if ty != cty.List(cty.String) {
 		err := fmt.Errorf("expected type %v, got %v", cty.List(cty.String), ty)
 		return make([]board.Square, 0), err
 	}
+	errors := make(manyErrors, 0)
+	destinations := make([]board.Square, value.LengthInt())
+	for _, squareCty := range value.AsValueSlice() {
+		squareStr := squareCty.AsString()
+		square, err := board.NewSquare(squareStr)
+		if err != nil {
+			errors = append(errors, fmt.Errorf("parsing square %q: %w", squareStr, err))
+		} else {
+			destinations = append(destinations, *square)
+		}
+	}
+	if len(errors) > 0 {
+		return destinations, errors
+	}
+	return destinations, nil
 }
 
 func playerFromCty(state *game.State, player cty.Value) (*plr.Player, error) {

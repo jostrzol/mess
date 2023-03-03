@@ -33,6 +33,10 @@ func (g *State) GetPlayer(color color.Color) *player.Player {
 	return player
 }
 
+func (g *State) GetPieceAt(square *board.Square) (*piece.Piece, error) {
+	return g.Board.At(square)
+}
+
 func (g *State) PiecesPerPlayer() map[*player.Player][]*piece.Piece {
 	pieces := g.Board.AllItems()
 	perPlayer := make(map[*player.Player][]*piece.Piece, len(pieces))
