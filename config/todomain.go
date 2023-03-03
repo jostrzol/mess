@@ -17,10 +17,16 @@ func (c *config) toGameState() (*game.State, error) {
 	state := game.NewState(board)
 
 	pieceTypes := make(map[string]*piece.Type, len(c.PieceTypes.PieceTypes))
-	for _, pieceType := range c.PieceTypes.PieceTypes {
-		pieceTypes[pieceType.Name] = &piece.Type{
-			Name: pieceType.Name,
+	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
+		pieceType := piece.NewType(pieceTypeConfig.Name)
+		for _, motionConfig := range pieceTypeConfig.Motions {
+			motionGenerator, err := c.Functions.GetCustomFuncAsGenerator(motionConfig.GeneratorName)
+			if err != nil {
+				return nil, err
+			}
+			pieceType.AddMotionGenerator(motionGenerator)
 		}
+		pieceTypes[pieceType.Name] = pieceType
 	}
 
 	err = placePieces(state, c.InitialState.Pieces, pieceTypes)

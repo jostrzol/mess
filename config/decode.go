@@ -39,7 +39,7 @@ type config struct {
 	Board        boardConfig        `hcl:"board,block"`
 	PieceTypes   pieceTypesConfig   `hcl:"piece_types,block"`
 	InitialState initialStateConfig `hcl:"initial_state,block"`
-	Functions    callbackFunctionsConfig
+	Functions    *callbackFunctionsConfig
 }
 
 type boardConfig struct {
@@ -52,7 +52,13 @@ type pieceTypesConfig struct {
 }
 
 type pieceTypeConfig struct {
-	Name string `hcl:"piece_name,label"`
+	Name    string         `hcl:"piece_name,label"`
+	Motions []motionConfig `hcl:"motion,block"`
+}
+
+type motionConfig struct {
+	GeneratorName string   `hcl:"generator"`
+	ActionNames   []string `hcl:"action,optional"`
 }
 
 type initialStateConfig struct {

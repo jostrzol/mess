@@ -55,5 +55,5 @@ func (g *State) Move(piece *piece.Piece, square *board.Square) error {
 }
 
 type Controller interface {
-	DecideWinner(state *State) (*player.Player, error)
+	DecideWinner(state *State) *player.Player
 }

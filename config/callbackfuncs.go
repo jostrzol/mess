@@ -2,8 +2,11 @@ package config
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/piece/color"
 	plr "github.com/jostrzol/mess/game/player"
@@ -12,20 +15,46 @@ import (
 )
 
 type callbackFunctionsConfig struct {
-	DecideWinnerFunc function.Function `mapstructure:"decide_winner"`
+	DecideWinnerFunc function.Function            `mapstructure:"decide_winner"`
+	CustomFuncs      map[string]function.Function `mapstructure:",remain"`
 }
 
-func (c callbackFunctionsConfig) DecideWinner(state *game.State) (*plr.Player, error) {
+func (c *callbackFunctionsConfig) DecideWinner(state *game.State) *plr.Player {
 	ctyState := gameStateToCty(state)
 	ctyWinner, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
-		return nil, fmt.Errorf("calling user-defined function: %w", err)
+		log.Printf("calling user-defined function: %v", err)
+		return nil
 	}
 	winner, err := playerFromCty(state, ctyWinner)
 	if err != nil {
-		return nil, fmt.Errorf("getting winner: %w", err)
+		log.Printf("getting winner: %v", err)
+		return nil
 	}
-	return winner, nil
+	return winner
+}
+
+func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (piece.MotionGenerator, error) {
+	funcCty, ok := c.CustomFuncs[name]
+	if !ok {
+		return nil, fmt.Errorf("user function %q not found", name)
+	}
+
+	return piece.FuncMotionGenerator(func(piece *piece.Piece) []board.Square {
+		pieceCty := pieceToCty(piece)
+		squareCty := squareToCty(&piece.Square)
+		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
+		if err != nil {
+			log.Printf("calling motion generator for %v at %v", piece, piece.Square)
+			return make([]board.Square, 0)
+		}
+
+		squares, err := squaresFromCty(&result)
+		if err != nil {
+			log.Printf("parsing motion generator result: %v", err)
+		}
+		return squares
+	}), nil
 }
 
 func gameStateToCty(state *game.State) cty.Value {
@@ -56,6 +85,43 @@ func pieceToCty(piece *piece.Piece) cty.Value {
 		"type":   cty.StringVal(piece.Type.Name),
 		"square": cty.StringVal(piece.Square.String()),
 	})
+}
+
+func squareToCty(square *board.Square) cty.Value {
+	return cty.StringVal(square.String())
+}
+
+type manyErrors []error
+
+func (errors manyErrors) Error() string {
+	var b strings.Builder
+	b.WriteString("[\n")
+	for _, err := range errors {
+		b.WriteByte('\t')
+		b.WriteString(err.Error())
+		b.WriteByte('\n')
+	}
+	return b.String()
+}
+
+func squaresFromCty(value *cty.Value) ([]board.Square, error) {
+	errors := make(manyErrors, 0)
+	if ty := value.Type(); ty == cty.List(cty.String) {
+		destinations := make([]board.Square, value.LengthInt())
+		for _, squareCty := range value.AsValueSlice() {
+			squareStr := squareCty.AsString()
+			square, err := board.NewSquare(squareStr)
+			if err != nil {
+				errors = append(errors, fmt.Errorf("parsing square %q: %w", squareStr, err))
+			} else {
+				destinations = append(destinations, *square)
+			}
+		}
+		return destinations, errors
+	} else {
+		err := fmt.Errorf("expected type %v, got %v", cty.List(cty.String), ty)
+		return make([]board.Square, 0), err
+	}
 }
 
 func playerFromCty(state *game.State, player cty.Value) (*plr.Player, error) {

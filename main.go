@@ -17,10 +17,7 @@ func main() {
 		log.Fatalf("loading game rules: %s", err)
 	}
 
-	winner, err := controller.DecideWinner(state)
-	if err != nil {
-		log.Fatalf("Failed to resolve game: %s", err)
-	}
+	winner := controller.DecideWinner(state)
 
 	if winner == nil {
 		fmt.Printf("Draw!")
