@@ -16,7 +16,8 @@ func chooseSquare(board piece.Board) *brd.Square {
 	var err error
 	for square == nil || err != nil {
 		print("> ")
-		fmt.Scan(&squareStr)
+		squareStr = "A1"
+		// fmt.Scan(&squareStr)
 		square, err = brd.NewSquare(squareStr)
 		if err != nil {
 			fmt.Printf("%v\n", err)

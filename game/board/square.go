@@ -40,14 +40,14 @@ func (s *Square) String() string {
 }
 
 type Offset struct {
-	x int
-	y int
+	X int
+	Y int
 }
 
 func (s *Square) Offset(offset Offset) *Square {
 	return &Square{
-		File: s.File + offset.x,
-		Rank: s.Rank + offset.y,
+		File: s.File + offset.X,
+		Rank: s.Rank + offset.Y,
 	}
 }
 

@@ -55,7 +55,7 @@ func GetSquareRelativeFunc(state *game.State) function.Function {
 				AllowDynamicType: true,
 			},
 		},
-		Type: function.StaticReturnType(cty.Number),
+		Type: function.StaticReturnType(cty.String),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
 			var square *board.Square
 			var offset board.Offset
