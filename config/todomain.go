@@ -9,7 +9,7 @@ import (
 	"github.com/jostrzol/mess/game/piece/color"
 )
 
-func (c *config) ToGame() (*game.State, error) {
+func (c *config) toGameState() (*game.State, error) {
 	board, err := board.NewBoard[*piece.Piece](int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating board: %w", err)
@@ -66,6 +66,6 @@ func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string
 	return nil
 }
 
-func (c *config) ToController() game.Controller {
+func (c *config) toController() game.Controller {
 	return c.Functions
 }

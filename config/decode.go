@@ -39,7 +39,7 @@ type config struct {
 	Board        boardConfig        `hcl:"board,block"`
 	PieceTypes   pieceTypesConfig   `hcl:"piece_types,block"`
 	InitialState initialStateConfig `hcl:"initial_state,block"`
-	Functions    CallbackFunctionsConfig
+	Functions    callbackFunctionsConfig
 }
 
 type boardConfig struct {
@@ -74,7 +74,7 @@ type variableConfig struct {
 	Value hcl.Expression `hcl:"value"`
 }
 
-func DecodeConfig(filename string) (*config, error) {
+func decodeConfig(filename string) (*config, error) {
 	src, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

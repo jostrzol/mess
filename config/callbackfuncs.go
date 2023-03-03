@@ -11,11 +11,11 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 )
 
-type CallbackFunctionsConfig struct {
+type callbackFunctionsConfig struct {
 	DecideWinnerFunc function.Function `mapstructure:"decide_winner"`
 }
 
-func (c CallbackFunctionsConfig) DecideWinner(state *game.State) (*plr.Player, error) {
+func (c callbackFunctionsConfig) DecideWinner(state *game.State) (*plr.Player, error) {
 	ctyState := gameStateToCty(state)
 	ctyWinner, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
