@@ -3,10 +3,8 @@ package ctyconv
 import (
 	"fmt"
 
-	"github.com/jostrzol/mess/game"
 	"github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/piece/color"
-	plr "github.com/jostrzol/mess/game/player"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
@@ -44,15 +42,18 @@ func SquaresFromCty(value cty.Value) ([]board.Square, error) {
 	return result, nil
 }
 
-func PlayerFromCty(state *game.State, player cty.Value) (*plr.Player, error) {
-	if player.IsNull() {
+func ColorFromCty(colorCty cty.Value) (*color.Color, error) {
+	if colorCty.IsNull() {
 		return nil, nil
 	}
-	winnerColorStr := player.GetAttr("color").AsString()
-	winnerColor, err := color.ColorString(winnerColorStr)
-	if err != nil {
-		return nil, fmt.Errorf("parsing player color: %w", err)
+	var colorStr string
+	var err error
+	if err := gocty.FromCtyValue(colorCty, &colorStr); err != nil {
+		return nil, err
 	}
-	winner := state.GetPlayer(winnerColor)
-	return winner, nil
+	color, err := color.ColorString(colorStr)
+	if err != nil {
+		return nil, err
+	}
+	return &color, nil
 }

@@ -20,17 +20,22 @@ type callbackFunctionsConfig struct {
 
 func (c *callbackFunctionsConfig) DecideWinner(state *game.State) *plr.Player {
 	ctyState := ctyconv.GameStateToCty(state)
-	ctyWinner, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
+	ctyWinnerColor, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
 		log.Printf("calling user-defined function: %v", err)
 		return nil
 	}
-	winner, err := ctyconv.PlayerFromCty(state, ctyWinner)
+
+	color, err := ctyconv.ColorFromCty(ctyWinnerColor)
 	if err != nil {
-		log.Printf("getting winner: %v", err)
+		log.Printf("parsing winner color: %v", err)
 		return nil
 	}
-	return winner
+
+	if color == nil {
+		return nil
+	}
+	return state.GetPlayer(*color)
 }
 
 func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (piece.MotionGenerator, error) {
