@@ -67,7 +67,8 @@ func TestString(t *testing.T) {
 func TestOffset(t *testing.T) {
 	tests := []struct {
 		input    string
-		offset   board.Offset
+		x        int
+		y        int
 		expected string
 	}{
 		{"B2", 0, 0, "B2"},
@@ -88,7 +89,7 @@ func TestOffset(t *testing.T) {
 			expectedSquare, err := board.NewSquare(tt.expected)
 			assert.NoError(t, err)
 
-			newSquare := square.Offset(tt.x, tt.y)
+			newSquare := square.Offset(board.Offset{X: tt.x, Y: tt.y})
 			assert.Equal(t, expectedSquare, newSquare)
 		})
 	}
