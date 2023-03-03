@@ -210,12 +210,9 @@ composite_function "motion_line_straight" {
 initial_state {
   pieces "white" {
     A1 = "king"
-    C5 = "queen"
   }
   pieces "black" {
     A2 = "king"
-    B3 = "queen"
-    B5 = "pawn"
   }
 }
 
