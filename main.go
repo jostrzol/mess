@@ -16,8 +16,8 @@ func chooseSquare(board piece.Board) *brd.Square {
 	var err error
 	for square == nil || err != nil {
 		print("> ")
-		squareStr = "A1"
-		// fmt.Scan(&squareStr)
+		// squareStr = "A1"
+		fmt.Scan(&squareStr)
 		square, err = brd.NewSquare(squareStr)
 		if err != nil {
 			fmt.Printf("%v\n", err)
@@ -80,21 +80,28 @@ func main() {
 		log.Fatalf("loading game rules: %s", err)
 	}
 
-	print(state.String())
-	println("Choose square with a piece")
-	piece := choosePiece(state.Board)
+	for {
+		print(state.String())
+		println("Choose square with a piece")
+		piece := choosePiece(state.Board)
 
-	motions := piece.GenerateMotions()
-	if len(motions) == 0 {
-		log.Fatal("no motions for this piece")
-	}
+		motions := piece.GenerateMotions()
+		if len(motions) == 0 {
+			print("No motions for this piece")
+			continue
+		}
 
-	fmt.Printf("Possible moves: %v", motions)
-	move := chooseMove(state.Board, motions)
+		print("Possible moves: ")
+		for _, motion := range motions {
+			fmt.Printf("%v ", &motion)
+		}
+		println()
+		move := chooseMove(state.Board, motions)
 
-	err = state.Move(piece, move)
-	if err != nil {
-		log.Fatal(err)
+		err = state.Move(piece, move)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	winner := controller.DecideWinner(state)

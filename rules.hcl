@@ -94,7 +94,7 @@ composite_function "motion_neighbours_straight" {
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if !is_square_owned_by(square, piece.owner) && !is_attacked(square)]
+    return = [for dest in dests: dest if dest != null && !is_square_owned_by(dest, piece.color) && !is_attacked(square)]
   }
 }
 
@@ -175,7 +175,7 @@ composite_function "motion_hook" {
   result = {
     dposes = [[2, 1], [2, -1], [-2, 1], [-2, -1], [1, 2], [-1, 2], [1, -2], [-1, -2]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if dest != null && !is_square_owned_by(piece.owner)]
+    return = [for dest in dests: dest if dest != null && !is_square_owned_by(dest, piece.color)]
   }
 }
 
@@ -187,7 +187,7 @@ composite_function "motion_line" {
   params = [square, piece, dpos]
   result = {
     next   = get_square_relative(square, dpos)
-    return = next == null ? [] : next.piece == null ? list(next, motion_line(next, piece, dpos)...) : is_square_owned_by(next, piece.owner) ? [] : [next]
+    return = next == null ? [] : next.piece == null ? list(next, motion_line(next, piece, dpos)...) : is_square_owned_by(next, piece.color) ? [] : [next]
   }
 }
 

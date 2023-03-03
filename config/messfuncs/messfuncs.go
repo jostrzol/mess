@@ -75,3 +75,63 @@ func GetSquareRelativeFunc(state *game.State) function.Function {
 		},
 	})
 }
+
+func IsSquareOwnedByFunc(state *game.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Checks if a square has a piece of a given color",
+		Params: []function.Parameter{
+			{
+				Name:             "square",
+				Type:             cty.String,
+				AllowDynamicType: true,
+				AllowNull:        true,
+			},
+			{
+				Name:             "color",
+				Type:             cty.String,
+				AllowDynamicType: true,
+				AllowNull:        true,
+			},
+		},
+		Type: function.StaticReturnType(cty.Bool),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			if args[0].IsNull() || args[1].IsNull() {
+				return cty.BoolVal(false), nil
+			}
+			var square *board.Square
+			var err error
+			if square, err = ctyconv.SquareFromCty(args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
+			}
+			color, err := ctyconv.ColorFromCty(args[1])
+			if err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
+			}
+
+			piece, err := state.GetPieceAt(square)
+			if err != nil {
+				return cty.DynamicVal, fmt.Errorf("getting piece at %v: %w", square, err)
+			}
+			result := piece != nil && piece.Color() == *color
+			return cty.BoolVal(result), nil
+		},
+	})
+}
+
+func IsAttackedFunc(state *game.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Checks if given square can be reached in the next turn by the opponent",
+		Params: []function.Parameter{
+			{
+				Name:             "square",
+				Type:             cty.String,
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(cty.Bool),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			// TODO: implement
+			return cty.BoolVal(false), nil
+		},
+	})
+}

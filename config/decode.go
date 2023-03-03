@@ -33,6 +33,8 @@ func newEvalContext(state *game.State) *hcl.EvalContext {
 			"length":              stdlib.LengthFunc,
 			"sum":                 messfuncs.SumFunc,
 			"get_square_relative": messfuncs.GetSquareRelativeFunc(state),
+			"is_square_owned_by":  messfuncs.IsSquareOwnedByFunc(state),
+			"is_attacked":         messfuncs.IsAttackedFunc(state),
 		},
 		Variables: make(map[string]cty.Value, 0),
 	}
