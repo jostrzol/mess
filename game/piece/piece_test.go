@@ -29,8 +29,8 @@ func (s *PieceSuite) TestPlaceOn() {
 	err := rook.PlaceOn(s.board, square)
 	s.NoError(err)
 
-	s.Equal(s.board, rook.Board)
-	s.Equal(*square, rook.Square)
+	s.Equal(s.board, rook.Board())
+	s.Equal(*square, *rook.Square())
 
 	piece, err := s.board.At(square)
 	s.NoError(err)
@@ -49,9 +49,9 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 	s.NoError(err)
 
 	s.NoError(err)
-	s.Equal(s.board, rook.Board)
-	s.Equal(*square, rook.Square)
-	s.Nil(knight.Board)
+	s.Equal(s.board, rook.Board())
+	s.Equal(*square, *rook.Square())
+	s.Nil(knight.Board())
 
 	piece, err := s.board.At(square)
 	s.NoError(err)
@@ -97,7 +97,7 @@ func (s *PieceSuite) TestMove() {
 	replaced, err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
-	s.Equal(*endSquare, knight.Square)
+	s.Equal(*endSquare, *knight.Square())
 	s.Nil(replaced)
 
 	empty, err := s.board.At(startSquare)
@@ -121,7 +121,7 @@ func (s *PieceSuite) TestMoveReplace() {
 	replaced, err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
-	s.Equal(*endSquare, knight.Square)
+	s.Equal(*endSquare, *knight.Square())
 	s.False(rook.IsOnBoard())
 	s.Equal(replaced, rook)
 

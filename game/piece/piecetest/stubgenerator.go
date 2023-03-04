@@ -27,8 +27,8 @@ func NewOffsetMotionGenerator(t *testing.T, offsets ...board.Offset) piece.Motio
 	return piece.FuncMotionGenerator(func(piece *piece.Piece) []brd.Square {
 		destinations := make([]brd.Square, 0, len(offsets))
 		for _, offset := range offsets {
-			square := piece.Square.Offset(offset)
-			if piece.Board.Contains(square) {
+			square := piece.Square().Offset(offset)
+			if piece.Board().Contains(square) {
 				destinations = append(destinations, *square)
 			}
 		}

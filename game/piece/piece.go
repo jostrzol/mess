@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jostrzol/mess/game/board"
 	brd "github.com/jostrzol/mess/game/board"
 	"github.com/jostrzol/mess/game/piece/color"
 )
@@ -38,30 +39,54 @@ func (t *Type) generateMotions(piece *Piece) []brd.Square {
 	return t.motionGenerators.GenerateMotions(piece)
 }
 
-type Piece struct {
-	Type   *Type
-	Owner  Owner
-	Board  Board
-	Square brd.Square
-}
-
 type Owner interface {
 	Color() color.Color
 }
 
+type Piece struct {
+	ty     *Type
+	owner  Owner
+	board  Board
+	square brd.Square
+}
+
 func NewPiece(pieceType *Type, owner Owner) *Piece {
 	return &Piece{
-		Type:  pieceType,
-		Owner: owner,
+		ty:    pieceType,
+		owner: owner,
 	}
 }
 
 func (p *Piece) String() string {
-	return fmt.Sprintf("%s %s", p.Color(), p.Type)
+	return fmt.Sprintf("%s %s", p.Color(), p.ty)
+}
+
+func (p *Piece) Type() *Type {
+	return p.ty
+}
+
+func (p *Piece) Owner() Owner {
+	return p.owner
 }
 
 func (p *Piece) Color() color.Color {
-	return p.Owner.Color()
+	return p.owner.Color()
+}
+
+func (p *Piece) Board() Board {
+	return p.board
+}
+
+func (p *Piece) Square() *board.Square {
+	if p.IsOnBoard() {
+		duplicate := p.square
+		return &duplicate
+	}
+	return nil
+}
+
+func (p *Piece) IsOnBoard() bool {
+	return p.board != nil
 }
 
 func (p *Piece) PlaceOn(board Board, square *brd.Square) error {
@@ -70,40 +95,43 @@ func (p *Piece) PlaceOn(board Board, square *brd.Square) error {
 		return err
 	}
 	if old != nil {
-		old.Board = nil
+		old.board = nil
 		log.Printf("replacing %v with %v on %v", old, p, &square)
 	}
-	p.Board = board
-	p.Square = *square
+	p.board = board
+	p.square = *square
 	return nil
 }
 
+func (p *Piece) RemoveFromBoard() {
+	if p.board != nil {
+		p.board.Place(nil, &p.square)
+		p.board = nil
+	}
+}
+
 func (p *Piece) GenerateMotions() []brd.Square {
-	return p.Type.generateMotions(p)
+	return p.ty.generateMotions(p)
 }
 
 func (p *Piece) MoveTo(square *brd.Square) (*Piece, error) {
-	if p.Board == nil {
+	if p.board == nil {
 		return nil, fmt.Errorf("piece not on board")
 	}
 
-	_, err := p.Board.Place(nil, &p.Square)
+	_, err := p.board.Place(nil, &p.square)
 	if err != nil {
 		return nil, err
 	}
-	old, err := p.Board.Place(p, square)
+	old, err := p.board.Place(p, square)
 	if err != nil {
-		p.Board.Place(p, &p.Square)
+		p.board.Place(p, &p.square)
 		return nil, err
 	}
 
-	p.Square = *square
+	p.square = *square
 	if old != nil {
-		old.Board = nil
+		old.board = nil
 	}
 	return old, nil
-}
-
-func (p *Piece) IsOnBoard() bool {
-	return p.Board != nil
 }

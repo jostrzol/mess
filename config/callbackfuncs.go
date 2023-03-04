@@ -46,10 +46,10 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (piece.M
 
 	return piece.FuncMotionGenerator(func(piece *piece.Piece) []board.Square {
 		pieceCty := ctyconv.PieceToCty(piece)
-		squareCty := ctyconv.SquareToCty(&piece.Square)
+		squareCty := ctyconv.SquareToCty(piece.Square())
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
-			log.Printf("calling motion generator for %v at %v: %v", piece, &piece.Square, err)
+			log.Printf("calling motion generator for %v at %v: %v", piece, piece.Square(), err)
 			return make([]board.Square, 0)
 		}
 

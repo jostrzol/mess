@@ -18,8 +18,8 @@ func Rook(t *testing.T) *piece.Type {
 			{X: 0, Y: 1},
 			{X: 0, Y: -1},
 		} {
-			square := piece.Square.Offset(offset)
-			for piece.Board.Contains(square) {
+			square := piece.Square().Offset(offset)
+			for piece.Board().Contains(square) {
 				result = append(result, *square)
 				square = square.Offset(offset)
 			}
@@ -46,8 +46,5 @@ func Knight(t *testing.T) *piece.Type {
 }
 
 func Noones(pieceType *piece.Type) *piece.Piece {
-	return &piece.Piece{
-		Type:  pieceType,
-		Owner: nil,
-	}
+	return piece.NewPiece(pieceType, nil)
 }

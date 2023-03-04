@@ -48,9 +48,9 @@ var Piece = cty.Object(map[string]cty.Type{
 
 func PieceToCty(piece *piece.Piece) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
-		"type":   cty.StringVal(piece.Type.Name()),
+		"type":   cty.StringVal(piece.Type().Name()),
 		"color":  cty.StringVal(piece.Color().String()),
-		"square": cty.StringVal(piece.Square.String()),
+		"square": cty.StringVal(piece.Square().String()),
 	})
 }
 

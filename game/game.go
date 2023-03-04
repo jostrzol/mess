@@ -44,7 +44,7 @@ func (g *State) PiecesPerPlayer() map[*player.Player][]*piece.Piece {
 		perPlayer[player] = make([]*piece.Piece, 0)
 	}
 	for _, piece := range pieces {
-		owner := g.GetPlayer(piece.Owner.Color())
+		owner := g.GetPlayer(piece.Color())
 		perPlayer[owner] = append(perPlayer[owner], piece)
 	}
 	return perPlayer
