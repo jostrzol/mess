@@ -11,6 +11,12 @@ type Iterable[T any] interface {
 	[]T | <-chan T
 }
 
+func Contains[T any](t *testing.T, channel <-chan T, item T, msgsAndArgs ...interface{}) bool {
+	t.Helper()
+	slice := generatorToSlice(channel)
+	return assert.Contains(t, slice, item, msgsAndArgs...)
+}
+
 func Len[T any](t *testing.T, channel <-chan T, length int, msgsAndArgs ...interface{}) bool {
 	t.Helper()
 	slice := generatorToSlice(channel)
@@ -42,7 +48,9 @@ func generatorToSlice(value interface{}) interface{} {
 			_, element, ok = reflect.Select([]reflect.SelectCase{
 				{Chan: val, Dir: reflect.SelectRecv},
 			})
-			result = append(result, element.Interface())
+			if ok {
+				result = append(result, element.Interface())
+			}
 		}
 		return result
 	}
