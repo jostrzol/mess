@@ -42,7 +42,7 @@ func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string
 		if err != nil {
 			return fmt.Errorf("parsing player color: %w", err)
 		}
-		player := state.GetPlayer(color)
+		player := state.Player(color)
 
 		for _, piecePlacement := range pieces.Placements {
 			squareString := piecePlacement.Name

@@ -108,7 +108,7 @@ func IsSquareOwnedByFunc(state *game.State) function.Function {
 				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
 			}
 
-			piece, err := state.GetPieceAt(square)
+			piece, err := state.PieceAt(square)
 			if err != nil {
 				return cty.DynamicVal, fmt.Errorf("getting piece at %v: %w", square, err)
 			}

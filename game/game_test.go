@@ -27,7 +27,7 @@ func (s *GameSuite) SetupTest() {
 func (s *GameSuite) TestGetPlayer() {
 	for _, color := range color.ColorValues() {
 		s.Run(color.String(), func() {
-			player := s.game.GetPlayer(color)
+			player := s.game.Player(color)
 			s.Equal(player.Color(), color)
 		})
 	}
@@ -35,7 +35,7 @@ func (s *GameSuite) TestGetPlayer() {
 
 func (s *GameSuite) TestGetPlayerNotFound() {
 	s.Panics(func() {
-		s.game.GetPlayer(color.Color(-1))
+		s.game.Player(color.Color(-1))
 	})
 }
 

@@ -35,7 +35,7 @@ func (c *callbackFunctionsConfig) DecideWinner(state *game.State) *plr.Player {
 	if color == nil {
 		return nil
 	}
-	return state.GetPlayer(*color)
+	return state.Player(*color)
 }
 
 func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (piece.MotionGenerator, error) {
