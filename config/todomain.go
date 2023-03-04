@@ -26,7 +26,7 @@ func (c *config) toGameState(state *game.State) error {
 			}
 			pieceType.AddMotionGenerator(motionGenerator)
 		}
-		pieceTypes[pieceType.Name] = pieceType
+		pieceTypes[pieceType.Name()] = pieceType
 	}
 
 	err = placePieces(state, c.InitialState.Pieces, pieceTypes)

@@ -9,12 +9,15 @@ import (
 
 func Rook(t *testing.T) *piece.Type {
 	t.Helper()
-	pieceType := &piece.Type{
-		Name: "rook",
-	}
+	pieceType := piece.NewType("rook")
 	pieceType.AddMotionGenerator(piece.FuncMotionGenerator(func(piece *piece.Piece) []board.Square {
 		result := make([]board.Square, 0)
-		for _, offset := range []board.Offset{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+		for _, offset := range []board.Offset{
+			{X: 1, Y: 0},
+			{X: -1, Y: 0},
+			{X: 0, Y: 1},
+			{X: 0, Y: -1},
+		} {
 			square := piece.Square.Offset(offset)
 			for piece.Board.Contains(square) {
 				result = append(result, *square)
@@ -28,9 +31,7 @@ func Rook(t *testing.T) *piece.Type {
 
 func Knight(t *testing.T) *piece.Type {
 	t.Helper()
-	pieceType := &piece.Type{
-		Name: "knight",
-	}
+	pieceType := piece.NewType("knight")
 	pieceType.AddMotionGenerator(NewOffsetMotionGenerator(t, []board.Offset{
 		{X: 1, Y: 2},
 		{X: 1, Y: -2},

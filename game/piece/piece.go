@@ -11,19 +11,23 @@ import (
 type Board = brd.Board[*Piece]
 
 type Type struct {
-	Name             string
+	name             string
 	motionGenerators MotionGenerators
 }
 
 func NewType(name string) *Type {
 	return &Type{
-		Name:             name,
+		name:             name,
 		motionGenerators: make(MotionGenerators, 0),
 	}
 }
 
+func (t *Type) Name() string {
+	return t.name
+}
+
 func (t *Type) String() string {
-	return t.Name
+	return t.Name()
 }
 
 func (t *Type) AddMotionGenerator(generator MotionGenerator) {
