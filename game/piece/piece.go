@@ -99,3 +99,7 @@ func (p *Piece) MoveTo(square *brd.Square) (*Piece, error) {
 	}
 	return old, nil
 }
+
+func (p *Piece) IsOnBoard() bool {
+	return p.Board != nil
+}
