@@ -9,6 +9,7 @@ import (
 	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/piece/color"
 	"github.com/jostrzol/mess/game/piece/piecetest"
+	"github.com/jostrzol/mess/messtest/genassert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -67,7 +68,7 @@ func (s *GameSuite) TestMoveNoCapture() {
 	err := s.game.Move(rook, boardtest.NewSquare("A2"))
 	s.NoError(err)
 
-	s.Empty(white.Prisoners)
+	genassert.Empty(s.T(), white.Prisoners())
 }
 
 func (s *GameSuite) TestMoveCapture() {
@@ -82,9 +83,9 @@ func (s *GameSuite) TestMoveCapture() {
 	err := s.game.Move(rook, boardtest.NewSquare("A2"))
 	s.NoError(err)
 
-	s.Empty(white.Prisoners)
-	s.Len(black.Prisoners, 1)
-	s.Contains(black.Prisoners, knight)
+	genassert.Empty(s.T(), white.Prisoners())
+	genassert.Len(s.T(), black.Prisoners(), 1)
+	genassert.Contains(s.T(), black.Prisoners(), knight)
 }
 
 func TestGameSuite(t *testing.T) {

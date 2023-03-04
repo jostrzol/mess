@@ -3,11 +3,12 @@ package player
 import (
 	"github.com/jostrzol/mess/game/piece"
 	"github.com/jostrzol/mess/game/piece/color"
+	"github.com/jostrzol/mess/utils"
 )
 
 type Player struct {
 	color     color.Color
-	Prisoners []*piece.Piece
+	prisoners []*piece.Piece
 }
 
 func NewPlayers() map[color.Color]*Player {
@@ -30,5 +31,9 @@ func (p *Player) String() string {
 }
 
 func (p *Player) Capture(piece *piece.Piece) {
-	p.Prisoners = append(p.Prisoners, piece)
+	p.prisoners = append(p.prisoners, piece)
+}
+
+func (p *Player) Prisoners() <-chan *piece.Piece {
+	return utils.Generator(p.prisoners)
 }
