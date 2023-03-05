@@ -38,18 +38,14 @@ func (t *PieceType) generateMotions(piece *Piece) []brd.Square {
 	return t.motionGenerators.GenerateMotions(piece)
 }
 
-type Owner interface {
-	Color() color.Color
-}
-
 type Piece struct {
 	ty     *PieceType
-	owner  Owner
+	owner  *Player
 	board  brd.Board[*Piece]
 	square brd.Square
 }
 
-func NewPiece(pieceType *PieceType, owner Owner) *Piece {
+func NewPiece(pieceType *PieceType, owner *Player) *Piece {
 	return &Piece{
 		ty:    pieceType,
 		owner: owner,
@@ -64,7 +60,7 @@ func (p *Piece) Type() *PieceType {
 	return p.ty
 }
 
-func (p *Piece) Owner() Owner {
+func (p *Piece) Owner() *Player {
 	return p.owner
 }
 
