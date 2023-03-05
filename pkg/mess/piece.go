@@ -1,41 +1,40 @@
-package piece
+package mess
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/jostrzol/mess/game/board"
-	brd "github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/piece/color"
+	brd "github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
 )
 
-type Board = brd.Board[*Piece]
+type PieceBoard = brd.Board[*Piece]
 
-type Type struct {
+type PieceType struct {
 	name             string
 	motionGenerators MotionGenerators
 }
 
-func NewType(name string) *Type {
-	return &Type{
+func NewPieceType(name string) *PieceType {
+	return &PieceType{
 		name:             name,
 		motionGenerators: make(MotionGenerators, 0),
 	}
 }
 
-func (t *Type) Name() string {
+func (t *PieceType) Name() string {
 	return t.name
 }
 
-func (t *Type) String() string {
+func (t *PieceType) String() string {
 	return t.Name()
 }
 
-func (t *Type) AddMotionGenerator(generator MotionGenerator) {
+func (t *PieceType) AddMotionGenerator(generator MotionGenerator) {
 	t.motionGenerators = append(t.motionGenerators, generator)
 }
 
-func (t *Type) generateMotions(piece *Piece) []brd.Square {
+func (t *PieceType) generateMotions(piece *Piece) []brd.Square {
 	return t.motionGenerators.GenerateMotions(piece)
 }
 
@@ -44,13 +43,13 @@ type Owner interface {
 }
 
 type Piece struct {
-	ty     *Type
+	ty     *PieceType
 	owner  Owner
-	board  Board
+	board  brd.Board[*Piece]
 	square brd.Square
 }
 
-func NewPiece(pieceType *Type, owner Owner) *Piece {
+func NewPiece(pieceType *PieceType, owner Owner) *Piece {
 	return &Piece{
 		ty:    pieceType,
 		owner: owner,
@@ -61,7 +60,7 @@ func (p *Piece) String() string {
 	return fmt.Sprintf("%s %s", p.Color(), p.ty)
 }
 
-func (p *Piece) Type() *Type {
+func (p *Piece) Type() *PieceType {
 	return p.ty
 }
 
@@ -73,11 +72,11 @@ func (p *Piece) Color() color.Color {
 	return p.owner.Color()
 }
 
-func (p *Piece) Board() Board {
+func (p *Piece) Board() PieceBoard {
 	return p.board
 }
 
-func (p *Piece) Square() *board.Square {
+func (p *Piece) Square() *brd.Square {
 	if p.IsOnBoard() {
 		duplicate := p.square
 		return &duplicate
@@ -89,7 +88,7 @@ func (p *Piece) IsOnBoard() bool {
 	return p.board != nil
 }
 
-func (p *Piece) PlaceOn(board Board, square *brd.Square) error {
+func (p *Piece) PlaceOn(board PieceBoard, square *brd.Square) error {
 	old, err := board.Place(p, square)
 	if err != nil {
 		return err

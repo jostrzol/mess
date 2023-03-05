@@ -1,23 +1,21 @@
-package game
+package mess
 
 import (
 	"fmt"
 
-	"github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/piece"
-	"github.com/jostrzol/mess/game/piece/color"
-	"github.com/jostrzol/mess/game/player"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
 )
 
 type State struct {
-	Board   piece.Board
-	Players map[color.Color]*player.Player
+	Board   PieceBoard
+	Players map[color.Color]*Player
 }
 
-func NewState(board piece.Board) *State {
+func NewState(board PieceBoard) *State {
 	return &State{
 		Board:   board,
-		Players: player.NewPlayers(),
+		Players: NewPlayers(),
 	}
 }
 
@@ -25,7 +23,7 @@ func (g *State) String() string {
 	return fmt.Sprintf("Board:\n%v", g.Board)
 }
 
-func (g *State) Player(color color.Color) *player.Player {
+func (g *State) Player(color color.Color) *Player {
 	player, ok := g.Players[color]
 	if !ok {
 		panic(fmt.Errorf("player of color %s not found", color))
@@ -33,15 +31,15 @@ func (g *State) Player(color color.Color) *player.Player {
 	return player
 }
 
-func (g *State) PieceAt(square *board.Square) (*piece.Piece, error) {
+func (g *State) PieceAt(square *board.Square) (*Piece, error) {
 	return g.Board.At(square)
 }
 
-func (g *State) PiecesPerPlayer() map[*player.Player][]*piece.Piece {
+func (g *State) PiecesPerPlayer() map[*Player][]*Piece {
 	pieces := g.Board.AllItems()
-	perPlayer := make(map[*player.Player][]*piece.Piece, len(pieces))
+	perPlayer := make(map[*Player][]*Piece, len(pieces))
 	for _, player := range g.Players {
-		perPlayer[player] = make([]*piece.Piece, 0)
+		perPlayer[player] = make([]*Piece, 0)
 	}
 	for _, piece := range pieces {
 		owner := g.Player(piece.Color())
@@ -50,7 +48,7 @@ func (g *State) PiecesPerPlayer() map[*player.Player][]*piece.Piece {
 	return perPlayer
 }
 
-func (g *State) Move(piece *piece.Piece, square *board.Square) error {
+func (g *State) Move(piece *Piece, square *board.Square) error {
 	replaced, err := piece.MoveTo(square)
 	if err != nil {
 		return err
@@ -63,5 +61,5 @@ func (g *State) Move(piece *piece.Piece, square *board.Square) error {
 }
 
 type Controller interface {
-	DecideWinner(state *State) *player.Player
+	DecideWinner(state *State) *Player
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/piece/color"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/convert"
 	"github.com/zclconf/go-cty/cty/gocty"

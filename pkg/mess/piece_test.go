@@ -1,29 +1,69 @@
-package piece_test
+package mess
 
 import (
 	"testing"
 
-	brd "github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/board/boardtest"
-	"github.com/jostrzol/mess/game/piece"
-	"github.com/jostrzol/mess/game/piece/piecetest"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/stretchr/testify/suite"
 )
 
+func Rook(t *testing.T) *PieceType {
+	t.Helper()
+	pieceType := NewPieceType("rook")
+	pieceType.AddMotionGenerator(FuncMotionGenerator(func(piece *Piece) []board.Square {
+		result := make([]board.Square, 0)
+		for _, offset := range []board.Offset{
+			{X: 1, Y: 0},
+			{X: -1, Y: 0},
+			{X: 0, Y: 1},
+			{X: 0, Y: -1},
+		} {
+			square := piece.Square().Offset(offset)
+			for piece.Board().Contains(square) {
+				result = append(result, *square)
+				square = square.Offset(offset)
+			}
+		}
+		return result
+	}))
+	return pieceType
+}
+
+func Knight(t *testing.T) *PieceType {
+	t.Helper()
+	pieceType := NewPieceType("knight")
+	pieceType.AddMotionGenerator(offsetMotionGenerator(t, []board.Offset{
+		{X: 1, Y: 2},
+		{X: 1, Y: -2},
+		{X: -1, Y: 2},
+		{X: -1, Y: -2},
+		{X: 2, Y: 1},
+		{X: 2, Y: -1},
+		{X: -2, Y: 1},
+		{X: -2, Y: -1},
+	}...))
+	return pieceType
+}
+
+func Noones(pieceType *PieceType) *Piece {
+	return NewPiece(pieceType, nil)
+}
+
 type PieceSuite struct {
 	suite.Suite
-	board piece.Board
+	board PieceBoard
 }
 
 func (s *PieceSuite) SetupTest() {
-	board, err := brd.NewBoard[*piece.Piece](4, 4)
+	board, err := board.NewBoard[*Piece](4, 4)
 	s.NoError(err)
 
 	s.board = board
 }
 
 func (s *PieceSuite) TestPlaceOn() {
-	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	rook := Noones(Rook(s.T()))
 	square := boardtest.NewSquare("B2")
 
 	err := rook.PlaceOn(s.board, square)
@@ -39,8 +79,8 @@ func (s *PieceSuite) TestPlaceOn() {
 }
 
 func (s *PieceSuite) TestPlaceOnReplace() {
-	rook := piecetest.Noones(piecetest.Rook(s.T()))
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	rook := Noones(Rook(s.T()))
+	knight := Noones(Knight(s.T()))
 	square := boardtest.NewSquare("B2")
 
 	err := knight.PlaceOn(s.board, square)
@@ -60,11 +100,11 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 }
 
 func (s *PieceSuite) TestGenerateMotionsRook() {
-	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	rook := Noones(Rook(s.T()))
 	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
 	motions := rook.GenerateMotions()
-	s.ElementsMatch(motions, []brd.Square{
+	s.ElementsMatch(motions, []board.Square{
 		*boardtest.NewSquare("B1"),
 		*boardtest.NewSquare("B3"),
 		*boardtest.NewSquare("B4"),
@@ -75,11 +115,11 @@ func (s *PieceSuite) TestGenerateMotionsRook() {
 }
 
 func (s *PieceSuite) TestGenerateMotionsKnight() {
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
 	motions := knight.GenerateMotions()
-	s.ElementsMatch(motions, []brd.Square{
+	s.ElementsMatch(motions, []board.Square{
 		*boardtest.NewSquare("A4"),
 		*boardtest.NewSquare("C4"),
 		*boardtest.NewSquare("D1"),
@@ -91,7 +131,7 @@ func (s *PieceSuite) TestMove() {
 	startSquare := boardtest.NewSquare("B2")
 	endSquare := boardtest.NewSquare("C4")
 
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, startSquare)
 
 	replaced, err := knight.MoveTo(endSquare)
@@ -113,9 +153,9 @@ func (s *PieceSuite) TestMoveReplace() {
 	startSquare := boardtest.NewSquare("B2")
 	endSquare := boardtest.NewSquare("C4")
 
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, startSquare)
-	rook := piecetest.Noones(piecetest.Rook(s.T()))
+	rook := Noones(Rook(s.T()))
 	rook.PlaceOn(s.board, endSquare)
 
 	replaced, err := knight.MoveTo(endSquare)
@@ -138,7 +178,7 @@ func (s *PieceSuite) TestMoveOutOfBounds() {
 	startSquare := boardtest.NewSquare("B2")
 	endSquare := boardtest.NewSquare("Z1")
 
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, startSquare)
 
 	_, err := knight.MoveTo(endSquare)
@@ -146,14 +186,14 @@ func (s *PieceSuite) TestMoveOutOfBounds() {
 }
 
 func (s *PieceSuite) TestIsOnBoard() {
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, boardtest.NewSquare("A1"))
 
 	s.True(knight.IsOnBoard())
 }
 
 func (s *PieceSuite) TestIsNotOnBoard() {
-	knight := piecetest.Noones(piecetest.Knight(s.T()))
+	knight := Noones(Knight(s.T()))
 	s.False(knight.IsOnBoard())
 }
 

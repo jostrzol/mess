@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func DecodeConfig(filename string) (*game.State, game.Controller, error) {
-	var state game.State
+func DecodeConfig(filename string) (*mess.State, mess.Controller, error) {
+	var state mess.State
 	config, err := decodeConfig(filename, &state)
 	if err != nil {
 		return nil, nil, fmt.Errorf("decoding config: %w", err)

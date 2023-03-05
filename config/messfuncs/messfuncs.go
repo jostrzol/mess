@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/jostrzol/mess/config/ctyconv"
-	"github.com/jostrzol/mess/game"
-	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/gocty"
@@ -37,7 +37,7 @@ var SumFunc = function.New(&function.Spec{
 
 var ctyOffset = cty.Tuple([]cty.Type{cty.Number, cty.Number})
 
-func GetSquareRelativeFunc(state *game.State) function.Function {
+func GetSquareRelativeFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: joinText(
 			"Gets the square offset by a given relative position,",
@@ -76,7 +76,7 @@ func GetSquareRelativeFunc(state *game.State) function.Function {
 	})
 }
 
-func IsSquareOwnedByFunc(state *game.State) function.Function {
+func IsSquareOwnedByFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: "Checks if a square has a piece of a given color",
 		Params: []function.Parameter{
@@ -118,7 +118,7 @@ func IsSquareOwnedByFunc(state *game.State) function.Function {
 	})
 }
 
-func IsAttackedFunc(state *game.State) function.Function {
+func IsAttackedFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: "Checks if given square can be reached in the next turn by the opponent",
 		Params: []function.Parameter{

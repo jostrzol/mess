@@ -10,14 +10,14 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/config/composeuserfunc"
 	"github.com/jostrzol/mess/config/messfuncs"
-	"github.com/jostrzol/mess/game"
+	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
 
-func newEvalContext(state *game.State) *hcl.EvalContext {
+func newEvalContext(state *mess.State) *hcl.EvalContext {
 	return &hcl.EvalContext{
 		Functions: map[string]function.Function{
 			"upper":               stdlib.UpperFunc,
@@ -85,7 +85,7 @@ type variableConfig struct {
 	Expression hcl.Expression `hcl:"value"`
 }
 
-func decodeConfig(filename string, state *game.State) (*config, error) {
+func decodeConfig(filename string, state *mess.State) (*config, error) {
 	diags := make(hcl.Diagnostics, 0)
 
 	src, err := os.ReadFile(filename)

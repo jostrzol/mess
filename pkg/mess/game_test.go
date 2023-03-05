@@ -1,27 +1,24 @@
-package game_test
+package mess
 
 import (
 	"testing"
 
-	"github.com/jostrzol/mess/game"
-	"github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/board/boardtest"
-	"github.com/jostrzol/mess/game/piece"
-	"github.com/jostrzol/mess/game/piece/color"
-	"github.com/jostrzol/mess/game/piece/piecetest"
-	"github.com/jostrzol/mess/messtest/genassert"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/board/boardtest"
+	"github.com/jostrzol/mess/pkg/color"
+	"github.com/jostrzol/mess/pkg/genassert"
 	"github.com/stretchr/testify/suite"
 )
 
 type GameSuite struct {
 	suite.Suite
-	game *game.State
+	game *State
 }
 
 func (s *GameSuite) SetupTest() {
-	board, err := board.NewBoard[*piece.Piece](8, 8)
+	board, err := board.NewBoard[*Piece](8, 8)
 	s.NoError(err)
-	s.game = game.NewState(board)
+	s.game = NewState(board)
 }
 
 func (s *GameSuite) TestGetPlayer() {
@@ -45,9 +42,9 @@ func (s *GameSuite) TestPiecesPerPlayer() {
 	white := s.game.Players[color.White]
 	black := s.game.Players[color.Black]
 
-	rookW := piece.NewPiece(piecetest.Rook(t), white)
-	knightW := piece.NewPiece(piecetest.Knight(t), white)
-	rookB := piece.NewPiece(piecetest.Rook(t), black)
+	rookW := NewPiece(Rook(t), white)
+	knightW := NewPiece(Knight(t), white)
+	rookB := NewPiece(Rook(t), black)
 
 	rookW.PlaceOn(s.game.Board, boardtest.NewSquare("A1"))
 	knightW.PlaceOn(s.game.Board, boardtest.NewSquare("B4"))
@@ -56,13 +53,13 @@ func (s *GameSuite) TestPiecesPerPlayer() {
 	results := s.game.PiecesPerPlayer()
 	s.Len(results, 2)
 
-	s.ElementsMatch(results[white], []*piece.Piece{rookW, knightW})
-	s.ElementsMatch(results[black], []*piece.Piece{rookB})
+	s.ElementsMatch(results[white], []*Piece{rookW, knightW})
+	s.ElementsMatch(results[black], []*Piece{rookB})
 }
 
 func (s *GameSuite) TestMoveNoCapture() {
 	white := s.game.Players[color.White]
-	rook := piece.NewPiece(piecetest.Rook(s.T()), white)
+	rook := NewPiece(Rook(s.T()), white)
 	rook.PlaceOn(s.game.Board, boardtest.NewSquare("A1"))
 
 	err := s.game.Move(rook, boardtest.NewSquare("A2"))
@@ -75,9 +72,9 @@ func (s *GameSuite) TestMoveCapture() {
 	white := s.game.Players[color.White]
 	black := s.game.Players[color.Black]
 
-	knight := piece.NewPiece(piecetest.Knight(s.T()), white)
+	knight := NewPiece(Knight(s.T()), white)
 	knight.PlaceOn(s.game.Board, boardtest.NewSquare("A2"))
-	rook := piece.NewPiece(piecetest.Rook(s.T()), black)
+	rook := NewPiece(Rook(s.T()), black)
 	rook.PlaceOn(s.game.Board, boardtest.NewSquare("A1"))
 
 	err := s.game.Move(rook, boardtest.NewSquare("A2"))

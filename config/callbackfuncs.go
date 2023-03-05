@@ -5,10 +5,8 @@ import (
 	"log"
 
 	"github.com/jostrzol/mess/config/ctyconv"
-	"github.com/jostrzol/mess/game"
-	"github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/piece"
-	plr "github.com/jostrzol/mess/game/player"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 )
@@ -18,7 +16,7 @@ type callbackFunctionsConfig struct {
 	CustomFuncs      map[string]function.Function `mapstructure:",remain"`
 }
 
-func (c *callbackFunctionsConfig) DecideWinner(state *game.State) *plr.Player {
+func (c *callbackFunctionsConfig) DecideWinner(state *mess.State) *mess.Player {
 	ctyState := ctyconv.GameStateToCty(state)
 	ctyWinnerColor, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
@@ -38,13 +36,13 @@ func (c *callbackFunctionsConfig) DecideWinner(state *game.State) *plr.Player {
 	return state.Player(*color)
 }
 
-func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (piece.MotionGenerator, error) {
+func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.MotionGenerator, error) {
 	funcCty, ok := c.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
 
-	return piece.FuncMotionGenerator(func(piece *piece.Piece) []board.Square {
+	return mess.FuncMotionGenerator(func(piece *mess.Piece) []board.Square {
 		pieceCty := ctyconv.PieceToCty(piece)
 		squareCty := ctyconv.SquareToCty(piece.Square())
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})

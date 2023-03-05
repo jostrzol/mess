@@ -6,11 +6,11 @@ import (
 	"log"
 
 	"github.com/jostrzol/mess/config"
-	brd "github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/piece"
+	brd "github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func chooseSquare(board piece.Board) *brd.Square {
+func chooseSquare(board mess.PieceBoard) *brd.Square {
 	var square *brd.Square
 	var squareStr string
 	var err error
@@ -31,8 +31,8 @@ func chooseSquare(board piece.Board) *brd.Square {
 	return square
 }
 
-func choosePiece(board piece.Board) *piece.Piece {
-	var piece *piece.Piece
+func choosePiece(board mess.PieceBoard) *mess.Piece {
+	var piece *mess.Piece
 	var err error
 	for piece == nil || err != nil {
 		square := chooseSquare(board)
@@ -48,7 +48,7 @@ func choosePiece(board piece.Board) *piece.Piece {
 	return piece
 }
 
-func chooseMove(board piece.Board, moves []brd.Square) *brd.Square {
+func chooseMove(board mess.PieceBoard, moves []brd.Square) *brd.Square {
 	var move *brd.Square
 	var err error
 	for move == nil || err != nil {

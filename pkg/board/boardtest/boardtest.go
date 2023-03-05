@@ -1,6 +1,6 @@
 package boardtest
 
-import "github.com/jostrzol/mess/game/board"
+import "github.com/jostrzol/mess/pkg/board"
 
 func NewSquare(text string) *board.Square {
 	square, err := board.NewSquare(text)

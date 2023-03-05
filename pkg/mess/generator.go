@@ -1,6 +1,6 @@
-package piece
+package mess
 
-import brd "github.com/jostrzol/mess/game/board"
+import brd "github.com/jostrzol/mess/pkg/board"
 
 type MotionGenerator interface {
 	GenerateMotions(piece *Piece) []brd.Square

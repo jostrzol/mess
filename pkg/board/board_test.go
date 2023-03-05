@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/board/boardtest"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

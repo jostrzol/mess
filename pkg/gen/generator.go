@@ -1,4 +1,4 @@
-package utils
+package gen
 
 func Generator[T any](slice []T) <-chan T {
 	ch := make(chan T)

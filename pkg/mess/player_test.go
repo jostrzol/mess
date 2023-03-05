@@ -1,17 +1,15 @@
-package player_test
+package mess
 
 import (
 	"testing"
 
-	"github.com/jostrzol/mess/game/piece/color"
-	"github.com/jostrzol/mess/game/piece/piecetest"
-	plr "github.com/jostrzol/mess/game/player"
-	"github.com/jostrzol/mess/messtest/genassert"
+	"github.com/jostrzol/mess/pkg/color"
+	"github.com/jostrzol/mess/pkg/genassert"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPlayers(t *testing.T) {
-	players := plr.NewPlayers()
+	players := NewPlayers()
 	assert.Len(t, players, 2)
 
 	for _, color := range color.ColorValues() {
@@ -22,20 +20,20 @@ func TestNewPlayers(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	player := plr.NewPlayers()[color.White]
+	player := NewPlayers()[color.White]
 
 	assert.Equal(t, player.String(), color.White.String())
 }
 
 func TestPrisonersEmpty(t *testing.T) {
-	player := plr.NewPlayers()[color.White]
+	player := NewPlayers()[color.White]
 
 	genassert.Empty(t, player.Prisoners())
 }
 
 func TestPrisonersCapture(t *testing.T) {
-	player := plr.NewPlayers()[color.White]
-	knight := piecetest.Noones(piecetest.Knight(t))
+	player := NewPlayers()[color.White]
+	knight := Noones(Knight(t))
 
 	player.Capture(knight)
 

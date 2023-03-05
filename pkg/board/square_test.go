@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jostrzol/mess/game/board"
+	"github.com/jostrzol/mess/pkg/board"
 	"github.com/stretchr/testify/assert"
 )
 

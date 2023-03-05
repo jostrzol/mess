@@ -3,22 +3,21 @@ package config
 import (
 	"fmt"
 
-	"github.com/jostrzol/mess/game"
-	"github.com/jostrzol/mess/game/board"
-	"github.com/jostrzol/mess/game/piece"
-	"github.com/jostrzol/mess/game/piece/color"
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
+	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func (c *config) toGameState(state *game.State) error {
-	board, err := board.NewBoard[*piece.Piece](int(c.Board.Width), int(c.Board.Height))
+func (c *config) toGameState(state *mess.State) error {
+	board, err := board.NewBoard[*mess.Piece](int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return fmt.Errorf("creating board: %w", err)
 	}
-	*state = *game.NewState(board)
+	*state = *mess.NewState(board)
 
-	pieceTypes := make(map[string]*piece.Type, len(c.PieceTypes.PieceTypes))
+	pieceTypes := make(map[string]*mess.PieceType, len(c.PieceTypes.PieceTypes))
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
-		pieceType := piece.NewType(pieceTypeConfig.Name)
+		pieceType := mess.NewPieceType(pieceTypeConfig.Name)
 		for _, motionConfig := range pieceTypeConfig.Motions {
 			motionGenerator, err := c.Functions.GetCustomFuncAsGenerator(motionConfig.GeneratorName)
 			if err != nil {
@@ -36,7 +35,7 @@ func (c *config) toGameState(state *game.State) error {
 	return nil
 }
 
-func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string]*piece.Type) error {
+func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string]*mess.PieceType) error {
 	for _, pieces := range pieces {
 		color, err := color.ColorString(pieces.PlayerColor)
 		if err != nil {
@@ -60,7 +59,7 @@ func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string
 				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
 			}
 
-			piece := piece.NewPiece(pieceType, player)
+			piece := mess.NewPiece(pieceType, player)
 
 			err = piece.PlaceOn(state.Board, square)
 			if err != nil {
@@ -71,6 +70,6 @@ func placePieces(state *game.State, pieces []piecesConfig, pieceTypes map[string
 	return nil
 }
 
-func (c *config) toController() game.Controller {
+func (c *config) toController() mess.Controller {
 	return c.Functions
 }
