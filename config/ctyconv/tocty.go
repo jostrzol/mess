@@ -2,6 +2,7 @@ package ctyconv
 
 import (
 	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/gen"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -11,10 +12,9 @@ var Game = cty.Object(map[string]cty.Type{
 })
 
 func GameStateToCty(state *mess.State) cty.Value {
-	piecesPerPlayer := state.PiecesPerPlayer()
 	players := make(map[string]cty.Value, len(state.Players()))
 	for player := range state.Players() {
-		pieces := piecesPerPlayer[player]
+		pieces := gen.ToSlice(player.Pieces())
 		players[player.Color().String()] = PlayerToCty(player, pieces)
 	}
 	return cty.ObjectVal(map[string]cty.Value{

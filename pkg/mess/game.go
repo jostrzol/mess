@@ -40,19 +40,6 @@ func (g *State) Player(color color.Color) *Player {
 	return player
 }
 
-func (g *State) PiecesPerPlayer() map[*Player][]*Piece {
-	pieces := g.board.AllPieces()
-	perPlayer := make(map[*Player][]*Piece, len(pieces))
-	for _, player := range g.players {
-		perPlayer[player] = make([]*Piece, 0)
-	}
-	for _, piece := range pieces {
-		owner := g.Player(piece.Color())
-		perPlayer[owner] = append(perPlayer[owner], piece)
-	}
-	return perPlayer
-}
-
 type Controller interface {
 	DecideWinner(state *State) *Player
 }

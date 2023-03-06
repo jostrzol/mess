@@ -60,6 +60,35 @@ func (s *PlayerSuite) TestPrisonersCapture() {
 	genassert.Empty(s.T(), s.black.Prisoners())
 }
 
+func (s *PlayerSuite) TestPiecesEmpty() {
+	genassert.Empty(s.T(), s.white.Prisoners())
+}
+
+func (s *PlayerSuite) TestPiecePlaced() {
+	knight := NewPiece(Knight(s.T()), s.white)
+	s.board.Notify(PiecePlaced{
+		Piece: knight,
+	})
+
+	genassert.Len(s.T(), s.white.Pieces(), 1)
+	genassert.Contains(s.T(), s.white.Pieces(), knight)
+
+	genassert.Empty(s.T(), s.black.Pieces())
+}
+
+func (s *PlayerSuite) TestPieceRemoved() {
+	knight := NewPiece(Knight(s.T()), s.white)
+	s.board.Notify(PiecePlaced{
+		Piece: knight,
+	})
+	s.board.Notify(PieceRemoved{
+		Piece: knight,
+	})
+
+	genassert.Empty(s.T(), s.white.Pieces())
+	genassert.Empty(s.T(), s.black.Pieces())
+}
+
 func TestPlayerSource(t *testing.T) {
 	suite.Run(t, new(PlayerSuite))
 }

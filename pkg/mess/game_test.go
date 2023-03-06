@@ -3,7 +3,6 @@ package mess
 import (
 	"testing"
 
-	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/stretchr/testify/suite"
 )
@@ -32,27 +31,6 @@ func (s *GameSuite) TestGetPlayerNotFound() {
 	s.Panics(func() {
 		s.game.Player(color.Color(-1))
 	})
-}
-
-func (s *GameSuite) TestPiecesPerPlayer() {
-	t := s.T()
-
-	white := s.game.Player(color.White)
-	black := s.game.Player(color.Black)
-
-	rookW := NewPiece(Rook(t), white)
-	knightW := NewPiece(Knight(t), white)
-	rookB := NewPiece(Rook(t), black)
-
-	rookW.PlaceOn(s.game.Board(), boardtest.NewSquare("A1"))
-	knightW.PlaceOn(s.game.Board(), boardtest.NewSquare("B4"))
-	rookB.PlaceOn(s.game.Board(), boardtest.NewSquare("F2"))
-
-	results := s.game.PiecesPerPlayer()
-	s.Len(results, 2)
-
-	s.ElementsMatch(results[white], []*Piece{rookW, knightW})
-	s.ElementsMatch(results[black], []*Piece{rookB})
 }
 
 func TestGameSuite(t *testing.T) {
