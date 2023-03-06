@@ -40,5 +40,5 @@ func (p *Player) Handle(event event.Event) {
 }
 
 func (p *Player) Prisoners() <-chan *Piece {
-	return gen.Generator(p.prisoners)
+	return gen.FromSlice(p.prisoners)
 }

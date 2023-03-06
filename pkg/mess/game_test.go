@@ -37,16 +37,16 @@ func (s *GameSuite) TestGetPlayerNotFound() {
 func (s *GameSuite) TestPiecesPerPlayer() {
 	t := s.T()
 
-	white := s.game.Players[color.White]
-	black := s.game.Players[color.Black]
+	white := s.game.Player(color.White)
+	black := s.game.Player(color.Black)
 
 	rookW := NewPiece(Rook(t), white)
 	knightW := NewPiece(Knight(t), white)
 	rookB := NewPiece(Rook(t), black)
 
-	rookW.PlaceOn(s.game.Boardasdasd, boardtest.NewSquare("A1"))
-	knightW.PlaceOn(s.game.Boardasdasd, boardtest.NewSquare("B4"))
-	rookB.PlaceOn(s.game.Boardasdasd, boardtest.NewSquare("F2"))
+	rookW.PlaceOn(s.game.Board(), boardtest.NewSquare("A1"))
+	knightW.PlaceOn(s.game.Board(), boardtest.NewSquare("B4"))
+	rookB.PlaceOn(s.game.Board(), boardtest.NewSquare("F2"))
 
 	results := s.game.PiecesPerPlayer()
 	s.Len(results, 2)

@@ -12,8 +12,8 @@ var Game = cty.Object(map[string]cty.Type{
 
 func GameStateToCty(state *mess.State) cty.Value {
 	piecesPerPlayer := state.PiecesPerPlayer()
-	players := make(map[string]cty.Value, len(state.Players))
-	for _, player := range state.Players {
+	players := make(map[string]cty.Value, len(state.Players()))
+	for player := range state.Players() {
 		pieces := piecesPerPlayer[player]
 		players[player.Color().String()] = PlayerToCty(player, pieces)
 	}
