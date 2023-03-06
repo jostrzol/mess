@@ -61,7 +61,7 @@ func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string
 
 			piece := mess.NewPiece(pieceType, player)
 
-			err = piece.PlaceOn(state.Board, square)
+			err = piece.PlaceOn(state.Board(), square)
 			if err != nil {
 				return fmt.Errorf("placing a piece: %w", err)
 			}

@@ -68,7 +68,7 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 			}
 
 			result := square.Offset(offset)
-			if !state.Board.Contains(result) {
+			if !state.Board().Contains(result) {
 				return cty.NullVal(cty.String), nil
 			}
 			return ctyconv.SquareToCty(result), nil
@@ -108,7 +108,7 @@ func IsSquareOwnedByFunc(state *mess.State) function.Function {
 				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
 			}
 
-			piece, err := state.Board.At(square)
+			piece, err := state.Board().At(square)
 			if err != nil {
 				return cty.DynamicVal, fmt.Errorf("getting piece at %v: %w", square, err)
 			}

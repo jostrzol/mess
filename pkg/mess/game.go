@@ -7,20 +7,24 @@ import (
 )
 
 type State struct {
-	Board   *PieceBoard
+	board   *PieceBoard
 	Players map[color.Color]*Player
 }
 
 func NewState(board *PieceBoard) *State {
 	state := &State{
-		Board:   board,
+		board:   board,
 		Players: NewPlayers(board),
 	}
 	return state
 }
 
 func (g *State) String() string {
-	return fmt.Sprintf("Board:\n%v", g.Board)
+	return fmt.Sprintf("Board:\n%v", g.board)
+}
+
+func (g *State) Board() *PieceBoard {
+	return g.board
 }
 
 func (g *State) Player(color color.Color) *Player {
@@ -32,7 +36,7 @@ func (g *State) Player(color color.Color) *Player {
 }
 
 func (g *State) PiecesPerPlayer() map[*Player][]*Piece {
-	pieces := g.Board.AllPieces()
+	pieces := g.board.AllPieces()
 	perPlayer := make(map[*Player][]*Piece, len(pieces))
 	for _, player := range g.Players {
 		perPlayer[player] = make([]*Piece, 0)

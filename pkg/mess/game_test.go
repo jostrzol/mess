@@ -44,9 +44,9 @@ func (s *GameSuite) TestPiecesPerPlayer() {
 	knightW := NewPiece(Knight(t), white)
 	rookB := NewPiece(Rook(t), black)
 
-	rookW.PlaceOn(s.game.Board, boardtest.NewSquare("A1"))
-	knightW.PlaceOn(s.game.Board, boardtest.NewSquare("B4"))
-	rookB.PlaceOn(s.game.Board, boardtest.NewSquare("F2"))
+	rookW.PlaceOn(s.game.Boardasdasd, boardtest.NewSquare("A1"))
+	knightW.PlaceOn(s.game.Boardasdasd, boardtest.NewSquare("B4"))
+	rookB.PlaceOn(s.game.Boardasdasd, boardtest.NewSquare("F2"))
 
 	results := s.game.PiecesPerPlayer()
 	s.Len(results, 2)

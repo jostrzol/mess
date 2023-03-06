@@ -84,7 +84,7 @@ func main() {
 	for {
 		print(state.String())
 		println("Choose square with a piece")
-		piece := choosePiece(state.Board)
+		piece := choosePiece(state.Board())
 
 		motions := piece.GenerateMotions()
 		if len(motions) == 0 {
@@ -97,7 +97,7 @@ func main() {
 			fmt.Printf("%v ", &motion)
 		}
 		println()
-		move := chooseMove(state.Board, motions)
+		move := chooseMove(state.Board(), motions)
 
 		err = piece.MoveTo(move)
 		if err != nil {
