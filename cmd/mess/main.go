@@ -10,7 +10,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func chooseSquare(board mess.PieceBoard) *brd.Square {
+func chooseSquare(board *mess.PieceBoard) *brd.Square {
 	var square *brd.Square
 	var squareStr string
 	var err error
@@ -31,16 +31,17 @@ func chooseSquare(board mess.PieceBoard) *brd.Square {
 	return square
 }
 
-func choosePiece(board mess.PieceBoard) *mess.Piece {
+func choosePiece(board *mess.PieceBoard) *mess.Piece {
 	var piece *mess.Piece
 	var err error
 	for piece == nil || err != nil {
 		square := chooseSquare(board)
 		piece, err = board.At(square)
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			println(err)
 			println("Try again")
-		} else if piece == nil {
+		}
+		if piece == nil {
 			println("No piece there")
 			println("Try again")
 		}
@@ -48,7 +49,7 @@ func choosePiece(board mess.PieceBoard) *mess.Piece {
 	return piece
 }
 
-func chooseMove(board mess.PieceBoard, moves []brd.Square) *brd.Square {
+func chooseMove(board *mess.PieceBoard, moves []brd.Square) *brd.Square {
 	var move *brd.Square
 	var err error
 	for move == nil || err != nil {
@@ -98,7 +99,7 @@ func main() {
 		println()
 		move := chooseMove(state.Board, motions)
 
-		err = state.Move(piece, move)
+		err = piece.MoveTo(move)
 		if err != nil {
 			log.Fatal(err)
 		}

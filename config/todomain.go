@@ -9,7 +9,7 @@ import (
 )
 
 func (c *config) toGameState(state *mess.State) error {
-	board, err := board.NewBoard[*mess.Piece](int(c.Board.Width), int(c.Board.Height))
+	board, err := mess.NewPieceBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return fmt.Errorf("creating board: %w", err)
 	}
