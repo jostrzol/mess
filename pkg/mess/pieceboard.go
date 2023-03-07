@@ -110,9 +110,9 @@ func (b *PieceBoard) Move(piece *Piece, square *board.Square) error {
 	}
 
 	b.Notify(PieceMoved{
-		Piece:      piece,
-		FromSquare: *piece.Square(),
-		ToSquare:   *square,
+		Piece: piece,
+		From:  *piece.Square(),
+		To:    *square,
 	})
 
 	if old != nil {
@@ -127,9 +127,9 @@ func (b *PieceBoard) Move(piece *Piece, square *board.Square) error {
 }
 
 type PieceMoved struct {
-	Piece      *Piece
-	FromSquare board.Square
-	ToSquare   board.Square
+	Piece *Piece
+	From  board.Square
+	To    board.Square
 }
 type PieceCaptured struct {
 	Piece        *Piece

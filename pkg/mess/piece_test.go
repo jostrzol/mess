@@ -48,6 +48,18 @@ func Knight(t *testing.T) *PieceType {
 	return pieceType
 }
 
+func King(t *testing.T) *PieceType {
+	t.Helper()
+	pieceType := NewPieceType("king")
+	pieceType.AddMotionGenerator(offsetMotionGenerator(t, []board.Offset{
+		{X: 1, Y: 0},
+		{X: -1, Y: 0},
+		{X: 0, Y: 1},
+		{X: 0, Y: -1},
+	}...))
+	return pieceType
+}
+
 func Noones(pieceType *PieceType) *Piece {
 	return NewPiece(pieceType, nil)
 }
@@ -148,9 +160,9 @@ func (s *PieceSuite) TestMove() {
 
 	s.Equal(*endSquare, *knight.Square())
 	s.observer.ObservedMatch(PieceMoved{
-		Piece:      knight,
-		FromSquare: *startSquare,
-		ToSquare:   *endSquare,
+		Piece: knight,
+		From:  *startSquare,
+		To:    *endSquare,
 	})
 
 	empty, err := s.board.At(startSquare)
@@ -180,9 +192,9 @@ func (s *PieceSuite) TestMoveReplace() {
 	s.Equal(*endSquare, *knight.Square())
 	s.False(rook.IsOnBoard())
 	s.observer.ObservedMatch(PieceMoved{
-		Piece:      knight,
-		FromSquare: *startSquare,
-		ToSquare:   *endSquare,
+		Piece: knight,
+		From:  *startSquare,
+		To:    *endSquare,
 	}, PieceCaptured{
 		Piece:        rook,
 		CapturedBy:   players[color.White],

@@ -1,6 +1,7 @@
 package mess
 
 import (
+	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
 	"github.com/jostrzol/mess/pkg/gen"
@@ -41,6 +42,30 @@ func (p *Player) Prisoners() <-chan *Piece {
 
 func (p *Player) String() string {
 	return p.color.String()
+}
+
+type Motion struct {
+	Piece *Piece
+	From  board.Square
+	To    board.Square
+}
+
+func (m *Motion) Perform() {
+	m.Piece.MoveTo(&m.To)
+}
+
+func (p *Player) GenerateMotions() []Motion {
+	result := make([]Motion, 0)
+	for piece := range p.Pieces() {
+		for _, destination := range piece.GenerateMotions() {
+			result = append(result, Motion{
+				Piece: piece,
+				From:  *piece.Square(),
+				To:    destination,
+			})
+		}
+	}
+	return result
 }
 
 func (p *Player) Handle(event event.Event) {

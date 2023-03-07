@@ -109,7 +109,7 @@ func (p *Piece) Handle(event event.Event) {
 		}
 	case PieceMoved:
 		if e.Piece == p {
-			p.square = e.ToSquare
+			p.square = e.To
 		}
 	case PieceRemoved:
 		if e.Piece == p {
