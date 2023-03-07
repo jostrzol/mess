@@ -103,6 +103,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		state.EndTurn()
 	}
 
 	winner := controller.DecideWinner(state)

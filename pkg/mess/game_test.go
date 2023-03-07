@@ -33,6 +33,16 @@ func (s *GameSuite) TestGetPlayerNotFound() {
 	})
 }
 
+func (s *GameSuite) TestEndTurn() {
+	firstTurnPlayer := s.game.CurrentPlayer()
+	s.Equal(s.game.Player(color.White), firstTurnPlayer)
+
+	s.game.EndTurn()
+
+	secondTurnPlayer := s.game.CurrentPlayer()
+	s.Equal(s.game.Player(color.Black), secondTurnPlayer)
+}
+
 func TestGameSuite(t *testing.T) {
 	suite.Run(t, new(GameSuite))
 }
