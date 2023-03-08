@@ -82,7 +82,8 @@ func main() {
 	}
 
 	for {
-		print(state.String())
+		println("Board: (uppercase - white, lowercase - black)")
+		println(state.PrettyString())
 		println("Choose square with a piece")
 		piece := choosePiece(state.Board())
 		if piece.Owner() != state.CurrentPlayer() {

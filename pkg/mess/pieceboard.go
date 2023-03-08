@@ -1,9 +1,11 @@
 package mess
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
 )
 
@@ -25,6 +27,28 @@ func NewPieceBoard(width int, height int) (*PieceBoard, error) {
 
 func (b *PieceBoard) String() string {
 	return b.wrapped.String()
+}
+
+func (b *PieceBoard) PrettyString() string {
+	return b.wrapped.PrettyString(func(p *Piece) rune {
+		if p == nil {
+			return rune(' ')
+		}
+		ty := p.Type()
+		var theByte byte
+		if ty.Name() != "knight" {
+			theByte = ty.name[0]
+		} else {
+			theByte = 'n'
+		}
+		var result byte
+		if p.Color() == color.White {
+			result = bytes.ToUpper([]byte{theByte})[0]
+		} else {
+			result = bytes.ToLower([]byte{theByte})[0]
+		}
+		return rune(result)
+	})
 }
 
 func (b *PieceBoard) At(square *board.Square) (*Piece, error) {

@@ -27,6 +27,10 @@ func (g *State) String() string {
 	return fmt.Sprintf("Board:\n%v\nCurrent player: %v\n", g.board, g.currentPlayer)
 }
 
+func (g *State) PrettyString() string {
+	return fmt.Sprintf("%v\nCurrent player: %v", g.board.PrettyString(), g.currentPlayer)
+}
+
 func (g *State) Board() *PieceBoard {
 	return g.board
 }

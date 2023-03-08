@@ -3,7 +3,9 @@ package board
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
+	"unicode/utf8"
 )
 
 type Board[T comparable] [][]T
@@ -37,6 +39,51 @@ func (b Board[T]) String() string {
 		}
 	}
 	return builder.String()
+}
+
+func (b Board[T]) PrettyString(itemFormatter func(T) rune) string {
+	var builder strings.Builder
+	b.printBar(&builder)
+	builder.WriteRune('\n')
+	for y := len(b) - 1; y >= 0; y-- {
+		row := b[y]
+		b.printRow(&builder, y+1, row, itemFormatter)
+		builder.WriteRune('\n')
+		b.printBar(&builder)
+		builder.WriteRune('\n')
+	}
+	b.printFileHeader(&builder)
+	builder.WriteRune('\n')
+	b.printBar(&builder)
+	return builder.String()
+}
+
+func (b Board[T]) printBar(w io.ByteWriter) {
+	width, _ := b.Size()
+	widthWithHeader := width + 1
+	for i := 0; i < widthWithHeader*3+1; i++ {
+		w.WriteByte('-')
+	}
+}
+
+func (b Board[T]) printRow(w io.Writer, rank int, row []T, itemFormatter func(T) rune) {
+	fmt.Fprintf(w, "|%2d|", rank)
+	for _, item := range row {
+		sign := itemFormatter(item)
+		bytes := make([]byte, utf8.RuneLen(sign))
+		if n := utf8.EncodeRune(bytes, sign); n != len(bytes) {
+			panic(fmt.Errorf("printing board row: expected to write %d bytes but wrote %d", len(bytes), n))
+		}
+		fmt.Fprintf(w, "%-2s|", bytes)
+	}
+}
+
+func (b Board[T]) printFileHeader(w io.Writer) {
+	w.Write([]byte("|  |"))
+	width, _ := b.Size()
+	for i := 1; i <= width; i++ {
+		fmt.Fprintf(w, "%-2s|", fileString(i))
+	}
 }
 
 func (b Board[T]) Size() (int, int) {

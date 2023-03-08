@@ -35,8 +35,11 @@ func NewSquare(text string) (*Square, error) {
 }
 
 func (s *Square) String() string {
-	file := string(byte(s.File-1) + 'A')
-	return fmt.Sprintf("%s%d", file, s.Rank)
+	return fmt.Sprintf("%s%d", fileString(s.File), s.Rank)
+}
+
+func fileString(file int) string {
+	return string(byte(file-1) + 'A')
 }
 
 type Offset struct {
