@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/jostrzol/mess/config"
+	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 )
@@ -50,7 +51,7 @@ func choosePiece(board *mess.PieceBoard) *mess.Piece {
 	return piece
 }
 
-func chooseMove(board *mess.PieceBoard, moves []brd.Square) *brd.Square {
+func chooseMove(board *mess.PieceBoard, moves []mess.Move) *brd.Square {
 	var move *brd.Square
 	var err error
 	for move == nil || err != nil {
@@ -64,9 +65,9 @@ func chooseMove(board *mess.PieceBoard, moves []brd.Square) *brd.Square {
 	return move
 }
 
-func contains[T comparable](slice []T, item T) bool {
-	for _, element := range slice {
-		if element == item {
+func contains(moves []mess.Move, destination board.Square) bool {
+	for _, move := range moves {
+		if move.To == destination {
 			return true
 		}
 	}
@@ -92,15 +93,15 @@ func main() {
 			continue
 		}
 
-		motions := piece.GenerateMotions()
-		if len(motions) == 0 {
-			println("No motions for this piece")
+		moves := piece.ValidMoves()
+		if len(moves) == 0 {
+			println("No moves for this piece")
 			continue
 		}
 
-		sort.Slice(motions, func(i, j int) bool {
-			iSq := motions[i]
-			jSq := motions[j]
+		sort.Slice(moves, func(i, j int) bool {
+			iSq := moves[i].To
+			jSq := moves[j].To
 			if iSq.Rank == jSq.Rank {
 				return iSq.File < jSq.File
 			}
@@ -108,11 +109,11 @@ func main() {
 		})
 
 		print("Possible moves: ")
-		for _, motion := range motions {
-			fmt.Printf("%v ", &motion)
+		for _, move := range moves {
+			fmt.Printf("%v ", &move.To)
 		}
 		println()
-		move := chooseMove(state.Board(), motions)
+		move := chooseMove(state.Board(), moves)
 
 		err = piece.MoveTo(move)
 		if err != nil {

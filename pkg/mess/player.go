@@ -53,26 +53,10 @@ func (p *Player) String() string {
 	return p.color.String()
 }
 
-type Motion struct {
-	Piece *Piece
-	From  brd.Square
-	To    brd.Square
-}
-
-func (m *Motion) Perform() {
-	m.Piece.MoveTo(&m.To)
-}
-
-func (p *Player) GenerateMotions() []Motion {
-	result := make([]Motion, 0)
+func (p *Player) ValidMoves() []Move {
+	result := make([]Move, 0)
 	for piece := range p.Pieces() {
-		for _, destination := range piece.GenerateMotions() {
-			result = append(result, Motion{
-				Piece: piece,
-				From:  *piece.Square(),
-				To:    destination,
-			})
-		}
+		result = append(result, piece.ValidMoves()...)
 	}
 	return result
 }

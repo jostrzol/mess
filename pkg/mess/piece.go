@@ -37,10 +37,11 @@ func (t *PieceType) generateMotions(piece *Piece) []brd.Square {
 }
 
 type Piece struct {
-	ty     *PieceType
-	owner  *Player
-	board  *PieceBoard
-	square brd.Square
+	ty         *PieceType
+	owner      *Player
+	board      *PieceBoard
+	square     brd.Square
+	validMoves []Move
 }
 
 func NewPiece(pieceType *PieceType, owner *Player) *Piece {
@@ -86,18 +87,47 @@ func (p *Piece) PlaceOn(board *PieceBoard, square *brd.Square) error {
 	return board.Place(p, square)
 }
 
+func (p *Piece) MoveTo(square *brd.Square) error {
+	return p.board.Move(p, square)
+}
+
 func (p *Piece) RemoveFromBoard() {
 	if p.IsOnBoard() {
 		p.board.RemoveAt(&p.square)
 	}
 }
 
-func (p *Piece) GenerateMotions() []brd.Square {
-	return p.ty.generateMotions(p)
+func (p *Piece) ValidMoves() []Move {
+	if p.validMoves == nil {
+		p.validMoves = p.generateValidMoves()
+	}
+	return p.validMoves
 }
 
-func (p *Piece) MoveTo(square *brd.Square) error {
-	return p.board.Move(p, square)
+func (p *Piece) generateValidMoves() []Move {
+	result := make([]Move, 0)
+	for _, destination := range p.ty.generateMotions(p) {
+		result = append(result, Move{
+			Piece: p,
+			From:  *p.Square(),
+			To:    destination,
+		})
+	}
+	return result
+}
+
+type Move struct {
+	Piece *Piece
+	From  brd.Square
+	To    brd.Square
+}
+
+func (m *Move) Perform() {
+	m.Piece.MoveTo(&m.To)
+}
+
+func (m *Move) String() string {
+	return fmt.Sprintf("%v->%v", m.From, m.To)
 }
 
 func (p *Piece) Handle(event event.Event) {
@@ -116,4 +146,9 @@ func (p *Piece) Handle(event event.Event) {
 			p.board = nil
 		}
 	}
+	p.resetValidMoves()
+}
+
+func (p *Piece) resetValidMoves() {
+	p.validMoves = nil
 }

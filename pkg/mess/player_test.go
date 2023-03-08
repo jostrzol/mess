@@ -106,16 +106,16 @@ func (s *PlayerSuiteRealBoard) SetupTest() {
 	s.black = s.players[color.Black]
 }
 
-func (s *PlayerSuiteRealBoard) TestGenerateMotionsNone() {
-	s.Empty(s.white.GenerateMotions())
+func (s *PlayerSuiteRealBoard) TestValidMovesNone() {
+	s.Empty(s.white.ValidMoves())
 }
 
-func (s *PlayerSuiteRealBoard) TestGenerateMotionsOnePiece() {
+func (s *PlayerSuiteRealBoard) TestValidMovesOnePiece() {
 	king := NewPiece(King(s.T()), s.white)
 	s.board.Place(king, boardtest.NewSquare("A1"))
 
-	motions := s.white.GenerateMotions()
-	s.ElementsMatch(motions, []Motion{
+	motions := s.white.ValidMoves()
+	s.ElementsMatch(motions, []Move{
 		{Piece: king,
 			From: *boardtest.NewSquare("A1"),
 			To:   *boardtest.NewSquare("A2")},
@@ -125,15 +125,15 @@ func (s *PlayerSuiteRealBoard) TestGenerateMotionsOnePiece() {
 	})
 }
 
-func (s *PlayerSuiteRealBoard) TestGenerateMotionsOnePieceOneEnemy() {
+func (s *PlayerSuiteRealBoard) TestValidMovesOnePieceOneEnemy() {
 	kingW := NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW, boardtest.NewSquare("A1"))
 
 	kingB := NewPiece(King(s.T()), s.black)
 	s.board.Place(kingB, boardtest.NewSquare("A3"))
 
-	motions := s.white.GenerateMotions()
-	s.ElementsMatch(motions, []Motion{
+	motions := s.white.ValidMoves()
+	s.ElementsMatch(motions, []Move{
 		{Piece: kingW,
 			From: *boardtest.NewSquare("A1"),
 			To:   *boardtest.NewSquare("A2")},
@@ -143,15 +143,15 @@ func (s *PlayerSuiteRealBoard) TestGenerateMotionsOnePieceOneEnemy() {
 	})
 }
 
-func (s *PlayerSuiteRealBoard) TestGenerateMotionsTwoPieces() {
+func (s *PlayerSuiteRealBoard) TestValidMovesTwoPieces() {
 	kingW1 := NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW1, boardtest.NewSquare("A1"))
 
 	kingW2 := NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW2, boardtest.NewSquare("A3"))
 
-	motions := s.white.GenerateMotions()
-	s.ElementsMatch(motions, []Motion{
+	motions := s.white.ValidMoves()
+	s.ElementsMatch(motions, []Move{
 		{Piece: kingW1,
 			From: *boardtest.NewSquare("A1"),
 			To:   *boardtest.NewSquare("A2")},

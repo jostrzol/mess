@@ -123,28 +123,38 @@ func (s *PieceSuite) TestGenerateMotionsRook() {
 	rook := Noones(Rook(s.T()))
 	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
-	motions := rook.GenerateMotions()
-	s.ElementsMatch(motions, []board.Square{
+	moves := rook.ValidMoves()
+	s.ElementsMatch(moves, movesFromDests(rook,
 		*boardtest.NewSquare("B1"),
 		*boardtest.NewSquare("B3"),
 		*boardtest.NewSquare("B4"),
 		*boardtest.NewSquare("A2"),
 		*boardtest.NewSquare("C2"),
 		*boardtest.NewSquare("D2"),
-	})
+	))
 }
 
 func (s *PieceSuite) TestGenerateMotionsKnight() {
 	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
-	motions := knight.GenerateMotions()
-	s.ElementsMatch(motions, []board.Square{
+	moves := knight.ValidMoves()
+	s.ElementsMatch(moves, movesFromDests(knight,
 		*boardtest.NewSquare("A4"),
 		*boardtest.NewSquare("C4"),
 		*boardtest.NewSquare("D1"),
 		*boardtest.NewSquare("D3"),
-	})
+	))
+}
+
+func movesFromDests(piece *Piece, destinations ...board.Square) []Move {
+	result := make([]Move, len(destinations))
+	for i, destination := range destinations {
+		result[i].Piece = piece
+		result[i].From = *piece.Square()
+		result[i].To = destination
+	}
+	return result
 }
 
 func (s *PieceSuite) TestMove() {
