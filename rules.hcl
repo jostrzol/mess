@@ -187,7 +187,7 @@ composite_function "motion_line" {
   params = [square, piece, dpos]
   result = {
     next   = get_square_relative(square, dpos)
-    return = next == null ? [] : next.piece == null ? list(next, motion_line(next, piece, dpos)...) : is_mine(next) ? [] : [next]
+    return = next == null ? [] : piece_at(next) == null ? concat([next], motion_line(next, piece, dpos)) : is_mine(next) ? [] : [next]
   }
 }
 
@@ -238,9 +238,12 @@ function "squares_connecting_horizontal" {
 initial_state {
   pieces "white" {
     A1 = "king"
+    B1 = "knight"
+    B2 = "bishop"
   }
   pieces "black" {
     A2 = "king"
+    A3 = "rook"
   }
 }
 

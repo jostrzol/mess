@@ -85,10 +85,14 @@ func main() {
 		print(state.String())
 		println("Choose square with a piece")
 		piece := choosePiece(state.Board())
+		if piece.Owner() != state.CurrentPlayer() {
+			println("You must choose your piece")
+			continue
+		}
 
 		motions := piece.GenerateMotions()
 		if len(motions) == 0 {
-			print("No motions for this piece")
+			println("No motions for this piece")
 			continue
 		}
 

@@ -35,6 +35,25 @@ var SumFunc = function.New(&function.Spec{
 	},
 })
 
+var ConcatFunc = function.New(&function.Spec{
+	Description: "Concatenates the given lists",
+	Params:      []function.Parameter{},
+	VarParam: &function.Parameter{
+		Name:             "lists",
+		Type:             cty.List(cty.DynamicPseudoType),
+		AllowDynamicType: true,
+	},
+	Type: function.StaticReturnType(cty.List(cty.DynamicPseudoType)),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		result := make([]cty.Value, 0)
+		for _, list := range args {
+			result = append(result, list.AsValueSlice()...)
+		}
+
+		return cty.ListVal(result), nil
+	},
+})
+
 func GetSquareRelativeFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: joinText(
