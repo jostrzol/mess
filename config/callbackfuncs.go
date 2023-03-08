@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jostrzol/mess/config/ctyconv"
+	"github.com/jostrzol/mess/config/ctymess"
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
@@ -17,14 +17,14 @@ type callbackFunctionsConfig struct {
 }
 
 func (c *callbackFunctionsConfig) DecideWinner(state *mess.State) *mess.Player {
-	ctyState := ctyconv.GameStateToCty(state)
+	ctyState := ctymess.GameStateToCty(state)
 	ctyWinnerColor, err := c.DecideWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
 		log.Printf("calling user-defined function: %v", err)
 		return nil
 	}
 
-	color, err := ctyconv.ColorFromCty(ctyWinnerColor)
+	color, err := ctymess.ColorFromCty(ctyWinnerColor)
 	if err != nil {
 		log.Printf("parsing winner color: %v", err)
 		return nil
@@ -43,15 +43,15 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.Mo
 	}
 
 	return mess.FuncMotionGenerator(func(piece *mess.Piece) []board.Square {
-		pieceCty := ctyconv.PieceToCty(piece)
-		squareCty := ctyconv.SquareToCty(piece.Square())
+		pieceCty := ctymess.PieceToCty(piece)
+		squareCty := ctymess.SquareToCty(piece.Square())
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
 			log.Printf("calling motion generator for %v at %v: %v", piece, piece.Square(), err)
 			return make([]board.Square, 0)
 		}
 
-		squares, err := ctyconv.SquaresFromCty(result)
+		squares, err := ctymess.SquaresFromCty(result)
 		if err != nil {
 			log.Printf("parsing motion generator result: %v", err)
 		}

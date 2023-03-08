@@ -1,10 +1,10 @@
-package messfuncs
+package ctymess
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
-	"github.com/jostrzol/mess/config/ctyconv"
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
@@ -35,13 +35,11 @@ var SumFunc = function.New(&function.Spec{
 	},
 })
 
-var ctyOffset = cty.Tuple([]cty.Type{cty.Number, cty.Number})
-
 func GetSquareRelativeFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: joinText(
 			"Gets the square offset by a given relative position,",
-			"or nil if the board doesn't contain the square",
+			"or null if the board doesn't contain the square",
 		),
 		Params: []function.Parameter{
 			{
@@ -51,7 +49,7 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 			},
 			{
 				Name:             "offset",
-				Type:             ctyOffset,
+				Type:             Offset,
 				AllowDynamicType: true,
 			},
 		},
@@ -60,7 +58,7 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 			var square *board.Square
 			var offset board.Offset
 			var err error
-			if square, err = ctyconv.SquareFromCty(args[0]); err != nil {
+			if square, err = SquareFromCty(args[0]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
 			}
 			if err = gocty.FromCtyValue(args[1], &offset); err != nil {
@@ -71,14 +69,17 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 			if !state.Board().Contains(result) {
 				return cty.NullVal(cty.String), nil
 			}
-			return ctyconv.SquareToCty(result), nil
+			return SquareToCty(result), nil
 		},
 	})
 }
 
-func IsSquareOwnedByFunc(state *mess.State) function.Function {
+func PieceAtFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
-		Description: "Checks if a square has a piece of a given color",
+		Description: joinText(
+			"Get piece at the given square or null if either the board doesn't",
+			"contain the square or there is no piece there",
+		),
 		Params: []function.Parameter{
 			{
 				Name:             "square",
@@ -86,34 +87,28 @@ func IsSquareOwnedByFunc(state *mess.State) function.Function {
 				AllowDynamicType: true,
 				AllowNull:        true,
 			},
-			{
-				Name:             "color",
-				Type:             cty.String,
-				AllowDynamicType: true,
-				AllowNull:        true,
-			},
 		},
-		Type: function.StaticReturnType(cty.Bool),
+		Type: function.StaticReturnType(Piece),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			if args[0].IsNull() || args[1].IsNull() {
-				return cty.BoolVal(false), nil
+			if args[0].IsNull() {
+				return cty.NullVal(Piece), nil
 			}
+
 			var square *board.Square
 			var err error
-			if square, err = ctyconv.SquareFromCty(args[0]); err != nil {
+			if square, err = SquareFromCty(args[0]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
-			}
-			color, err := ctyconv.ColorFromCty(args[1])
-			if err != nil {
-				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
 			}
 
 			piece, err := state.Board().At(square)
 			if err != nil {
-				return cty.DynamicVal, fmt.Errorf("getting piece at %v: %w", square, err)
+				log.Printf("getting piece at %v - returning null: %v", square, err)
+				return cty.NullVal(Piece), nil
+			} else if piece == nil {
+				return cty.NullVal(Piece), nil
 			}
-			result := piece != nil && piece.Color() == *color
-			return cty.BoolVal(result), nil
+
+			return PieceToCty(piece), nil
 		},
 	})
 }
@@ -126,6 +121,7 @@ func IsAttackedFunc(state *mess.State) function.Function {
 				Name:             "square",
 				Type:             cty.String,
 				AllowDynamicType: true,
+				AllowNull:        true,
 			},
 		},
 		Type: function.StaticReturnType(cty.Bool),

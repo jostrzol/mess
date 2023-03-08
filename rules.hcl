@@ -94,7 +94,7 @@ composite_function "motion_neighbours_straight" {
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if dest != null && !is_square_owned_by(dest, piece.color) && !is_attacked(square)]
+    return = [for dest in dests: dest if dest == null ? false : !is_mine(dest) && !is_attacked(square)]
   }
 }
 
@@ -107,7 +107,7 @@ composite_function "motion_neighbours_straight" {
 # composite_function "motion_castling" {
 #   params = [square, piece]
 #   result = {
-#     rooks       = [_piece for _piece in piece.owner.pieces if _piece.type_name == "rook" && !has_ever_moved(_piece)]
+#     rooks       = [_piece for _piece in piece.owner.pieces if _piece.type == "rook" && !has_ever_moved(_piece)]
 #     paths       = [squares_connecting_horizontal(piece.square, rook.square) for rook in rooks]
 #     king_paths  = [slice(path, 0, 3) for path in paths]
 #     inner_paths = [slice(path, 1, -1) for path in paths]
@@ -122,7 +122,7 @@ composite_function "motion_forward_straight" {
   params = [square, piece]
   result = {
     dest   = get_square_relative(square, piece.owner.forward_direction)
-    return = dest != null && dest.piece == null ? [dest] : []
+    return = dest == null ? [] : piece_at(dest) != null ? [] : [dest]
   }
 }
 
@@ -134,7 +134,7 @@ composite_function "motion_forward_straight" {
 #     dpos   = [dcoord * 2 for dcoord in piece.owner.forward_direction]
 #     dest   = get_square_relative(square, dpos)
 #     middle = get_square_relative(square, piece.owner.forward_direction)
-#     return = dest != null && dest.piece == null && middle.piece == null && !has_ever_moved(piece) ? [dest] : []
+#     return = dest == null ? [] : piece_at(dest) != null || piece_at(middle) != null || has_ever_moved(piece) ? [] : [dest]
 #   }
 # }
 
@@ -146,7 +146,7 @@ composite_function "motion_forward_diagonal" {
     forward_y = piece.owner.forward_direction[1]
     dposes    = [[-1, forward_y], [1, forward_y]]
     dests     = [for dpos in dposes: get_square_relative(square, dpos)]
-    return    = [for dest in dests: dest if dest != null && dest.piece != null && dest.piece.owner != piece.owner]
+    return    = [for dest in dests: dest if dest == null ? false : dest.piece != null && dest.piece.owner != piece.owner]
   }
 }
 
@@ -162,7 +162,7 @@ composite_function "motion_forward_diagonal" {
 #     dests     = [get_square_relative(square, dpos) for dpos in dposes]
 #     last_move = last_or_null(game.record)
 #     backward  = [-1 * dcoord for dcoord in piece.owner.forward_direction]
-#     return    = [dest for dest in dests if dest != null && dest.piece == null && last_move != null && last_move.piece.type_name == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
+#     return    = [dest for dest in dests if dest == null ? false : piece_at(dest) == null && last_move != null && last_move.piece.type == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
 #   }
 # }
 
@@ -175,7 +175,7 @@ composite_function "motion_hook" {
   result = {
     dposes = [[2, 1], [2, -1], [-2, 1], [-2, -1], [1, 2], [-1, 2], [1, -2], [-1, -2]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if dest != null && !is_square_owned_by(dest, piece.color)]
+    return = [for dest in dests: dest if dest == null ? false : !is_mine(dest)]
   }
 }
 
@@ -187,7 +187,7 @@ composite_function "motion_line" {
   params = [square, piece, dpos]
   result = {
     next   = get_square_relative(square, dpos)
-    return = next == null ? [] : next.piece == null ? list(next, motion_line(next, piece, dpos)...) : is_square_owned_by(next, piece.color) ? [] : [next]
+    return = next == null ? [] : next.piece == null ? list(next, motion_line(next, piece, dpos)...) : is_mine(next) ? [] : [next]
   }
 }
 
@@ -205,6 +205,34 @@ composite_function "motion_line_straight" {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     return = concat([for dpos in dposes: motion_line(square, piece, dpos)]...)
   }
+}
+
+// ===== HELPER FUNCTIONS ======================================
+// Checks if square is occupied by a piece of the current player
+composite_function "is_mine" {
+  params = [square]
+  result = {
+    piece = piece_at(square)
+    return = piece == null ? false : piece.color == game.current_player.color
+  }
+}
+
+// Checks if the given piece has ever moved in the current game.
+function "has_ever_moved" {
+  params = [piece]
+  result = length([move for move in game.record if move.piece == piece]) != 0
+}
+
+// Returns the last element in the given collection or null if empty.
+function "last_or_null" {
+  params = [collection]
+  result = length(collection) == 0 ? null : collection[length(collection) - 1]
+}
+
+// Returns all the squares connecting two given end-squares (including the end-squares)
+function "squares_connecting_horizontal" {
+  params = [end1, end2]
+  result = [get_square_absolute([x, end1.position[1]]) for x in range(end1.position[0], end2.position[0] + 1)]
 }
 
 initial_state {

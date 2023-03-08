@@ -9,7 +9,8 @@ import (
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/config/composeuserfunc"
-	"github.com/jostrzol/mess/config/messfuncs"
+	"github.com/jostrzol/mess/config/ctymess"
+	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
@@ -31,12 +32,14 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 			"values":              stdlib.ValuesFunc,
 			"element":             stdlib.ElementFunc,
 			"length":              stdlib.LengthFunc,
-			"sum":                 messfuncs.SumFunc,
-			"get_square_relative": messfuncs.GetSquareRelativeFunc(state),
-			"is_square_owned_by":  messfuncs.IsSquareOwnedByFunc(state),
-			"is_attacked":         messfuncs.IsAttackedFunc(state),
+			"sum":                 ctymess.SumFunc,
+			"get_square_relative": ctymess.GetSquareRelativeFunc(state),
+			"piece_at":            ctymess.PieceAtFunc(state),
+			"is_attacked":         ctymess.IsAttackedFunc(state),
 		},
-		Variables: make(map[string]cty.Value, 0),
+		Variables: map[string]cty.Value{
+			"game": cty.DynamicVal,
+		},
 	}
 }
 
@@ -45,6 +48,8 @@ type config struct {
 	PieceTypes   pieceTypesConfig   `hcl:"piece_types,block"`
 	InitialState initialStateConfig `hcl:"initial_state,block"`
 	Functions    *callbackFunctionsConfig
+	EvalContext  *hcl.EvalContext
+	State        *mess.State
 }
 
 type boardConfig struct {
@@ -85,7 +90,7 @@ type variableConfig struct {
 	Expression hcl.Expression `hcl:"value"`
 }
 
-func decodeConfig(filename string, state *mess.State) (*config, error) {
+func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*config, error) {
 	diags := make(hcl.Diagnostics, 0)
 
 	src, err := os.ReadFile(filename)
@@ -98,8 +103,6 @@ func decodeConfig(filename string, state *mess.State) (*config, error) {
 	if diags.HasErrors() {
 		return nil, diags
 	}
-
-	ctx := newEvalContext(state)
 
 	userFuncs, body, funcDiags := decodeUserFunctions(file.Body, ctx)
 	diags.Extend(funcDiags)
@@ -130,6 +133,9 @@ func decodeConfig(filename string, state *mess.State) (*config, error) {
 			Detail:   fmt.Sprintf("populating callback functions: %v", err),
 		})
 	}
+
+	config.State = state
+	config.EvalContext = ctx
 
 	return config, nil
 }
@@ -203,4 +209,20 @@ func decodeUserVariables(
 	}
 
 	return userVariables, variables.Remain, diags
+}
+
+func (c *config) GetCustomFuncAsGeneratorWithStateContext(name string) (mess.MotionGenerator, error) {
+	generator, err := c.Functions.GetCustomFuncAsGenerator(name)
+	if err != nil {
+		return nil, err
+	}
+	return mess.FuncMotionGenerator(func(piece *mess.Piece) []board.Square {
+		c.refreshGameStateInContext()
+		return generator.GenerateMotions(piece)
+	}), nil
+}
+
+func (c *config) refreshGameStateInContext() {
+	newGame := ctymess.GameStateToCty(c.State)
+	c.EvalContext.Variables["game"] = newGame
 }

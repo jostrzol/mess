@@ -1,48 +1,32 @@
-package ctyconv
+package ctymess
 
 import (
 	"github.com/jostrzol/mess/pkg/board"
-	"github.com/jostrzol/mess/pkg/gen"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
 )
 
-var Game = cty.Object(map[string]cty.Type{
-	"players": cty.Map(Player),
-})
-
 func GameStateToCty(state *mess.State) cty.Value {
 	players := make(map[string]cty.Value, len(state.Players()))
 	for player := range state.Players() {
-		pieces := gen.ToSlice(player.Pieces())
-		players[player.Color().String()] = PlayerToCty(player, pieces)
+		players[player.Color().String()] = PlayerToCty(player)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
-		"players": cty.MapVal(players),
+		"players":        cty.MapVal(players),
+		"current_player": PlayerToCty(state.CurrentPlayer()),
 	})
 }
 
-var Player = cty.Object(map[string]cty.Type{
-	"color":  cty.String,
-	"pieces": cty.List(Piece),
-})
-
-func PlayerToCty(player *mess.Player, pieces []*mess.Piece) cty.Value {
-	piecesCty := make([]cty.Value, len(pieces))
-	for i, piece := range pieces {
-		piecesCty[i] = PieceToCty(piece)
+func PlayerToCty(player *mess.Player) cty.Value {
+	piecesCty := make([]cty.Value, 0, len(player.Pieces()))
+	for piece := range player.Pieces() {
+		piecesCty = append(piecesCty, PieceToCty(piece))
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color":  cty.StringVal(player.Color().String()),
 		"pieces": cty.ListVal(piecesCty),
 	})
 }
-
-var Piece = cty.Object(map[string]cty.Type{
-	"type":   cty.String,
-	"color":  cty.String,
-	"square": cty.String,
-})
 
 func PieceToCty(piece *mess.Piece) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{

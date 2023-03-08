@@ -8,20 +8,20 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func (c *config) toGameState(state *mess.State) error {
+func (c *config) toGameState() (*mess.State, error) {
 	board, err := mess.NewPieceBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
-		return fmt.Errorf("creating board: %w", err)
+		return nil, fmt.Errorf("creating board: %w", err)
 	}
-	*state = *mess.NewState(board)
+	state := mess.NewState(board)
 
 	pieceTypes := make(map[string]*mess.PieceType, len(c.PieceTypes.PieceTypes))
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
 		pieceType := mess.NewPieceType(pieceTypeConfig.Name)
 		for _, motionConfig := range pieceTypeConfig.Motions {
-			motionGenerator, err := c.Functions.GetCustomFuncAsGenerator(motionConfig.GeneratorName)
+			motionGenerator, err := c.GetCustomFuncAsGeneratorWithStateContext(motionConfig.GeneratorName)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			pieceType.AddMotionGenerator(motionGenerator)
 		}
@@ -30,9 +30,9 @@ func (c *config) toGameState(state *mess.State) error {
 
 	err = placePieces(state, c.InitialState.Pieces, pieceTypes)
 	if err != nil {
-		return fmt.Errorf("placing initial pieces: %w", err)
+		return nil, fmt.Errorf("placing initial pieces: %w", err)
 	}
-	return nil
+	return state, nil
 }
 
 func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string]*mess.PieceType) error {

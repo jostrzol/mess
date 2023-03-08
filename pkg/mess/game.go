@@ -24,7 +24,7 @@ func NewState(board *PieceBoard) *State {
 }
 
 func (g *State) String() string {
-	return fmt.Sprintf("Board:\n%v\nCurrent player: %v", g.board, g.currentPlayer)
+	return fmt.Sprintf("Board:\n%v\nCurrent player: %v\n", g.board, g.currentPlayer)
 }
 
 func (g *State) Board() *PieceBoard {

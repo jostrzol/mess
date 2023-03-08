@@ -23,11 +23,16 @@ func NewBoard[T comparable](width int, height int) (Board[T], error) {
 func (b Board[T]) String() string {
 	var zero T
 	var builder strings.Builder
+	isFirst := true
 	for y, row := range b {
 		for x, item := range row {
 			if item != zero {
 				square := fromCoords(x, y)
-				fmt.Fprintf(&builder, "%v: %v\n", square, item)
+				if !isFirst {
+					builder.WriteRune('\n')
+				}
+				isFirst = false
+				fmt.Fprintf(&builder, "%v: %v", square, item)
 			}
 		}
 	}

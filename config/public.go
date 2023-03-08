@@ -8,19 +8,22 @@ import (
 )
 
 func DecodeConfig(filename string) (*mess.State, mess.Controller, error) {
-	var state mess.State
-	config, err := decodeConfig(filename, &state)
+	state := new(mess.State)
+	ctx := newEvalContext(state)
+
+	config, err := decodeConfig(filename, ctx, state)
 	if err != nil {
 		return nil, nil, fmt.Errorf("decoding config: %w", err)
 	}
 	log.Printf("Loaded config: %#v", config)
 
-	err = config.toGameState(&state)
+	initializedState, err := config.toGameState()
 	if err != nil {
 		return nil, nil, fmt.Errorf("initializing game state: %w", err)
 	}
+	*state = *initializedState
 
 	controller := config.toController()
 
-	return &state, controller, nil
+	return state, controller, nil
 }
