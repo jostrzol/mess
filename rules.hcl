@@ -244,6 +244,7 @@ initial_state {
   pieces "black" {
     A2 = "king"
     A3 = "rook"
+    E5 = "queen"
   }
 }
 

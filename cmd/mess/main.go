@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/jostrzol/mess/config"
 	brd "github.com/jostrzol/mess/pkg/board"
@@ -96,6 +97,15 @@ func main() {
 			println("No motions for this piece")
 			continue
 		}
+
+		sort.Slice(motions, func(i, j int) bool {
+			iSq := motions[i]
+			jSq := motions[j]
+			if iSq.Rank == jSq.Rank {
+				return iSq.File < jSq.File
+			}
+			return iSq.Rank < jSq.Rank
+		})
 
 		print("Possible moves: ")
 		for _, motion := range motions {
