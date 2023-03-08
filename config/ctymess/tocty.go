@@ -23,8 +23,9 @@ func PlayerToCty(player *mess.Player) cty.Value {
 		piecesCty = append(piecesCty, PieceToCty(piece))
 	}
 	return cty.ObjectVal(map[string]cty.Value{
-		"color":  cty.StringVal(player.Color().String()),
-		"pieces": cty.ListVal(piecesCty),
+		"color":             cty.StringVal(player.Color().String()),
+		"pieces":            cty.ListVal(piecesCty),
+		"forward_direction": OffsetToCty(player.ForwardDirection()),
 	})
 }
 
@@ -38,4 +39,11 @@ func PieceToCty(piece *mess.Piece) cty.Value {
 
 func SquareToCty(square *board.Square) cty.Value {
 	return cty.StringVal(square.String())
+}
+
+func OffsetToCty(offset board.Offset) cty.Value {
+	return cty.TupleVal([]cty.Value{
+		cty.NumberIntVal(int64(offset.X)),
+		cty.NumberIntVal(int64(offset.Y)),
+	})
 }

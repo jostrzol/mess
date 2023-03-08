@@ -107,7 +107,7 @@ composite_function "motion_neighbours_straight" {
 # composite_function "motion_castling" {
 #   params = [square, piece]
 #   result = {
-#     rooks       = [_piece for _piece in piece.owner.pieces if _piece.type == "rook" && !has_ever_moved(_piece)]
+#     rooks       = [_piece for _piece in owner_of(piece).pieces if _piece.type == "rook" && !has_ever_moved(_piece)]
 #     paths       = [squares_connecting_horizontal(piece.square, rook.square) for rook in rooks]
 #     king_paths  = [slice(path, 0, 3) for path in paths]
 #     inner_paths = [slice(path, 1, -1) for path in paths]
@@ -121,7 +121,7 @@ composite_function "motion_neighbours_straight" {
 composite_function "motion_forward_straight" {
   params = [square, piece]
   result = {
-    dest   = get_square_relative(square, piece.owner.forward_direction)
+    dest   = get_square_relative(square, owner_of(piece).forward_direction)
     return = dest == null ? [] : piece_at(dest) != null ? [] : [dest]
   }
 }
@@ -131,9 +131,9 @@ composite_function "motion_forward_straight" {
 # composite_function "motion_forward_straight_double" {
 #   params = [square, piece]
 #   result = {
-#     dpos   = [dcoord * 2 for dcoord in piece.owner.forward_direction]
+#     dpos   = [dcoord * 2 for dcoord in owner_of(piece).forward_direction]
 #     dest   = get_square_relative(square, dpos)
-#     middle = get_square_relative(square, piece.owner.forward_direction)
+#     middle = get_square_relative(square, owner_of(piece).forward_direction)
 #     return = dest == null ? [] : piece_at(dest) != null || piece_at(middle) != null || has_ever_moved(piece) ? [] : [dest]
 #   }
 # }
@@ -143,10 +143,10 @@ composite_function "motion_forward_straight" {
 composite_function "motion_forward_diagonal" {
   params = [square, piece]
   result = {
-    forward_y = piece.owner.forward_direction[1]
+    forward_y = owner_of(piece).forward_direction[1]
     dposes    = [[-1, forward_y], [1, forward_y]]
     dests     = [for dpos in dposes: get_square_relative(square, dpos)]
-    return    = [for dest in dests: dest if dest == null ? false : dest.piece != null && dest.piece.owner != piece.owner]
+    return    = [for dest in dests: dest if dest == null ? false : piece_at(dest) != null && !is_mine(dest)]
   }
 }
 
@@ -156,12 +156,12 @@ composite_function "motion_forward_diagonal" {
 # composite_function "motion_en_passant" {
 #   params = [square, piece]
 #   result = {
-#     forward   = piece.owner.forward_direction
+#     forward   = owner_of(piece).forward_direction
 #     forward_y = forward[1]
 #     dposes    = [[-1, forward_y], [1, forward_y]]
 #     dests     = [get_square_relative(square, dpos) for dpos in dposes]
 #     last_move = last_or_null(game.record)
-#     backward  = [-1 * dcoord for dcoord in piece.owner.forward_direction]
+#     backward  = [-1 * dcoord for dcoord in owner_of(piece).forward_direction]
 #     return    = [dest for dest in dests if dest == null ? false : piece_at(dest) == null && last_move != null && last_move.piece.type == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
 #   }
 # }
@@ -237,14 +237,15 @@ function "squares_connecting_horizontal" {
 
 initial_state {
   pieces "white" {
-    A1 = "king"
-    B1 = "knight"
-    B2 = "bishop"
-  }
-  pieces "black" {
     A2 = "king"
     A3 = "rook"
     E5 = "queen"
+    C1 = "pawn"
+  }
+  pieces "black" {
+    A1 = "king"
+    B1 = "knight"
+    B2 = "bishop"
   }
 }
 

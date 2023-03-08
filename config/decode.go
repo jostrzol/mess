@@ -36,6 +36,7 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 			"concat":              ctymess.ConcatFunc,
 			"get_square_relative": ctymess.GetSquareRelativeFunc(state),
 			"piece_at":            ctymess.PieceAtFunc(state),
+			"owner_of":            ctymess.OwnerOfFunc(state),
 			"is_attacked":         ctymess.IsAttackedFunc(state),
 		},
 		Variables: map[string]cty.Value{

@@ -8,8 +8,9 @@ var Game = cty.Object(map[string]cty.Type{
 })
 
 var Player = cty.Object(map[string]cty.Type{
-	"color":  cty.String,
-	"pieces": cty.List(Piece),
+	"color":             cty.String,
+	"pieces":            cty.List(Piece),
+	"forward_direction": Offset,
 })
 
 var Offset = cty.Tuple([]cty.Type{cty.Number, cty.Number})

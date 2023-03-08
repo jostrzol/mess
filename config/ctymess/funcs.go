@@ -104,15 +104,10 @@ func PieceAtFunc(state *mess.State) function.Function {
 				Name:             "square",
 				Type:             cty.String,
 				AllowDynamicType: true,
-				AllowNull:        true,
 			},
 		},
 		Type: function.StaticReturnType(Piece),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			if args[0].IsNull() {
-				return cty.NullVal(Piece), nil
-			}
-
 			var square *board.Square
 			var err error
 			if square, err = SquareFromCty(args[0]); err != nil {
@@ -132,6 +127,39 @@ func PieceAtFunc(state *mess.State) function.Function {
 	})
 }
 
+func OwnerOfFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Get owner of the given piece",
+		Params: []function.Parameter{
+			{
+				Name:             "piece",
+				Type:             Piece,
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(Player),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			squareCty := args[0].GetAttr("square")
+
+			var square *board.Square
+			var err error
+			if square, err = SquareFromCty(squareCty); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
+			}
+
+			piece, err := state.Board().At(square)
+			if err != nil {
+				return cty.DynamicVal, fmt.Errorf("getting piece at %v: %v", square, err)
+
+			} else if piece == nil {
+				return cty.DynamicVal, fmt.Errorf("getting piece at %v: no piece", square)
+			}
+
+			return PlayerToCty(piece.Owner()), nil
+		},
+	})
+}
+
 func IsAttackedFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: "Checks if given square can be reached in the next turn by the opponent",
@@ -140,7 +168,6 @@ func IsAttackedFunc(state *mess.State) function.Function {
 				Name:             "square",
 				Type:             cty.String,
 				AllowDynamicType: true,
-				AllowNull:        true,
 			},
 		},
 		Type: function.StaticReturnType(cty.Bool),
