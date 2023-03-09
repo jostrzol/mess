@@ -61,6 +61,20 @@ func (p *Player) ValidMoves() []Move {
 	return result
 }
 
+func (p *Player) AttackedSquares() []board.Square {
+	resultSet := make(map[board.Square]struct{})
+	for piece := range p.pieces {
+		for _, move := range piece.ValidMoves() {
+			resultSet[move.To] = struct{}{}
+		}
+	}
+	result := make([]board.Square, len(resultSet))
+	for square := range resultSet {
+		result = append(result, square)
+	}
+	return result
+}
+
 func (p *Player) Handle(event event.Event) {
 	switch e := event.(type) {
 	case PiecePlaced:

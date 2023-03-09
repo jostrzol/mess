@@ -87,14 +87,13 @@ piece_types {
 
 // Generates motions to the straight neighbours (top, right, bottom, left)
 // of the current square, given that they are not occupied by the player
-// owning the current piece. Additionaly moving to attacked squares (ones
-// which can be reached by any opponent's piece in the next turn) is blocked.
+// owning the current piece.
 composite_function "motion_neighbours_straight" {
   params = [square, piece]
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if dest == null ? false : !is_mine(dest) && !is_attacked(square)]
+    return = [for dest in dests: dest if dest == null ? false : !is_mine(dest)]
   }
 }
 
@@ -108,11 +107,10 @@ composite_function "motion_neighbours_straight" {
 #   params = [square, piece]
 #   result = {
 #     rooks       = [_piece for _piece in owner_of(piece).pieces if _piece.type == "rook" && !has_ever_moved(_piece)]
-#     paths       = [squares_connecting_horizontal(piece.square, rook.square) for rook in rooks]
-#     king_paths  = [slice(path, 0, 3) for path in paths]
+#     paths       = [square_range(piece.square, rook.square) for rook in rooks]
 #     inner_paths = [slice(path, 1, -1) for path in paths]
 #     king_dests  = [path[2] for path in paths]
-#     return      = [dest for i, dest in king_dests if all([!s.is_attacked for s in king_paths[i]]...) && all([s.piece == null for s in inner_paths[i]]...) && !has_ever_moved(king)]
+#     return      = [dest for i, dest in king_dests if all([s.piece == null for s in inner_paths[i]]...) && !has_ever_moved(king)]
 #   }
 # }
 
@@ -207,6 +205,29 @@ composite_function "motion_line_straight" {
   }
 }
 
+// ===== GAME STATE VALIDATORS ===================================
+// Validators are called just after a move is taken. If any validator returns false, then the move
+// is reversed - it cannot be completed.
+// Validators receive:
+//   * the current game state,
+//   * the last move,
+// and return true if the state is valid or false otherwise.
+
+
+state_validators {
+  // Checks if the current player's king is not standing on an attacke square
+  function "is_king_safe" {
+    params = [game, move]
+    result = all([!is_attacked(piece.square) for piece in move.player.pieces if piece.type == "king"]...)
+  }
+
+  // If the last move was performed by a king, checks if all squares on his path were safe
+  function "is_kings_path_save" {
+    params = [game, move]
+    result = move.piece.type != "king" ? true : all([!is_attacked(s) for s in square_range(move.src, move.dst)])
+  }
+}
+
 // ===== HELPER FUNCTIONS ======================================
 // Checks if square is occupied by a piece of the current player
 composite_function "is_mine" {
@@ -229,10 +250,17 @@ function "last_or_null" {
   result = length(collection) == 0 ? null : collection[length(collection) - 1]
 }
 
-// Returns all the squares connecting two given end-squares (including the end-squares)
-function "squares_connecting_horizontal" {
+// Returns all the squares connecting two given end-squares, forming an L-shape
+// (including the end-squares)
+function "square_range" {
   params = [end1, end2]
-  result = [get_square_absolute([x, end1.position[1]]) for x in range(end1.position[0], end2.position[0] + 1)]
+  result = {
+    pos1 = square_to_coords(end1)
+    pos2 = square_to_coords(end2)
+    horiz = [coors_to_square([x, pos1[1]]) for x in range(pos1[0], pos2[0] + 1)]
+    vert = [coors_to_square([pos1[0], y]) for y in range(pos1[1], pos2[1] + 1)]
+    return = concat(horiz, vert)
+  }
 }
 
 initial_state {
@@ -272,4 +300,36 @@ composite_function "decide_winner" {
     best_players = points_per_player[max(keys(points_per_player)...)]
     return = length(best_players) == 1 ? best_players[0] : null
   }
+}
+
+// ===== GAME RESOLVING FUNCTIONS ==============================
+// Namely the function "pick_winner" and its helpers
+
+// This function is called at the start of every turn.
+// Returns a tuple in form [is_finished, winner]. If is_finished == true and winner == null
+// then draw is concluded. Stalemate is "hardcoded" into the game - the rules don't have
+// to specify it explicitly.
+composite_function "pick_winner" {
+  params = [game]
+  result = {
+    losing_king = check_mated_king(game)
+    return      = losing_king == null ? [false, null] : [true, opponent(losing_king.owner)]
+  }
+}
+
+// Returns the check_mated king, if any - else returns null.
+composite_function "check_mated_king" {
+  params = [game]
+  result = {
+    kings   = [piece for piece in game.players.*.pieces if piece.type == "king"]
+    checked = [king for king in kings if is_attacked(king.square)]
+    mated   = [king for king in attacked if length(valid_moves(king)) == 0]
+    return  = length(mated) == 0 ? null : mated[0]
+  }
+}
+
+// Returns the given player's opponent.
+function "opponent" {
+  params = [player]
+  result = [_player for _player in game.players if _player != player][0]
 }

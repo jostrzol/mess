@@ -51,19 +51,19 @@ func (g *State) CurrentPlayer() *Player {
 	return g.currentPlayer
 }
 
-func (g *State) EndTurn() {
-	g.currentPlayer = g.otherPlayer(g.currentPlayer)
+func (g *State) CurrentOpponent() *Player {
+	var opponentsColor color.Color
+	switch g.CurrentPlayer().Color() {
+	case color.White:
+		opponentsColor = color.Black
+	case color.Black:
+		opponentsColor = color.White
+	}
+	return g.Player(opponentsColor)
 }
 
-func (g *State) otherPlayer(player *Player) *Player {
-	var otherColor color.Color
-	switch player.Color() {
-	case color.White:
-		otherColor = color.Black
-	case color.Black:
-		otherColor = color.White
-	}
-	return g.Player(otherColor)
+func (g *State) EndTurn() {
+	g.currentPlayer = g.CurrentOpponent()
 }
 
 type Controller interface {
