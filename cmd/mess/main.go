@@ -83,7 +83,9 @@ func main() {
 		log.Fatalf("loading game rules: %s", err)
 	}
 
-	for {
+	var winner *mess.Player
+	isFinished := false
+	for !isFinished {
 		println("Board: (uppercase - white, lowercase - black)")
 		println(state.PrettyString())
 		println("Choose square with a piece")
@@ -121,9 +123,9 @@ func main() {
 		}
 
 		state.EndTurn()
+		isFinished, winner = controller.PickWinner(state)
 	}
 
-	winner := controller.DecideWinner(state)
 	if winner == nil {
 		fmt.Printf("Draw!\n")
 	} else {

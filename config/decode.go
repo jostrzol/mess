@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/config/composeuserfunc"
 	"github.com/jostrzol/mess/config/ctymess"
-	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
@@ -38,6 +37,7 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 			"piece_at":            ctymess.PieceAtFunc(state),
 			"owner_of":            ctymess.OwnerOfFunc(state),
 			"is_attacked":         ctymess.IsAttackedFunc(state),
+			"valid_moves":         ctymess.ValidMovesFunc(state),
 		},
 		Variables: map[string]cty.Value{
 			"game": cty.DynamicVal,
@@ -50,8 +50,6 @@ type config struct {
 	PieceTypes   pieceTypesConfig   `hcl:"piece_types,block"`
 	InitialState initialStateConfig `hcl:"initial_state,block"`
 	Functions    *callbackFunctionsConfig
-	EvalContext  *hcl.EvalContext
-	State        *mess.State
 }
 
 type boardConfig struct {
@@ -136,8 +134,8 @@ func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*co
 		})
 	}
 
-	config.State = state
-	config.EvalContext = ctx
+	config.Functions.State = state
+	config.Functions.EvalContext = ctx
 
 	return config, nil
 }
@@ -211,20 +209,4 @@ func decodeUserVariables(
 	}
 
 	return userVariables, variables.Remain, diags
-}
-
-func (c *config) GetCustomFuncAsGeneratorWithStateContext(name string) (mess.MotionGenerator, error) {
-	generator, err := c.Functions.GetCustomFuncAsGenerator(name)
-	if err != nil {
-		return nil, err
-	}
-	return mess.FuncMotionGenerator(func(piece *mess.Piece) []board.Square {
-		c.refreshGameStateInContext()
-		return generator.GenerateMotions(piece)
-	}), nil
-}
-
-func (c *config) refreshGameStateInContext() {
-	newGame := ctymess.GameStateToCty(c.State)
-	c.EvalContext.Variables["game"] = newGame
 }

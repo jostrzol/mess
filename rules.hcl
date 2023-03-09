@@ -306,14 +306,14 @@ composite_function "decide_winner" {
 // Namely the function "pick_winner" and its helpers
 
 // This function is called at the start of every turn.
-// Returns a tuple in form [is_finished, winner]. If is_finished == true and winner == null
-// then draw is concluded. Stalemate is "hardcoded" into the game - the rules don't have
-// to specify it explicitly.
+// Returns a tuple in form [is_finished, winner_color]. If is_finished == true and
+// winner_color == null then draw is concluded. Stalemate is "hardcoded" into the game - the rules
+// don't have to specify it explicitly.
 composite_function "pick_winner" {
   params = [game]
   result = {
     losing_king = check_mated_king(game)
-    return      = losing_king == null ? [false, null] : [true, opponent(losing_king.owner)]
+    return      = losing_king == null ? [false, null] : [true, opponent_color(losing_king.color)]
   }
 }
 
@@ -321,9 +321,10 @@ composite_function "pick_winner" {
 composite_function "check_mated_king" {
   params = [game]
   result = {
-    kings   = [piece for piece in game.players.*.pieces if piece.type == "king"]
-    checked = [king for king in kings if is_attacked(king.square)]
-    mated   = [king for king in attacked if length(valid_moves(king)) == 0]
+    pieces  = concat([for player in game.players: player.pieces]...)
+    kings   = [for piece in pieces: piece if piece.type == "king"]
+    checked = [for king in kings: king if is_attacked(king.square)]
+    mated   = [for king in checked: king if length(valid_moves(king)) == 0]
     return  = length(mated) == 0 ? null : mated[0]
   }
 }
@@ -331,5 +332,11 @@ composite_function "check_mated_king" {
 // Returns the given player's opponent.
 function "opponent" {
   params = [player]
+  result = [_player for _player in game.players if _player != player][0]
+}
+
+// Returns the color belonging to the opponent of the player having the given color.
+function "opponent_color" {
+  params = [color]
   result = [_player for _player in game.players if _player != player][0]
 }

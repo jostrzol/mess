@@ -6,6 +6,7 @@ import (
 
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
+	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/convert"
 	"github.com/zclconf/go-cty/cty/gocty"
@@ -67,4 +68,33 @@ func ColorFromCty(colorCty cty.Value) (*color.Color, error) {
 		return nil, err
 	}
 	return &color, nil
+}
+
+func PieceFromCty(state *mess.State, value cty.Value) (*mess.Piece, error) {
+	var err error
+	defer func() {
+		var ok bool
+		value := recover()
+		if value == nil {
+			return
+		}
+		err, ok = value.(error)
+		if !ok {
+			panic(value)
+		}
+	}()
+
+	squareStr := value.GetAttr("square").AsString()
+	if err != nil {
+		return nil, fmt.Errorf("getting piece's square: %w", err)
+	}
+	square, err := board.NewSquare(squareStr)
+	if err != nil {
+		return nil, fmt.Errorf("parsing square %q: %w", squareStr, err)
+	}
+	piece, err := state.Board().At(square)
+	if err != nil {
+		return nil, fmt.Errorf("getting piece at %v: %w", square, err)
+	}
+	return piece, nil
 }

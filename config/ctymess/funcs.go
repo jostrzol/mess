@@ -196,3 +196,33 @@ func IsAttackedFunc(state *mess.State) function.Function {
 		},
 	})
 }
+
+func ValidMovesFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Returns all the squares that the given piece can go to in 1 turn",
+		Params: []function.Parameter{
+			{
+				Name:             "piece",
+				Type:             Piece,
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(cty.List(cty.String)),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var piece *mess.Piece
+			var err error
+			if piece, err = PieceFromCty(state, args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'piece': %w", err)
+			} else if piece == nil {
+				return cty.DynamicVal, fmt.Errorf("given piece not found")
+			}
+
+			moves := piece.ValidMoves()
+			result := make([]cty.Value, len(moves))
+			for i, move := range moves {
+				result[i] = cty.StringVal(move.To.String())
+			}
+			return cty.ListVal(result), nil
+		},
+	})
+}

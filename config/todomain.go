@@ -19,7 +19,7 @@ func (c *config) toGameState() (*mess.State, error) {
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
 		pieceType := mess.NewPieceType(pieceTypeConfig.Name)
 		for _, motionConfig := range pieceTypeConfig.Motions {
-			motionGenerator, err := c.GetCustomFuncAsGeneratorWithStateContext(motionConfig.GeneratorName)
+			motionGenerator, err := c.Functions.GetCustomFuncAsGenerator(motionConfig.GeneratorName)
 			if err != nil {
 				return nil, err
 			}

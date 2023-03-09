@@ -67,5 +67,5 @@ func (g *State) EndTurn() {
 }
 
 type Controller interface {
-	DecideWinner(state *State) *Player
+	PickWinner(state *State) (bool, *Player)
 }
