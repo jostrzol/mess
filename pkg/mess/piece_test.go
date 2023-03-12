@@ -121,7 +121,7 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 	s.Equal(knight, piece)
 }
 
-func (s *PieceSuite) TestGenerateMovesRook() {
+func (s *PieceSuite) TestValidMovesRook() {
 	rook := Noones(Rook(s.T()))
 	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
@@ -136,7 +136,7 @@ func (s *PieceSuite) TestGenerateMovesRook() {
 	))
 }
 
-func (s *PieceSuite) TestGenerateMovesKnight() {
+func (s *PieceSuite) TestValidMovesKnight() {
 	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
@@ -279,6 +279,59 @@ func offsetMoveGenerator(t *testing.T, offsets ...board.Offset) MoveGenerator {
 	}
 }
 
+func TestChainMoveGenerators(t *testing.T) {
+	tests := []struct {
+		name       string
+		generators []MoveGenerator
+		expected   []string
+	}{
+		{
+			name:       "Empty",
+			generators: []MoveGenerator{},
+			expected:   []string{},
+		},
+		{
+			name: "One",
+			generators: []MoveGenerator{
+				staticMoveGenerator(t, "A1"),
+			},
+			expected: []string{"A1"},
+		},
+		{
+			name: "Two",
+			generators: []MoveGenerator{
+				staticMoveGenerator(t, "A1"),
+				staticMoveGenerator(t, "B1"),
+			},
+			expected: []string{"A1", "B1"},
+		},
+		{
+			name: "TwoOverlapping",
+			generators: []MoveGenerator{
+				staticMoveGenerator(t, "A1"),
+				staticMoveGenerator(t, "A1"),
+			},
+			expected: []string{"A1"},
+		},
+		{
+			name: "TwoOverlapping",
+			generators: []MoveGenerator{
+				staticMoveGenerator(t, "A1", "B2"),
+				staticMoveGenerator(t, "C5"),
+				staticMoveGenerator(t, "B2", "D4", "C5"),
+			},
+			expected: []string{"A1", "B2", "C5", "D4"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			generators := chainMoveGenerators(tt.generators)
+			moves := generators.Generate(nil)
+			assertSquaresMatch(t, moves, tt.expected...)
+		})
+	}
+}
+
 func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
 	assert.Len(t, actual, len(expected))
 	for _, str := range expected {
@@ -286,46 +339,4 @@ func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
 		assert.NoError(t, err)
 		assert.Containsf(t, actual, *square, "%v doesnt contain square %v", actual, square)
 	}
-}
-
-func TestGenerateMovesZero(t *testing.T) {
-	generators := moveGenerators([]MoveGenerator{})
-	moves := generators.Generate(nil)
-	assert.Empty(t, moves)
-}
-
-func TestGenerateMovesOne(t *testing.T) {
-	generators := moveGenerators([]MoveGenerator{
-		staticMoveGenerator(t, "A1"),
-	})
-	moves := generators.Generate(nil)
-	assertSquaresMatch(t, moves, "A1")
-}
-
-func TestGenerateMovesTwo(t *testing.T) {
-	generators := moveGenerators([]MoveGenerator{
-		staticMoveGenerator(t, "A1"),
-		staticMoveGenerator(t, "B1"),
-	})
-	moves := generators.Generate(nil)
-	assertSquaresMatch(t, moves, "A1", "B1")
-}
-
-func TestGenerateMovesTwoOverlapping(t *testing.T) {
-	generators := moveGenerators([]MoveGenerator{
-		staticMoveGenerator(t, "A1"),
-		staticMoveGenerator(t, "A1"),
-	})
-	moves := generators.Generate(nil)
-	assertSquaresMatch(t, moves, "A1")
-}
-
-func TestGenerateMovesMany(t *testing.T) {
-	generators := moveGenerators([]MoveGenerator{
-		staticMoveGenerator(t, "A1", "B2"),
-		staticMoveGenerator(t, "C5"),
-		staticMoveGenerator(t, "B2", "D4", "C5"),
-	})
-	moves := generators.Generate(nil)
-	assertSquaresMatch(t, moves, "A1", "B2", "C5", "D4")
 }

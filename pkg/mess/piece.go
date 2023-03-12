@@ -106,15 +106,15 @@ func (p *Piece) resetValidMoves() {
 
 type PieceType struct {
 	name           string
-	moveGenerators moveGenerators
-	moveValidators moveValidators
+	moveGenerators chainMoveGenerators
+	moveValidators chainMoveValidators
 }
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
 		name:           name,
-		moveGenerators: make(moveGenerators, 0),
-		moveValidators: make(moveValidators, 0),
+		moveGenerators: make(chainMoveGenerators, 0),
+		moveValidators: make(chainMoveValidators, 0),
 	}
 }
 
@@ -150,9 +150,9 @@ func (t *PieceType) validMoves(piece *Piece) []Move {
 }
 
 type MoveGenerator func(*Piece) []board.Square
-type moveGenerators []MoveGenerator
+type chainMoveGenerators []MoveGenerator
 
-func (g moveGenerators) Generate(piece *Piece) []brd.Square {
+func (g chainMoveGenerators) Generate(piece *Piece) []brd.Square {
 	destinationSet := make(map[brd.Square]bool, 0)
 	for _, generator := range g {
 		newDestinations := generator(piece)
@@ -168,9 +168,9 @@ func (g moveGenerators) Generate(piece *Piece) []brd.Square {
 }
 
 type MoveValidator func(*Move) bool
-type moveValidators []MoveValidator
+type chainMoveValidators []MoveValidator
 
-func (g moveValidators) Validate(move *Move) bool {
+func (g chainMoveValidators) Validate(move *Move) bool {
 	for _, validator := range g {
 		if !validator(move) {
 			return false
