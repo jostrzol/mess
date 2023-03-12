@@ -1,6 +1,7 @@
 package mess
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/jostrzol/mess/pkg/board"
@@ -121,40 +122,53 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 	s.Equal(knight, piece)
 }
 
-func (s *PieceSuite) TestValidMovesRook() {
-	rook := Noones(Rook(s.T()))
-	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
+func (s *PieceSuite) TestValidMoves() {
+	tests := []struct {
+		pieceType     *PieceType
+		square        string
+		expectedDests []string
+	}{
+		{
+			pieceType:     Rook(s.T()),
+			square:        "B2",
+			expectedDests: []string{"B1", "B3", "B4", "A2", "C2", "D2"},
+		},
+		{
+			pieceType:     Knight(s.T()),
+			square:        "B2",
+			expectedDests: []string{"A4", "C4", "D1", "D3"},
+		},
+	}
+	for _, tt := range tests {
+		s.SetupTest()
+		s.Run(fmt.Sprintf("%v at %v", tt.pieceType, tt.square), func() {
+			piece := Noones(tt.pieceType)
+			piece.PlaceOn(s.board, boardtest.NewSquare(tt.square))
 
-	moves := rook.ValidMoves()
-	s.ElementsMatch(moves, movesFromDests(rook,
-		*boardtest.NewSquare("B1"),
-		*boardtest.NewSquare("B3"),
-		*boardtest.NewSquare("B4"),
-		*boardtest.NewSquare("A2"),
-		*boardtest.NewSquare("C2"),
-		*boardtest.NewSquare("D2"),
-	))
+			moves := piece.ValidMoves()
+
+			s.ElementsMatch(moves, movesFromDests(piece, tt.expectedDests...))
+		})
+	}
 }
 
-func (s *PieceSuite) TestValidMovesKnight() {
-	knight := Noones(Knight(s.T()))
-	knight.PlaceOn(s.board, boardtest.NewSquare("B2"))
+func (s *PieceSuite) TestValidMovesWithValidator() {
+	king := Noones(King(s.T()))
+	king.PlaceOn(s.board, boardtest.NewSquare("A1"))
 
-	moves := knight.ValidMoves()
-	s.ElementsMatch(moves, movesFromDests(knight,
-		*boardtest.NewSquare("A4"),
-		*boardtest.NewSquare("C4"),
-		*boardtest.NewSquare("D1"),
-		*boardtest.NewSquare("D3"),
-	))
+	king.Type().AddMoveValidator(func(m *Move) bool { return m.To != *boardtest.NewSquare("A2") })
+
+	moves := king.ValidMoves()
+
+	s.ElementsMatch(moves, movesFromDests(king, "B1"))
 }
 
-func movesFromDests(piece *Piece, destinations ...board.Square) []Move {
+func movesFromDests(piece *Piece, destinations ...string) []Move {
 	result := make([]Move, len(destinations))
 	for i, destination := range destinations {
 		result[i].Piece = piece
 		result[i].From = *piece.Square()
-		result[i].To = destination
+		result[i].To = *boardtest.NewSquare(destination)
 	}
 	return result
 }
