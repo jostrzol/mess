@@ -8,34 +8,6 @@ import (
 	"github.com/jostrzol/mess/pkg/event"
 )
 
-type PieceType struct {
-	name             string
-	motionGenerators MotionGenerators
-}
-
-func NewPieceType(name string) *PieceType {
-	return &PieceType{
-		name:             name,
-		motionGenerators: make(MotionGenerators, 0),
-	}
-}
-
-func (t *PieceType) Name() string {
-	return t.name
-}
-
-func (t *PieceType) String() string {
-	return t.Name()
-}
-
-func (t *PieceType) AddMotionGenerator(generator MotionGenerator) {
-	t.motionGenerators = append(t.motionGenerators, generator)
-}
-
-func (t *PieceType) generateMotions(piece *Piece) []brd.Square {
-	return t.motionGenerators.GenerateMotions(piece)
-}
-
 type Piece struct {
 	ty         *PieceType
 	owner      *Player
@@ -105,29 +77,7 @@ func (p *Piece) ValidMoves() []Move {
 }
 
 func (p *Piece) generateValidMoves() []Move {
-	result := make([]Move, 0)
-	for _, destination := range p.ty.generateMotions(p) {
-		result = append(result, Move{
-			Piece: p,
-			From:  *p.Square(),
-			To:    destination,
-		})
-	}
-	return result
-}
-
-type Move struct {
-	Piece *Piece
-	From  brd.Square
-	To    brd.Square
-}
-
-func (m *Move) Perform() {
-	m.Piece.MoveTo(&m.To)
-}
-
-func (m *Move) String() string {
-	return fmt.Sprintf("%v->%v", m.From, m.To)
+	return p.ty.validMoves(p)
 }
 
 func (p *Piece) Handle(event event.Event) {
@@ -151,4 +101,54 @@ func (p *Piece) Handle(event event.Event) {
 
 func (p *Piece) resetValidMoves() {
 	p.validMoves = nil
+}
+
+type PieceType struct {
+	name             string
+	motionGenerators MotionGenerators
+}
+
+func NewPieceType(name string) *PieceType {
+	return &PieceType{
+		name:             name,
+		motionGenerators: make(MotionGenerators, 0),
+	}
+}
+
+func (t *PieceType) Name() string {
+	return t.name
+}
+
+func (t *PieceType) String() string {
+	return t.Name()
+}
+
+func (t *PieceType) AddMotionGenerator(generator MotionGenerator) {
+	t.motionGenerators = append(t.motionGenerators, generator)
+}
+
+func (t *PieceType) validMoves(piece *Piece) []Move {
+	result := make([]Move, 0)
+	for _, destination := range t.motionGenerators.GenerateMotions(piece) {
+		result = append(result, Move{
+			Piece: piece,
+			From:  *piece.Square(),
+			To:    destination,
+		})
+	}
+	return result
+}
+
+type Move struct {
+	Piece *Piece
+	From  brd.Square
+	To    brd.Square
+}
+
+func (m *Move) Perform() {
+	m.Piece.MoveTo(&m.To)
+}
+
+func (m *Move) String() string {
+	return fmt.Sprintf("%v->%v", m.From, m.To)
 }
