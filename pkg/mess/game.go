@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/pkg/color"
+	"github.com/jostrzol/mess/pkg/event"
 	"github.com/jostrzol/mess/pkg/iter"
 )
 
@@ -11,6 +12,7 @@ type State struct {
 	board         *PieceBoard
 	players       map[color.Color]*Player
 	currentPlayer *Player
+	record        []RecordedMove
 }
 
 func NewState(board *PieceBoard) *State {
@@ -19,7 +21,9 @@ func NewState(board *PieceBoard) *State {
 		board:         board,
 		players:       players,
 		currentPlayer: players[color.White],
+		record:        []RecordedMove{},
 	}
+	board.Observe(state)
 	return state
 }
 
@@ -64,6 +68,50 @@ func (g *State) CurrentOpponent() *Player {
 
 func (g *State) EndTurn() {
 	g.currentPlayer = g.CurrentOpponent()
+}
+
+func (g *State) Handle(event event.Event) {
+	switch e := event.(type) {
+	case PieceMoved:
+		g.record = append(g.record, RecordedMove{
+			Move:     Move(e),
+			Captures: map[*Piece]struct{}{},
+		})
+	case PieceCaptured:
+		g.recordCapture(&e)
+	}
+}
+
+func (g *State) recordCapture(event *PieceCaptured) {
+	if len(g.record) == 0 {
+		panic(fmt.Errorf("tried to record a capture, but no moved was recorded ealier"))
+	}
+	lastMove := g.record[len(g.record)-1]
+	lastMove.Captures[event.Piece] = struct{}{}
+}
+
+func (g *State) Undo() *RecordedMove {
+	if len(g.record) == 0 {
+		return nil
+	}
+	lastMove := g.record[len(g.record)-1]
+	err := g.board.Place(lastMove.Piece, &lastMove.From)
+	if err != nil {
+		panic(err)
+	}
+	for c := range lastMove.Captures {
+		err := g.board.Place(c, c.Square())
+		if err != nil {
+			panic(err)
+		}
+	}
+	g.record = g.record[:len(g.record)-1]
+	return &lastMove
+}
+
+type RecordedMove struct {
+	Move
+	Captures map[*Piece]struct{}
 }
 
 type Controller interface {

@@ -3,6 +3,8 @@ package mess
 import (
 	"testing"
 
+	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/stretchr/testify/suite"
 )
@@ -41,6 +43,122 @@ func (s *GameSuite) TestEndTurn() {
 
 	secondTurnPlayer := s.game.CurrentPlayer()
 	s.Equal(s.game.Player(color.Black), secondTurnPlayer)
+}
+
+func (s *GameSuite) TestRecordMove() {
+	var rook, knight, king Piece
+	rookSquare := *boardtest.NewSquare("A1")
+	knightSquare := *boardtest.NewSquare("A2")
+	kingSquare := *boardtest.NewSquare("A3")
+	emptySquare1 := *boardtest.NewSquare("B1")
+	emptySquare2 := *boardtest.NewSquare("B2")
+
+	type move struct {
+		*Piece
+		board.Square
+	}
+	tests := []struct {
+		name     string
+		moves    []move
+		expected []RecordedMove
+	}{
+		{
+			name:  "One",
+			moves: []move{{&rook, emptySquare1}},
+			expected: []RecordedMove{
+				{
+					Move: Move{
+						Piece: &rook,
+						From:  rookSquare,
+						To:    emptySquare1,
+					},
+					Captures: map[*Piece]struct{}{},
+				},
+			},
+		},
+		{
+			name:  "Two",
+			moves: []move{{&rook, emptySquare1}, {&rook, emptySquare2}},
+			expected: []RecordedMove{
+				{
+					Move: Move{
+						Piece: &rook,
+						From:  rookSquare,
+						To:    emptySquare1,
+					},
+					Captures: map[*Piece]struct{}{},
+				},
+				{
+					Move: Move{
+						Piece: &rook,
+						From:  emptySquare1,
+						To:    emptySquare2,
+					},
+					Captures: map[*Piece]struct{}{},
+				},
+			},
+		},
+		{
+			name:  "Capture",
+			moves: []move{{&rook, knightSquare}},
+			expected: []RecordedMove{
+				{
+					Move: Move{
+						Piece: &rook,
+						From:  rookSquare,
+						To:    knightSquare,
+					},
+					Captures: map[*Piece]struct{}{
+						&knight: {},
+					},
+				},
+			},
+		},
+		{
+			name:  "DoubleCapture",
+			moves: []move{{&rook, knightSquare}, {&rook, kingSquare}},
+			expected: []RecordedMove{
+				{
+					Move: Move{
+						Piece: &rook,
+						From:  rookSquare,
+						To:    knightSquare,
+					},
+					Captures: map[*Piece]struct{}{
+						&knight: {},
+					},
+				},
+				{
+					Move: Move{
+						Piece: &rook,
+						From:  knightSquare,
+						To:    kingSquare,
+					},
+					Captures: map[*Piece]struct{}{
+						&king: {},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		s.SetupTest()
+		s.Run(tt.name, func() {
+			rook = *NewPiece(Rook(s.T()), s.game.currentPlayer)
+			rook.PlaceOn(s.game.board, &rookSquare)
+			knight = *NewPiece(Knight(s.T()), s.game.currentPlayer)
+			knight.PlaceOn(s.game.board, &knightSquare)
+			king = *NewPiece(Knight(s.T()), s.game.currentPlayer)
+			king.PlaceOn(s.game.board, &kingSquare)
+
+			for _, move := range tt.moves {
+				err := move.Piece.MoveTo(&move.Square)
+				s.NoError(err)
+			}
+
+			s.Equal(s.game.record, tt.expected)
+		})
+	}
 }
 
 func TestGameSuite(t *testing.T) {
