@@ -15,7 +15,7 @@ import (
 func Rook(t *testing.T) *PieceType {
 	t.Helper()
 	pieceType := NewPieceType("rook")
-	pieceType.AddMotionGenerator(func(piece *Piece) []board.Square {
+	pieceType.AddMoveGenerator(func(piece *Piece) []board.Square {
 		result := make([]board.Square, 0)
 		for _, offset := range []board.Offset{
 			{X: 1, Y: 0},
@@ -37,7 +37,7 @@ func Rook(t *testing.T) *PieceType {
 func Knight(t *testing.T) *PieceType {
 	t.Helper()
 	pieceType := NewPieceType("knight")
-	pieceType.AddMotionGenerator(offsetMotionGenerator(t, []board.Offset{
+	pieceType.AddMoveGenerator(offsetMoveGenerator(t, []board.Offset{
 		{X: 1, Y: 2},
 		{X: 1, Y: -2},
 		{X: -1, Y: 2},
@@ -53,7 +53,7 @@ func Knight(t *testing.T) *PieceType {
 func King(t *testing.T) *PieceType {
 	t.Helper()
 	pieceType := NewPieceType("king")
-	pieceType.AddMotionGenerator(offsetMotionGenerator(t, []board.Offset{
+	pieceType.AddMoveGenerator(offsetMoveGenerator(t, []board.Offset{
 		{X: 1, Y: 0},
 		{X: -1, Y: 0},
 		{X: 0, Y: 1},
@@ -121,7 +121,7 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 	s.Equal(knight, piece)
 }
 
-func (s *PieceSuite) TestGenerateMotionsRook() {
+func (s *PieceSuite) TestGenerateMovesRook() {
 	rook := Noones(Rook(s.T()))
 	rook.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
@@ -136,7 +136,7 @@ func (s *PieceSuite) TestGenerateMotionsRook() {
 	))
 }
 
-func (s *PieceSuite) TestGenerateMotionsKnight() {
+func (s *PieceSuite) TestGenerateMovesKnight() {
 	knight := Noones(Knight(s.T()))
 	knight.PlaceOn(s.board, boardtest.NewSquare("B2"))
 
@@ -252,7 +252,7 @@ func TestPieceSuite(t *testing.T) {
 	suite.Run(t, new(PieceSuite))
 }
 
-func staticMotionGenerator(t *testing.T, strings ...string) MotionGenerator {
+func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
 	t.Helper()
 	return func(piece *Piece) []brd.Square {
 		destinations := make([]brd.Square, 0, len(strings))
@@ -265,7 +265,7 @@ func staticMotionGenerator(t *testing.T, strings ...string) MotionGenerator {
 	}
 }
 
-func offsetMotionGenerator(t *testing.T, offsets ...board.Offset) MotionGenerator {
+func offsetMoveGenerator(t *testing.T, offsets ...board.Offset) MoveGenerator {
 	t.Helper()
 	return func(piece *Piece) []brd.Square {
 		destinations := make([]brd.Square, 0, len(offsets))
@@ -288,44 +288,44 @@ func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
 	}
 }
 
-func TestGenerateMotionsZero(t *testing.T) {
-	generators := motionGenerators([]MotionGenerator{})
-	motions := generators.GenerateMotions(nil)
-	assert.Empty(t, motions)
+func TestGenerateMovesZero(t *testing.T) {
+	generators := moveGenerators([]MoveGenerator{})
+	moves := generators.Generate(nil)
+	assert.Empty(t, moves)
 }
 
-func TestGenerateMotionsOne(t *testing.T) {
-	generators := motionGenerators([]MotionGenerator{
-		staticMotionGenerator(t, "A1"),
+func TestGenerateMovesOne(t *testing.T) {
+	generators := moveGenerators([]MoveGenerator{
+		staticMoveGenerator(t, "A1"),
 	})
-	motions := generators.GenerateMotions(nil)
-	assertSquaresMatch(t, motions, "A1")
+	moves := generators.Generate(nil)
+	assertSquaresMatch(t, moves, "A1")
 }
 
-func TestGenerateMotionsTwo(t *testing.T) {
-	generators := motionGenerators([]MotionGenerator{
-		staticMotionGenerator(t, "A1"),
-		staticMotionGenerator(t, "B1"),
+func TestGenerateMovesTwo(t *testing.T) {
+	generators := moveGenerators([]MoveGenerator{
+		staticMoveGenerator(t, "A1"),
+		staticMoveGenerator(t, "B1"),
 	})
-	motions := generators.GenerateMotions(nil)
-	assertSquaresMatch(t, motions, "A1", "B1")
+	moves := generators.Generate(nil)
+	assertSquaresMatch(t, moves, "A1", "B1")
 }
 
-func TestGenerateMotionsTwoOverlapping(t *testing.T) {
-	generators := motionGenerators([]MotionGenerator{
-		staticMotionGenerator(t, "A1"),
-		staticMotionGenerator(t, "A1"),
+func TestGenerateMovesTwoOverlapping(t *testing.T) {
+	generators := moveGenerators([]MoveGenerator{
+		staticMoveGenerator(t, "A1"),
+		staticMoveGenerator(t, "A1"),
 	})
-	motions := generators.GenerateMotions(nil)
-	assertSquaresMatch(t, motions, "A1")
+	moves := generators.Generate(nil)
+	assertSquaresMatch(t, moves, "A1")
 }
 
-func TestGenerateMotionsMany(t *testing.T) {
-	generators := motionGenerators([]MotionGenerator{
-		staticMotionGenerator(t, "A1", "B2"),
-		staticMotionGenerator(t, "C5"),
-		staticMotionGenerator(t, "B2", "D4", "C5"),
+func TestGenerateMovesMany(t *testing.T) {
+	generators := moveGenerators([]MoveGenerator{
+		staticMoveGenerator(t, "A1", "B2"),
+		staticMoveGenerator(t, "C5"),
+		staticMoveGenerator(t, "B2", "D4", "C5"),
 	})
-	motions := generators.GenerateMotions(nil)
-	assertSquaresMatch(t, motions, "A1", "B2", "C5", "D4")
+	moves := generators.Generate(nil)
+	assertSquaresMatch(t, moves, "A1", "B2", "C5", "D4")
 }

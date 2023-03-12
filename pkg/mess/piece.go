@@ -105,16 +105,16 @@ func (p *Piece) resetValidMoves() {
 }
 
 type PieceType struct {
-	name             string
-	motionGenerators motionGenerators
-	moveValidators   moveValidators
+	name           string
+	moveGenerators moveGenerators
+	moveValidators moveValidators
 }
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
-		name:             name,
-		motionGenerators: make(motionGenerators, 0),
-		moveValidators:   make(moveValidators, 0),
+		name:           name,
+		moveGenerators: make(moveGenerators, 0),
+		moveValidators: make(moveValidators, 0),
 	}
 }
 
@@ -126,8 +126,8 @@ func (t *PieceType) String() string {
 	return t.Name()
 }
 
-func (t *PieceType) AddMotionGenerator(generator MotionGenerator) {
-	t.motionGenerators = append(t.motionGenerators, generator)
+func (t *PieceType) AddMoveGenerator(generator MoveGenerator) {
+	t.moveGenerators = append(t.moveGenerators, generator)
 }
 
 func (t *PieceType) AddMoveValidator(validator MoveValidator) {
@@ -136,7 +136,7 @@ func (t *PieceType) AddMoveValidator(validator MoveValidator) {
 
 func (t *PieceType) validMoves(piece *Piece) []Move {
 	result := make([]Move, 0)
-	for _, destination := range t.motionGenerators.GenerateMotions(piece) {
+	for _, destination := range t.moveGenerators.Generate(piece) {
 		move := Move{
 			Piece: piece,
 			From:  *piece.Square(),
@@ -149,10 +149,10 @@ func (t *PieceType) validMoves(piece *Piece) []Move {
 	return result
 }
 
-type MotionGenerator func(*Piece) []board.Square
-type motionGenerators []MotionGenerator
+type MoveGenerator func(*Piece) []board.Square
+type moveGenerators []MoveGenerator
 
-func (g motionGenerators) GenerateMotions(piece *Piece) []brd.Square {
+func (g moveGenerators) Generate(piece *Piece) []brd.Square {
 	destinationSet := make(map[brd.Square]bool, 0)
 	for _, generator := range g {
 		newDestinations := generator(piece)

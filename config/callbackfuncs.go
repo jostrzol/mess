@@ -52,7 +52,7 @@ func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Pla
 	return true, state.Player(color)
 }
 
-func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.MotionGenerator, error) {
+func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.MoveGenerator, error) {
 	funcCty, ok := c.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
