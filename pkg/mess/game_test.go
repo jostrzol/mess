@@ -161,6 +161,111 @@ func (s *GameSuite) TestRecordMove() {
 	}
 }
 
+func (s *GameSuite) TestUndoNothing() {
+	s.Nil(s.game.Undo())
+}
+
+func (s *GameSuite) TestUndo() {
+	rook := NewPiece(Rook(s.T()), s.game.currentPlayer)
+	a1 := boardtest.NewSquare("A1")
+	rook.PlaceOn(s.game.board, a1)
+
+	a2 := boardtest.NewSquare("A2")
+	err := rook.MoveTo(a2)
+	s.NoError(err)
+
+	move := s.game.Undo()
+
+	expected := &RecordedMove{
+		Move: Move{
+			Piece: rook,
+			From:  *a1,
+			To:    *a2,
+		},
+		Captures: map[*Piece]struct{}{},
+	}
+	s.Equal(expected, move)
+
+	pieceA1, err := s.game.Board().At(a1)
+	s.NoError(err)
+	s.Equal(rook, pieceA1)
+
+	pieceA2, err := s.game.Board().At(a2)
+	s.NoError(err)
+	s.Nil(pieceA2)
+}
+
+func (s *GameSuite) TestUndoDoubleMove() {
+	rook := NewPiece(Rook(s.T()), s.game.currentPlayer)
+	a1 := boardtest.NewSquare("A1")
+	rook.PlaceOn(s.game.board, a1)
+
+	a2 := boardtest.NewSquare("A2")
+	err := rook.MoveTo(a2)
+	s.NoError(err)
+
+	a3 := boardtest.NewSquare("A3")
+	err = rook.MoveTo(a3)
+	s.NoError(err)
+
+	move := s.game.Undo()
+
+	expected := &RecordedMove{
+		Move: Move{
+			Piece: rook,
+			From:  *a2,
+			To:    *a3,
+		},
+		Captures: map[*Piece]struct{}{},
+	}
+	s.Equal(expected, move)
+
+	pieceA1, err := s.game.Board().At(a1)
+	s.NoError(err)
+	s.Nil(pieceA1)
+
+	pieceA2, err := s.game.Board().At(a2)
+	s.NoError(err)
+	s.Equal(rook, pieceA2)
+
+	pieceA3, err := s.game.Board().At(a3)
+	s.NoError(err)
+	s.Nil(pieceA3)
+}
+
+func (s *GameSuite) TestUndoCapture() {
+	rook := NewPiece(Rook(s.T()), s.game.currentPlayer)
+	a1 := boardtest.NewSquare("A1")
+	rook.PlaceOn(s.game.board, a1)
+
+	knight := NewPiece(Knight(s.T()), s.game.currentPlayer)
+	a2 := boardtest.NewSquare("A2")
+	knight.PlaceOn(s.game.board, a2)
+
+	err := rook.MoveTo(a2)
+	s.NoError(err)
+
+	move := s.game.Undo()
+
+	expected := &RecordedMove{
+		Move: Move{
+			Piece: rook,
+			From:  *a1,
+			To:    *a2,
+		},
+		Captures: map[*Piece]struct{}{knight: {}},
+	}
+	s.Equal(expected, move)
+
+	pieceA1, err := s.game.Board().At(a1)
+	s.NoError(err)
+	s.Equal(rook, pieceA1)
+
+	pieceA2, err := s.game.Board().At(a2)
+	s.NoError(err)
+	s.Equal(knight, pieceA2)
+}
+
 func TestGameSuite(t *testing.T) {
 	suite.Run(t, new(GameSuite))
 }

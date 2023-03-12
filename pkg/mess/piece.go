@@ -45,11 +45,7 @@ func (p *Piece) Board() *PieceBoard {
 }
 
 func (p *Piece) Square() *brd.Square {
-	if p.IsOnBoard() {
-		duplicate := p.square
-		return &duplicate
-	}
-	return nil
+	return &p.square
 }
 
 func (p *Piece) IsOnBoard() bool {

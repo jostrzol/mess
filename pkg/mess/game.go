@@ -13,6 +13,7 @@ type State struct {
 	players       map[color.Color]*Player
 	currentPlayer *Player
 	record        []RecordedMove
+	isRecording   bool
 }
 
 func NewState(board *PieceBoard) *State {
@@ -22,6 +23,7 @@ func NewState(board *PieceBoard) *State {
 		players:       players,
 		currentPlayer: players[color.White],
 		record:        []RecordedMove{},
+		isRecording:   true,
 	}
 	board.Observe(state)
 	return state
@@ -71,6 +73,10 @@ func (g *State) EndTurn() {
 }
 
 func (g *State) Handle(event event.Event) {
+	if !g.isRecording {
+		return
+	}
+
 	switch e := event.(type) {
 	case PieceMoved:
 		g.record = append(g.record, RecordedMove{
@@ -95,10 +101,15 @@ func (g *State) Undo() *RecordedMove {
 		return nil
 	}
 	lastMove := g.record[len(g.record)-1]
-	err := g.board.Place(lastMove.Piece, &lastMove.From)
+
+	g.isRecording = false
+	defer func() { g.isRecording = true }()
+
+	err := lastMove.Piece.MoveTo(&lastMove.From)
 	if err != nil {
 		panic(err)
 	}
+
 	for c := range lastMove.Captures {
 		err := g.board.Place(c, c.Square())
 		if err != nil {
