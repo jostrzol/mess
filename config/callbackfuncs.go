@@ -58,7 +58,7 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.Mo
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
 
-	return mess.FuncMotionGenerator(func(piece *mess.Piece) []board.Square {
+	return func(piece *mess.Piece) []board.Square {
 		pieceCty := ctymess.PieceToCty(piece)
 		squareCty := ctymess.SquareToCty(piece.Square())
 		c.refreshGameStateInContext()
@@ -73,7 +73,7 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.Mo
 			log.Printf("parsing motion generator result: %v", err)
 		}
 		return squares
-	}), nil
+	}, nil
 }
 
 func (c *callbackFunctionsConfig) refreshGameStateInContext() {

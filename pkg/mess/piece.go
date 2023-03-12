@@ -3,6 +3,7 @@ package mess
 import (
 	"fmt"
 
+	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
@@ -105,17 +106,15 @@ func (p *Piece) resetValidMoves() {
 
 type PieceType struct {
 	name             string
-	motionGenerators MotionGenerators
-	motionValidators []MotionValidator
+	motionGenerators motionGenerators
+	moveValidators   moveValidators
 }
-
-type MotionValidator func(*Move) bool
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
 		name:             name,
-		motionGenerators: make(MotionGenerators, 0),
-		motionValidators: make([]MotionValidator, 0),
+		motionGenerators: make(motionGenerators, 0),
+		moveValidators:   make(moveValidators, 0),
 	}
 }
 
@@ -131,8 +130,8 @@ func (t *PieceType) AddMotionGenerator(generator MotionGenerator) {
 	t.motionGenerators = append(t.motionGenerators, generator)
 }
 
-func (t *PieceType) AddMotionValidator(validator MotionValidator) {
-	t.motionValidators = append(t.motionValidators, validator)
+func (t *PieceType) AddMoveValidator(validator MoveValidator) {
+	t.moveValidators = append(t.moveValidators, validator)
 }
 
 func (t *PieceType) validMoves(piece *Piece) []Move {
@@ -143,18 +142,41 @@ func (t *PieceType) validMoves(piece *Piece) []Move {
 			From:  *piece.Square(),
 			To:    destination,
 		}
-		ok := true
-		for _, validator := range t.motionValidators {
-			if !validator(&move) {
-				ok = false
-				break
-			}
-		}
-		if ok {
+		if t.moveValidators.Validate(&move) {
 			result = append(result, move)
 		}
 	}
 	return result
+}
+
+type MotionGenerator func(*Piece) []board.Square
+type motionGenerators []MotionGenerator
+
+func (g motionGenerators) GenerateMotions(piece *Piece) []brd.Square {
+	destinationSet := make(map[brd.Square]bool, 0)
+	for _, generator := range g {
+		newDestinations := generator(piece)
+		for _, destination := range newDestinations {
+			destinationSet[destination] = true
+		}
+	}
+	destinations := make([]brd.Square, 0, len(destinationSet))
+	for s := range destinationSet {
+		destinations = append(destinations, s)
+	}
+	return destinations
+}
+
+type MoveValidator func(*Move) bool
+type moveValidators []MoveValidator
+
+func (g moveValidators) Validate(move *Move) bool {
+	for _, validator := range g {
+		if !validator(move) {
+			return false
+		}
+	}
+	return true
 }
 
 type Move struct {
