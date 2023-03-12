@@ -106,12 +106,16 @@ func (p *Piece) resetValidMoves() {
 type PieceType struct {
 	name             string
 	motionGenerators MotionGenerators
+	motionValidators []MotionValidator
 }
+
+type MotionValidator func(*Move) bool
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
 		name:             name,
 		motionGenerators: make(MotionGenerators, 0),
+		motionValidators: make([]MotionValidator, 0),
 	}
 }
 
@@ -127,14 +131,28 @@ func (t *PieceType) AddMotionGenerator(generator MotionGenerator) {
 	t.motionGenerators = append(t.motionGenerators, generator)
 }
 
+func (t *PieceType) AddMotionValidator(validator MotionValidator) {
+	t.motionValidators = append(t.motionValidators, validator)
+}
+
 func (t *PieceType) validMoves(piece *Piece) []Move {
 	result := make([]Move, 0)
 	for _, destination := range t.motionGenerators.GenerateMotions(piece) {
-		result = append(result, Move{
+		move := Move{
 			Piece: piece,
 			From:  *piece.Square(),
 			To:    destination,
-		})
+		}
+		ok := true
+		for _, validator := range t.motionValidators {
+			if !validator(&move) {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			result = append(result, move)
+		}
 	}
 	return result
 }
