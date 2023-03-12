@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/pkg/color"
-	"github.com/jostrzol/mess/pkg/gen"
+	"github.com/jostrzol/mess/pkg/iter"
 )
 
 type State struct {
@@ -36,7 +36,7 @@ func (g *State) Board() *PieceBoard {
 }
 
 func (g *State) Players() <-chan *Player {
-	return gen.FromValues(g.players)
+	return iter.FromValues(g.players)
 }
 
 func (g *State) Player(color color.Color) *Player {

@@ -6,7 +6,7 @@ import (
 	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
-	"github.com/jostrzol/mess/pkg/genassert"
+	"github.com/jostrzol/mess/pkg/iterassert"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -45,7 +45,7 @@ func (s *PlayerSuiteMockedBoard) TestString() {
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersEmpty() {
-	genassert.Empty(s.T(), s.white.Prisoners())
+	iterassert.Empty(s.T(), s.white.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
@@ -55,24 +55,24 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
 		CapturedBy: s.white,
 	})
 
-	genassert.Len(s.T(), s.white.Prisoners(), 1)
-	genassert.Contains(s.T(), s.white.Prisoners(), knight)
+	iterassert.Len(s.T(), s.white.Prisoners(), 1)
+	iterassert.Contains(s.T(), s.white.Prisoners(), knight)
 
-	genassert.Empty(s.T(), s.black.Prisoners())
+	iterassert.Empty(s.T(), s.black.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecesEmpty() {
-	genassert.Empty(s.T(), s.white.Prisoners())
+	iterassert.Empty(s.T(), s.white.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecePlaced() {
 	knight := NewPiece(Knight(s.T()), s.white)
 	s.board.Notify(PiecePlaced{Piece: knight})
 
-	genassert.Len(s.T(), s.white.Pieces(), 1)
-	genassert.Contains(s.T(), s.white.Pieces(), knight)
+	iterassert.Len(s.T(), s.white.Pieces(), 1)
+	iterassert.Contains(s.T(), s.white.Pieces(), knight)
 
-	genassert.Empty(s.T(), s.black.Pieces())
+	iterassert.Empty(s.T(), s.black.Pieces())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPieceRemoved() {
@@ -80,8 +80,8 @@ func (s *PlayerSuiteMockedBoard) TestPieceRemoved() {
 	s.board.Notify(PiecePlaced{Piece: knight})
 	s.board.Notify(PieceRemoved{Piece: knight})
 
-	genassert.Empty(s.T(), s.white.Pieces())
-	genassert.Empty(s.T(), s.black.Pieces())
+	iterassert.Empty(s.T(), s.white.Pieces())
+	iterassert.Empty(s.T(), s.black.Pieces())
 }
 
 func TestPlayerSourceMockedBoard(t *testing.T) {

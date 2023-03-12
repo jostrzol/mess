@@ -1,4 +1,4 @@
-package gen
+package iter
 
 func FromSlice[T any](slice []T) <-chan T {
 	ch := make(chan T)

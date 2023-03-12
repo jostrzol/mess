@@ -5,7 +5,7 @@ import (
 	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
-	"github.com/jostrzol/mess/pkg/gen"
+	"github.com/jostrzol/mess/pkg/iter"
 )
 
 type Player struct {
@@ -38,11 +38,11 @@ func (p *Player) Color() color.Color {
 }
 
 func (p *Player) Pieces() <-chan *Piece {
-	return gen.FromKeys(p.pieces)
+	return iter.FromKeys(p.pieces)
 }
 
 func (p *Player) Prisoners() <-chan *Piece {
-	return gen.FromKeys(p.prisoners)
+	return iter.FromKeys(p.prisoners)
 }
 
 func (p *Player) ForwardDirection() board.Offset {

@@ -1,4 +1,4 @@
-package genassert
+package iterassert
 
 import (
 	"reflect"
