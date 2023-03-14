@@ -61,6 +61,21 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
 	iterassert.Empty(s.T(), s.black.Prisoners())
 }
 
+func (s *PlayerSuiteMockedBoard) TestPrisonersRelease() {
+	knight := NewPiece(Knight(s.T()), s.black)
+	s.board.Notify(PieceCaptured{
+		Piece:      knight,
+		CapturedBy: s.white,
+	})
+
+	s.board.Notify(PiecePlaced{
+		Piece: knight,
+	})
+
+	iterassert.Empty(s.T(), s.white.Prisoners())
+	iterassert.Empty(s.T(), s.black.Prisoners())
+}
+
 func (s *PlayerSuiteMockedBoard) TestPiecesEmpty() {
 	iterassert.Empty(s.T(), s.white.Prisoners())
 }

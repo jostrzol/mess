@@ -81,6 +81,7 @@ func (p *Player) Handle(event event.Event) {
 		if e.Piece.Owner() == p {
 			p.pieces[e.Piece] = struct{}{}
 		}
+		delete(p.prisoners, e.Piece)
 	case PieceCaptured:
 		if e.CapturedBy == p {
 			p.prisoners[e.Piece] = struct{}{}
