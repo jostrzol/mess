@@ -200,5 +200,5 @@ func (m *Move) Perform() {
 }
 
 func (m *Move) String() string {
-	return fmt.Sprintf("%v->%v", move.From, move.To)
+	return fmt.Sprintf("%v->%v", m.From, m.To)
 }

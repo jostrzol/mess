@@ -15,10 +15,11 @@ import (
 )
 
 type callbackFunctionsConfig struct {
-	PickWinnerFunc function.Function            `mapstructure:"pick_winner"`
-	CustomFuncs    map[string]function.Function `mapstructure:",remain"`
-	EvalContext    *hcl.EvalContext
-	State          *mess.State
+	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
+	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
+	StateValidators map[string]function.Function
+	EvalContext     *hcl.EvalContext
+	State           *mess.State
 }
 
 func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Player) {

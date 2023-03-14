@@ -46,10 +46,11 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 }
 
 type config struct {
-	Board        boardConfig        `hcl:"board,block"`
-	PieceTypes   pieceTypesConfig   `hcl:"piece_types,block"`
-	InitialState initialStateConfig `hcl:"initial_state,block"`
-	Functions    *callbackFunctionsConfig
+	Board           boardConfig          `hcl:"board,block"`
+	PieceTypes      pieceTypesConfig     `hcl:"piece_types,block"`
+	InitialState    initialStateConfig   `hcl:"initial_state,block"`
+	StateValidators stateValidatorConfig `hcl:"state_validators,block"`
+	Functions       *callbackFunctionsConfig
 }
 
 type boardConfig struct {
@@ -90,6 +91,10 @@ type variableConfig struct {
 	Expression hcl.Expression `hcl:"value"`
 }
 
+type stateValidatorConfig struct {
+	Body hcl.Body `hcl:",remain"`
+}
+
 func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*config, error) {
 	diags := make(hcl.Diagnostics, 0)
 
@@ -104,27 +109,17 @@ func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*co
 		return nil, diags
 	}
 
-	userFuncs, body, funcDiags := decodeUserFunctions(file.Body, ctx)
-	diags.Extend(funcDiags)
+	userFuncs, body, tmpDiags := decodeUserFunctions(file.Body, ctx)
+	diags.Extend(tmpDiags)
+	mergeWithStd(ctx.Functions, userFuncs, "function")
 
-	for name, f := range userFuncs {
-		if _, ok := ctx.Functions[name]; ok {
-			diags.Append(&hcl.Diagnostic{
-				Severity:    hcl.DiagWarning,
-				EvalContext: ctx,
-				Detail:      fmt.Sprintf("overwrote standard function %q", name),
-			})
-		}
-		ctx.Functions[name] = f
-	}
-
-	userVariables, body, varDiags := decodeUserVariables(body, ctx)
-	diags.Extend(varDiags)
-	ctx.Variables = userVariables
+	userVariables, body, tmpDiags := decodeUserVariables(body, ctx)
+	diags.Extend(tmpDiags)
+	mergeWithStd(ctx.Variables, userVariables, "variable")
 
 	config := &config{}
-	configDiags := gohcl.DecodeBody(body, ctx, config)
-	diags.Extend(configDiags)
+	tmpDiags = gohcl.DecodeBody(body, ctx, config)
+	diags.Extend(tmpDiags)
 
 	err = mapstructure.Decode(ctx.Functions, &config.Functions)
 	if err != nil {
@@ -133,6 +128,10 @@ func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*co
 			Detail:   fmt.Sprintf("populating callback functions: %v", err),
 		})
 	}
+
+	stateValidators, _, tmpDiags := decodeUserFunctions(config.StateValidators.Body, ctx)
+	diags.Extend(tmpDiags)
+	config.Functions.StateValidators = stateValidators
 
 	config.Functions.State = state
 	config.Functions.EvalContext = ctx
@@ -209,4 +208,18 @@ func decodeUserVariables(
 	}
 
 	return userVariables, variables.Remain, diags
+}
+
+func mergeWithStd[V any](stdMap map[string]V, userMap map[string]V, kind string) hcl.Diagnostics {
+	diags := make(hcl.Diagnostics, 0)
+	for name, f := range userMap {
+		if _, ok := stdMap[name]; ok {
+			diags.Append(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Detail:   fmt.Sprintf("overwrote standard %s %q", kind, name),
+			})
+		}
+		stdMap[name] = f
+	}
+	return diags
 }
