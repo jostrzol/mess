@@ -164,6 +164,20 @@ func (g chainMoveGenerators) Generate(piece *Piece) []brd.Square {
 }
 
 type MoveValidator func(*Move) bool
+
+// StateValidator creates a new validator that performs the given
+// move and then evaluates the given function. The move is undone
+// afterwards.
+func StateValidator(state *State, validator func(*State, *Move) bool) MoveValidator {
+	return func(move *Move) bool {
+		move.Perform()
+		isValid := validator(state, move)
+		for undone := state.Undo(); undone != nil || undone.Move != *move; {
+		}
+		return isValid
+	}
+}
+
 type chainMoveValidators []MoveValidator
 
 func (g chainMoveValidators) Validate(move *Move) bool {
@@ -186,5 +200,5 @@ func (m *Move) Perform() {
 }
 
 func (m *Move) String() string {
-	return fmt.Sprintf("%v->%v", m.From, m.To)
+	return fmt.Sprintf("%v->%v", move.From, move.To)
 }
