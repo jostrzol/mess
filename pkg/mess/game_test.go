@@ -47,11 +47,11 @@ func (s *GameSuite) TestEndTurn() {
 
 func (s *GameSuite) TestRecordMove() {
 	var rook, knight, king Piece
-	rookSquare := *boardtest.NewSquare("A1")
-	knightSquare := *boardtest.NewSquare("A2")
-	kingSquare := *boardtest.NewSquare("A3")
-	emptySquare1 := *boardtest.NewSquare("B1")
-	emptySquare2 := *boardtest.NewSquare("B2")
+	rookSquare := boardtest.NewSquare("A1")
+	knightSquare := boardtest.NewSquare("A2")
+	kingSquare := boardtest.NewSquare("A3")
+	emptySquare1 := boardtest.NewSquare("B1")
+	emptySquare2 := boardtest.NewSquare("B2")
 
 	type move struct {
 		*Piece
@@ -145,14 +145,14 @@ func (s *GameSuite) TestRecordMove() {
 		s.SetupTest()
 		s.Run(tt.name, func() {
 			rook = *NewPiece(Rook(s.T()), s.game.currentPlayer)
-			rook.PlaceOn(s.game.board, &rookSquare)
+			rook.PlaceOn(s.game.board, rookSquare)
 			knight = *NewPiece(Knight(s.T()), s.game.currentPlayer)
-			knight.PlaceOn(s.game.board, &knightSquare)
+			knight.PlaceOn(s.game.board, knightSquare)
 			king = *NewPiece(Knight(s.T()), s.game.currentPlayer)
-			king.PlaceOn(s.game.board, &kingSquare)
+			king.PlaceOn(s.game.board, kingSquare)
 
 			for _, move := range tt.moves {
-				err := move.Piece.MoveTo(&move.Square)
+				err := move.Piece.MoveTo(move.Square)
 				s.NoError(err)
 			}
 
@@ -179,8 +179,8 @@ func (s *GameSuite) TestUndo() {
 	expected := &RecordedMove{
 		Move: Move{
 			Piece: rook,
-			From:  *a1,
-			To:    *a2,
+			From:  a1,
+			To:    a2,
 		},
 		Captures: map[*Piece]struct{}{},
 	}
@@ -213,8 +213,8 @@ func (s *GameSuite) TestUndoDoubleMove() {
 	expected := &RecordedMove{
 		Move: Move{
 			Piece: rook,
-			From:  *a2,
-			To:    *a3,
+			From:  a2,
+			To:    a3,
 		},
 		Captures: map[*Piece]struct{}{},
 	}
@@ -250,8 +250,8 @@ func (s *GameSuite) TestUndoCapture() {
 	expected := &RecordedMove{
 		Move: Move{
 			Piece: rook,
-			From:  *a1,
-			To:    *a2,
+			From:  a1,
+			To:    a2,
 		},
 		Captures: map[*Piece]struct{}{knight: {}},
 	}

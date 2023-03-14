@@ -51,11 +51,11 @@ func (b *PieceBoard) PrettyString() string {
 	})
 }
 
-func (b *PieceBoard) At(square *board.Square) (*Piece, error) {
+func (b *PieceBoard) At(square board.Square) (*Piece, error) {
 	return b.wrapped.At(square)
 }
 
-func (b *PieceBoard) Contains(square *board.Square) bool {
+func (b *PieceBoard) Contains(square board.Square) bool {
 	return b.wrapped.Contains(square)
 }
 
@@ -63,7 +63,7 @@ func (b *PieceBoard) AllPieces() []*Piece {
 	return b.wrapped.AllItems()
 }
 
-func (b *PieceBoard) Place(piece *Piece, square *board.Square) error {
+func (b *PieceBoard) Place(piece *Piece, square board.Square) error {
 	if piece.IsOnBoard() {
 		return fmt.Errorf("piece already on a board")
 	}
@@ -83,7 +83,7 @@ func (b *PieceBoard) Place(piece *Piece, square *board.Square) error {
 	b.Notify(PiecePlaced{
 		Piece:  piece,
 		Board:  b,
-		Square: *square,
+		Square: square,
 	})
 	return nil
 }
@@ -94,7 +94,7 @@ type PiecePlaced struct {
 	Square board.Square
 }
 
-func (b *PieceBoard) RemoveAt(square *board.Square) error {
+func (b *PieceBoard) RemoveAt(square board.Square) error {
 	old, err := b.wrapped.Place(nil, square)
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func (b *PieceBoard) RemoveAt(square *board.Square) error {
 func (b *PieceBoard) notifyRemoved(piece *Piece) {
 	b.Notify(PieceRemoved{
 		Piece:  piece,
-		Square: *piece.Square(),
+		Square: piece.Square(),
 	})
 	b.Unobserve(piece)
 }
@@ -118,7 +118,7 @@ type PieceRemoved struct {
 	Square board.Square
 }
 
-func (b *PieceBoard) Move(piece *Piece, square *board.Square) error {
+func (b *PieceBoard) Move(piece *Piece, square board.Square) error {
 	if piece.Board() != b {
 		return fmt.Errorf("piece not on board")
 	}
@@ -135,8 +135,8 @@ func (b *PieceBoard) Move(piece *Piece, square *board.Square) error {
 
 	b.Notify(PieceMoved{
 		Piece: piece,
-		From:  *piece.Square(),
-		To:    *square,
+		From:  piece.Square(),
+		To:    square,
 	})
 
 	if old != nil {

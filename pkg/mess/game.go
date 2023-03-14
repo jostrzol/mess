@@ -105,7 +105,7 @@ func (g *State) Undo() *RecordedMove {
 	g.isRecording = false
 	defer func() { g.isRecording = true }()
 
-	err := lastMove.Piece.MoveTo(&lastMove.From)
+	err := lastMove.Piece.MoveTo(lastMove.From)
 	if err != nil {
 		panic(err)
 	}

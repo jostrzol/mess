@@ -12,14 +12,15 @@ import (
 	"github.com/zclconf/go-cty/cty/gocty"
 )
 
-func SquareFromCty(value cty.Value) (*board.Square, error) {
+func SquareFromCty(value cty.Value) (board.Square, error) {
+	var zero board.Square
 	var squareStr string
 	if err := gocty.FromCtyValue(value, &squareStr); err != nil {
-		return nil, err
+		return zero, err
 	}
 	square, err := board.NewSquare(squareStr)
 	if err != nil {
-		return nil, fmt.Errorf("parsing square %q: %w", squareStr, err)
+		return zero, fmt.Errorf("parsing square %q: %w", squareStr, err)
 	}
 	return square, nil
 }
@@ -45,7 +46,7 @@ func SquaresFromCty(value cty.Value) ([]board.Square, error) {
 		if err != nil {
 			errors = append(errors, fmt.Errorf("parsing square %q: %w", squareStr, err))
 		} else {
-			result = append(result, *square)
+			result = append(result, square)
 		}
 	}
 	if len(errors) > 0 {

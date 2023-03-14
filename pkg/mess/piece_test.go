@@ -26,7 +26,7 @@ func Rook(t *testing.T) *PieceType {
 		} {
 			square := piece.Square().Offset(offset)
 			for piece.Board().Contains(square) {
-				result = append(result, *square)
+				result = append(result, square)
 				square = square.Offset(offset)
 			}
 		}
@@ -90,11 +90,11 @@ func (s *PieceSuite) TestPlaceOn() {
 	s.NoError(err)
 
 	s.Equal(s.board, rook.Board())
-	s.Equal(*square, *rook.Square())
+	s.Equal(square, rook.Square())
 	s.observer.ObservedMatch(PiecePlaced{
 		Piece:  rook,
 		Board:  s.board,
-		Square: *square,
+		Square: square,
 	})
 
 	piece, err := s.board.At(square)
@@ -113,7 +113,7 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 	s.Error(err)
 
 	s.Equal(s.board, knight.Board())
-	s.Equal(*square, *knight.Square())
+	s.Equal(square, knight.Square())
 	s.False(rook.IsOnBoard())
 
 	piece, err := s.board.At(square)
@@ -156,7 +156,7 @@ func (s *PieceSuite) TestValidMovesWithValidator() {
 	king := Noones(King(s.T()))
 	king.PlaceOn(s.board, boardtest.NewSquare("A1"))
 
-	king.Type().AddMoveValidator(func(m *Move) bool { return m.To != *boardtest.NewSquare("A2") })
+	king.Type().AddMoveValidator(func(m *Move) bool { return m.To != boardtest.NewSquare("A2") })
 
 	moves := king.ValidMoves()
 
@@ -167,8 +167,8 @@ func movesFromDests(piece *Piece, destinations ...string) []Move {
 	result := make([]Move, len(destinations))
 	for i, destination := range destinations {
 		result[i].Piece = piece
-		result[i].From = *piece.Square()
-		result[i].To = *boardtest.NewSquare(destination)
+		result[i].From = piece.Square()
+		result[i].To = boardtest.NewSquare(destination)
 	}
 	return result
 }
@@ -184,11 +184,11 @@ func (s *PieceSuite) TestMove() {
 	err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
-	s.Equal(*endSquare, *knight.Square())
+	s.Equal(endSquare, knight.Square())
 	s.observer.ObservedMatch(PieceMoved{
 		Piece: knight,
-		From:  *startSquare,
-		To:    *endSquare,
+		From:  startSquare,
+		To:    endSquare,
 	})
 
 	empty, err := s.board.At(startSquare)
@@ -215,19 +215,19 @@ func (s *PieceSuite) TestMoveReplace() {
 	err := knight.MoveTo(endSquare)
 	s.NoError(err)
 
-	s.Equal(*endSquare, *knight.Square())
+	s.Equal(endSquare, knight.Square())
 	s.False(rook.IsOnBoard())
 	s.observer.ObservedMatch(PieceMoved{
 		Piece: knight,
-		From:  *startSquare,
-		To:    *endSquare,
+		From:  startSquare,
+		To:    endSquare,
 	}, PieceCaptured{
 		Piece:        rook,
 		CapturedBy:   players[color.White],
 		CapturedFrom: players[color.Black],
 	}, PieceRemoved{
 		Piece:  rook,
-		Square: *endSquare,
+		Square: endSquare,
 	})
 
 	empty, err := s.board.At(startSquare)
@@ -273,7 +273,7 @@ func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
 		for _, squareStr := range strings {
 			square, err := brd.NewSquare(squareStr)
 			assert.NoError(t, err)
-			destinations = append(destinations, *square)
+			destinations = append(destinations, square)
 		}
 		return destinations
 	}
@@ -286,7 +286,7 @@ func offsetMoveGenerator(t *testing.T, offsets ...board.Offset) MoveGenerator {
 		for _, offset := range offsets {
 			square := piece.Square().Offset(offset)
 			if piece.Board().Contains(square) {
-				destinations = append(destinations, *square)
+				destinations = append(destinations, square)
 			}
 		}
 		return destinations
@@ -351,7 +351,7 @@ func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
 	for _, str := range expected {
 		square, err := brd.NewSquare(str)
 		assert.NoError(t, err)
-		assert.Containsf(t, actual, *square, "%v doesnt contain square %v", actual, square)
+		assert.Containsf(t, actual, square, "%v doesnt contain square %v", actual, square)
 	}
 }
 

@@ -132,11 +132,11 @@ func (s *PlayerSuiteRealBoard) TestValidMovesOnePiece() {
 	moves := s.white.ValidMoves()
 	s.ElementsMatch(moves, []Move{
 		{Piece: king,
-			From: *boardtest.NewSquare("A1"),
-			To:   *boardtest.NewSquare("A2")},
+			From: boardtest.NewSquare("A1"),
+			To:   boardtest.NewSquare("A2")},
 		{Piece: king,
-			From: *boardtest.NewSquare("A1"),
-			To:   *boardtest.NewSquare("B1")},
+			From: boardtest.NewSquare("A1"),
+			To:   boardtest.NewSquare("B1")},
 	})
 }
 
@@ -150,11 +150,11 @@ func (s *PlayerSuiteRealBoard) TestValidMovesOnePieceOneEnemy() {
 	moves := s.white.ValidMoves()
 	s.ElementsMatch(moves, []Move{
 		{Piece: kingW,
-			From: *boardtest.NewSquare("A1"),
-			To:   *boardtest.NewSquare("A2")},
+			From: boardtest.NewSquare("A1"),
+			To:   boardtest.NewSquare("A2")},
 		{Piece: kingW,
-			From: *boardtest.NewSquare("A1"),
-			To:   *boardtest.NewSquare("B1")},
+			From: boardtest.NewSquare("A1"),
+			To:   boardtest.NewSquare("B1")},
 	})
 }
 
@@ -168,17 +168,17 @@ func (s *PlayerSuiteRealBoard) TestValidMovesTwoPieces() {
 	moves := s.white.ValidMoves()
 	s.ElementsMatch(moves, []Move{
 		{Piece: kingW1,
-			From: *boardtest.NewSquare("A1"),
-			To:   *boardtest.NewSquare("A2")},
+			From: boardtest.NewSquare("A1"),
+			To:   boardtest.NewSquare("A2")},
 		{Piece: kingW1,
-			From: *boardtest.NewSquare("A1"),
-			To:   *boardtest.NewSquare("B1")},
+			From: boardtest.NewSquare("A1"),
+			To:   boardtest.NewSquare("B1")},
 		{Piece: kingW2,
-			From: *boardtest.NewSquare("A3"),
-			To:   *boardtest.NewSquare("A2")},
+			From: boardtest.NewSquare("A3"),
+			To:   boardtest.NewSquare("A2")},
 		{Piece: kingW2,
-			From: *boardtest.NewSquare("A3"),
-			To:   *boardtest.NewSquare("B3")},
+			From: boardtest.NewSquare("A3"),
+			To:   boardtest.NewSquare("B3")},
 	})
 }
 

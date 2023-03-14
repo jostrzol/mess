@@ -44,25 +44,25 @@ func (p *Piece) Board() *PieceBoard {
 	return p.board
 }
 
-func (p *Piece) Square() *brd.Square {
-	return &p.square
+func (p *Piece) Square() brd.Square {
+	return p.square
 }
 
 func (p *Piece) IsOnBoard() bool {
 	return p.board != nil
 }
 
-func (p *Piece) PlaceOn(board *PieceBoard, square *brd.Square) error {
+func (p *Piece) PlaceOn(board *PieceBoard, square brd.Square) error {
 	return board.Place(p, square)
 }
 
-func (p *Piece) MoveTo(square *brd.Square) error {
+func (p *Piece) MoveTo(square brd.Square) error {
 	return p.board.Move(p, square)
 }
 
 func (p *Piece) RemoveFromBoard() {
 	if p.IsOnBoard() {
-		p.board.RemoveAt(&p.square)
+		p.board.RemoveAt(p.square)
 	}
 }
 
@@ -135,7 +135,7 @@ func (t *PieceType) validMoves(piece *Piece) []Move {
 	for _, destination := range t.moveGenerators.Generate(piece) {
 		move := Move{
 			Piece: piece,
-			From:  *piece.Square(),
+			From:  piece.Square(),
 			To:    destination,
 		}
 		if t.moveValidators.Validate(&move) {
@@ -182,7 +182,7 @@ type Move struct {
 }
 
 func (m *Move) Perform() {
-	m.Piece.MoveTo(&m.To)
+	m.Piece.MoveTo(m.To)
 }
 
 func (m *Move) String() string {

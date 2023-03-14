@@ -37,7 +37,7 @@ func PieceToCty(piece *mess.Piece) cty.Value {
 	})
 }
 
-func SquareToCty(square *board.Square) cty.Value {
+func SquareToCty(square board.Square) cty.Value {
 	return cty.StringVal(square.String())
 }
 

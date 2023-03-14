@@ -74,7 +74,7 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 		},
 		Type: function.StaticReturnType(cty.String),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			var square *board.Square
+			var square board.Square
 			var offset board.Offset
 			var err error
 			if square, err = SquareFromCty(args[0]); err != nil {
@@ -108,7 +108,7 @@ func PieceAtFunc(state *mess.State) function.Function {
 		},
 		Type: function.StaticReturnType(Piece),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			var square *board.Square
+			var square board.Square
 			var err error
 			if square, err = SquareFromCty(args[0]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
@@ -141,7 +141,7 @@ func OwnerOfFunc(state *mess.State) function.Function {
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
 			squareCty := args[0].GetAttr("square")
 
-			var square *board.Square
+			var square board.Square
 			var err error
 			if square, err = SquareFromCty(squareCty); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
@@ -173,7 +173,7 @@ func IsAttackedFunc(state *mess.State) function.Function {
 		},
 		Type: function.StaticReturnType(cty.Bool),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			var square *board.Square
+			var square board.Square
 			var err error
 			if square, err = SquareFromCty(args[0]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
@@ -188,7 +188,7 @@ func IsAttackedFunc(state *mess.State) function.Function {
 			}
 
 			for _, attacked := range state.CurrentOpponent().AttackedSquares() {
-				if attacked == *square {
+				if attacked == square {
 					return cty.True, nil
 				}
 			}

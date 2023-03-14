@@ -12,11 +12,11 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func chooseSquare(board *mess.PieceBoard) *brd.Square {
-	var square *brd.Square
+func chooseSquare(board *mess.PieceBoard) brd.Square {
+	var square brd.Square
 	var squareStr string
 	var err error
-	for square == nil || err != nil {
+	for ok := false; !ok; {
 		print("> ")
 		// squareStr = "A1"
 		fmt.Scan(&squareStr)
@@ -27,7 +27,8 @@ func chooseSquare(board *mess.PieceBoard) *brd.Square {
 		} else if !board.Contains(square) {
 			println("Square not in board")
 			println("Try again")
-			square = nil
+		} else {
+			ok = true
 		}
 	}
 	return square
@@ -51,15 +52,15 @@ func choosePiece(board *mess.PieceBoard) *mess.Piece {
 	return piece
 }
 
-func chooseMove(board *mess.PieceBoard, moves []mess.Move) *brd.Square {
-	var move *brd.Square
-	var err error
-	for move == nil || err != nil {
+func chooseMove(board *mess.PieceBoard, moves []mess.Move) brd.Square {
+	var move brd.Square
+	for ok := false; !ok; {
 		move = chooseSquare(board)
-		if !contains(moves, *move) {
+		if !contains(moves, move) {
 			println("Not an allowed move")
 			println("Try again")
-			move = nil
+		} else {
+			ok = true
 		}
 	}
 	return move
