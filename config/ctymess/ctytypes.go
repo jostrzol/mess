@@ -20,3 +20,10 @@ var Piece = cty.Object(map[string]cty.Type{
 	"color":  cty.String,
 	"square": cty.String,
 })
+
+var Move = cty.Object(map[string]cty.Type{
+	"player": Player,
+	"piece":  Piece,
+	"src":    cty.String,
+	"dst":    cty.String,
+})

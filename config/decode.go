@@ -45,17 +45,22 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 	}
 }
 
-type config struct {
-	Board           boardConfig          `hcl:"board,block"`
-	PieceTypes      pieceTypesConfig     `hcl:"piece_types,block"`
-	InitialState    initialStateConfig   `hcl:"initial_state,block"`
-	StateValidators stateValidatorConfig `hcl:"state_validators,block"`
-	Functions       *callbackFunctionsConfig
+type minimalConfig struct {
+	Board  boardConfig `hcl:"board,block"`
+	Remain hcl.Body    `hcl:",remain"`
 }
 
 type boardConfig struct {
 	Height uint `hcl:"height"`
 	Width  uint `hcl:"width"`
+}
+
+type config struct {
+	State           *mess.State
+	PieceTypes      pieceTypesConfig     `hcl:"piece_types,block"`
+	InitialState    initialStateConfig   `hcl:"initial_state,block"`
+	StateValidators stateValidatorConfig `hcl:"state_validators,block"`
+	Functions       callbackFunctionsConfig
 }
 
 type pieceTypesConfig struct {
@@ -95,7 +100,7 @@ type stateValidatorConfig struct {
 	Body hcl.Body `hcl:",remain"`
 }
 
-func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*config, error) {
+func decodeConfig(filename string) (*config, error) {
 	diags := make(hcl.Diagnostics, 0)
 
 	src, err := os.ReadFile(filename)
@@ -109,7 +114,18 @@ func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*co
 		return nil, diags
 	}
 
-	userFuncs, body, tmpDiags := decodeUserFunctions(file.Body, ctx)
+	minConfig := &minimalConfig{}
+	tmpDiags := gohcl.DecodeBody(file.Body, nil, minConfig)
+	diags.Extend(tmpDiags)
+
+	board, err := mess.NewPieceBoard(int(minConfig.Board.Width), int(minConfig.Board.Height))
+	if err != nil {
+		return nil, fmt.Errorf("creating new board: %w", err)
+	}
+	state := mess.NewState(board)
+	ctx := newEvalContext(state)
+
+	userFuncs, body, tmpDiags := decodeUserFunctions(minConfig.Remain, ctx)
 	diags.Extend(tmpDiags)
 	mergeWithStd(ctx.Functions, userFuncs, "function")
 
@@ -117,7 +133,7 @@ func decodeConfig(filename string, ctx *hcl.EvalContext, state *mess.State) (*co
 	diags.Extend(tmpDiags)
 	mergeWithStd(ctx.Variables, userVariables, "variable")
 
-	config := &config{}
+	config := &config{State: state}
 	tmpDiags = gohcl.DecodeBody(body, ctx, config)
 	diags.Extend(tmpDiags)
 

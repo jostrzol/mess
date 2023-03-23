@@ -47,3 +47,12 @@ func OffsetToCty(offset board.Offset) cty.Value {
 		cty.NumberIntVal(int64(offset.Y)),
 	})
 }
+
+func MoveToCty(move *mess.Move) cty.Value {
+	return cty.ObjectVal(map[string]cty.Value{
+		"piece":  PieceToCty(move.Piece),
+		"player": PlayerToCty(move.Piece.Owner()),
+		"src":    cty.StringVal(move.From.String()),
+		"dst":    cty.StringVal(move.To.String()),
+	})
+}

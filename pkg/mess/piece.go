@@ -172,7 +172,7 @@ func StateValidator(state *State, validator func(*State, *Move) bool) MoveValida
 	return func(move *Move) bool {
 		move.Perform()
 		isValid := validator(state, move)
-		for undone := state.Undo(); undone != nil || undone.Move != *move; {
+		for undone := state.Undo(); undone != nil && undone.Move != *move; {
 		}
 		return isValid
 	}

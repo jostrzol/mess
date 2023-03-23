@@ -8,12 +8,11 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func (c *config) toGameState() (*mess.State, error) {
-	board, err := mess.NewPieceBoard(int(c.Board.Width), int(c.Board.Height))
+func (c *config) toGameState() error {
+	stateValidators, err := c.Functions.GetStateValidators()
 	if err != nil {
-		return nil, fmt.Errorf("creating board: %w", err)
+		return fmt.Errorf("parsing state validators: %w", err)
 	}
-	state := mess.NewState(board)
 
 	pieceTypes := make(map[string]*mess.PieceType, len(c.PieceTypes.PieceTypes))
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
@@ -21,18 +20,21 @@ func (c *config) toGameState() (*mess.State, error) {
 		for _, motionConfig := range pieceTypeConfig.Motions {
 			moveGenerator, err := c.Functions.GetCustomFuncAsGenerator(motionConfig.GeneratorName)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			pieceType.AddMoveGenerator(moveGenerator)
+		}
+		for _, validator := range stateValidators {
+			pieceType.AddMoveValidator(validator)
 		}
 		pieceTypes[pieceType.Name()] = pieceType
 	}
 
-	err = placePieces(state, c.InitialState.Pieces, pieceTypes)
+	err = placePieces(c.State, c.InitialState.Pieces, pieceTypes)
 	if err != nil {
-		return nil, fmt.Errorf("placing initial pieces: %w", err)
+		return fmt.Errorf("placing initial pieces: %w", err)
 	}
-	return state, nil
+	return nil
 }
 
 func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string]*mess.PieceType) error {
@@ -71,5 +73,5 @@ func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string
 }
 
 func (c *config) toController() mess.Controller {
-	return c.Functions
+	return &c.Functions
 }
