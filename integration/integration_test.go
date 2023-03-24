@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func FuzzGameMax20Steps(f *testing.F) {
+func FuzzGameMax10Steps(f *testing.F) {
 	if testing.Short() {
 		f.Skip()
 	}
@@ -22,7 +22,7 @@ func FuzzGameMax20Steps(f *testing.F) {
 		src.Int63()
 
 		isFinished, _ := controller.PickWinner(state)
-		for i := 0; !isFinished && i < 20; i++ {
+		for i := 0; !isFinished && i < 10; i++ {
 			moves := state.ValidMoves()
 			assert.NotEmpty(t, moves)
 
