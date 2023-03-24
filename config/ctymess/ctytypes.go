@@ -27,3 +27,5 @@ var Move = cty.Object(map[string]cty.Type{
 	"src":    cty.String,
 	"dst":    cty.String,
 })
+
+var Coords = Offset

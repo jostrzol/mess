@@ -54,6 +54,109 @@ var ConcatFunc = function.New(&function.Spec{
 	},
 })
 
+var AllFunc = function.New(&function.Spec{
+	Description: "Returns true only if all arguments are true",
+	Params:      []function.Parameter{},
+	VarParam: &function.Parameter{
+		Name:             "args",
+		Type:             cty.Bool,
+		AllowDynamicType: true,
+	},
+	Type: function.StaticReturnType(cty.Bool),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		result := cty.True
+		for _, arg := range args {
+			result = result.And(arg)
+		}
+
+		return result, nil
+	},
+})
+
+var SquareToCoordsFunc = function.New(&function.Spec{
+	Description: "Converts a square in string format to a tuple of numbers {file, rank}",
+	Params: []function.Parameter{
+		{
+			Name:             "square",
+			Type:             cty.String,
+			AllowDynamicType: true,
+		},
+	},
+	Type: function.StaticReturnType(Coords),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		var square board.Square
+		var err error
+		if square, err = SquareFromCty(args[0]); err != nil {
+			return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
+		}
+
+		x, y := square.ToCoords()
+
+		return cty.TupleVal(
+			[]cty.Value{
+				cty.NumberIntVal(int64(x)),
+				cty.NumberIntVal(int64(y)),
+			}), nil
+	},
+})
+
+var CoordsToSquareFunc = function.New(&function.Spec{
+	Description: "Converts coords in tuple of numbers {file, rank} to a string square",
+	Params: []function.Parameter{
+		{
+			Name:             "coords",
+			Type:             Coords,
+			AllowDynamicType: true,
+		},
+	},
+	Type: function.StaticReturnType(cty.String),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		var coords struct {
+			X int
+			Y int
+		}
+
+		if err := gocty.FromCtyValue(args[0], &coords); err != nil {
+			return cty.DynamicVal, fmt.Errorf("argument 'coords': %w", err)
+		}
+
+		square := board.SquareFromCoords(coords.X, coords.Y)
+
+		return cty.StringVal(square.String()), nil
+	},
+})
+
+var RangeFunc = function.New(&function.Spec{
+	Description: "Returns a list of numbers in the given range (include start, exclude end)",
+	Params: []function.Parameter{
+		{
+			Name:             "start",
+			Type:             cty.Number,
+			AllowDynamicType: true,
+		},
+		{
+			Name:             "end",
+			Type:             cty.Number,
+			AllowDynamicType: true,
+		},
+	},
+	Type: function.StaticReturnType(cty.String),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		var coords struct {
+			x int
+			y int
+		}
+
+		if err := gocty.FromCtyValue(args[0], &coords); err != nil {
+			return cty.DynamicVal, fmt.Errorf("argument 'coords': %w", err)
+		}
+
+		square := board.SquareFromCoords(coords.x, coords.y)
+
+		return cty.StringVal(square.String()), nil
+	},
+})
+
 func GetSquareRelativeFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: joinText(

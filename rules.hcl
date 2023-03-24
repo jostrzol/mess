@@ -218,13 +218,13 @@ state_validators {
   // Checks if the current player's king is not standing on an attacke square
   function "is_king_safe" {
     params = [game, move]
-    result = all([!is_attacked(piece.square) for piece in move.player.pieces if piece.type == "king"]...)
+    result = all([for piece in move.player.pieces: !is_attacked(piece.square) if piece.type == "king"]...)
   }
 
   // If the last move was performed by a king, checks if all squares on his path were safe
   function "is_kings_path_save" {
     params = [game, move]
-    result = move.piece.type != "king" ? true : all([!is_attacked(s) for s in square_range(move.src, move.dst)])
+    result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked(s)])
   }
 }
 
@@ -252,13 +252,13 @@ function "last_or_null" {
 
 // Returns all the squares connecting two given end-squares, forming an L-shape
 // (including the end-squares)
-function "square_range" {
+composite_function "square_range" {
   params = [end1, end2]
   result = {
     pos1 = square_to_coords(end1)
     pos2 = square_to_coords(end2)
-    horiz = [coors_to_square([x, pos1[1]]) for x in range(pos1[0], pos2[0] + 1)]
-    vert = [coors_to_square([pos1[0], y]) for y in range(pos1[1], pos2[1] + 1)]
+    horiz = [for x in range(pos1[0], pos2[0] + 1): coords_to_square([x, pos1[1]])]
+    vert = [for y in range(pos1[1], pos2[1] + 1): coords_to_square([pos1[0], y])]
     return = concat(horiz, vert)
   }
 }

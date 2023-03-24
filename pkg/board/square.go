@@ -55,13 +55,13 @@ func (s Square) Offset(offset Offset) Square {
 	}
 }
 
-func (s Square) toCoords() (int, int) {
+func (s Square) ToCoords() (int, int) {
 	x := s.File - 1
 	y := s.Rank - 1
 	return x, y
 }
 
-func fromCoords(x int, y int) Square {
+func SquareFromCoords(x int, y int) Square {
 	return Square{
 		File: x + 1,
 		Rank: y + 1,

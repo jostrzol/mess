@@ -29,7 +29,7 @@ func (b Board[T]) String() string {
 	for y, row := range b {
 		for x, item := range row {
 			if item != zero {
-				square := fromCoords(x, y)
+				square := SquareFromCoords(x, y)
 				if !isFirst {
 					builder.WriteRune('\n')
 				}
@@ -97,13 +97,13 @@ func (b Board[T]) At(square Square) (T, error) {
 		err := fmt.Errorf("square %s out of board's bound", square)
 		return zero, err
 	}
-	x, y := square.toCoords()
+	x, y := square.ToCoords()
 	item := b[y][x]
 	return item, nil
 }
 
 func (b Board[T]) Contains(square Square) bool {
-	x, y := square.toCoords()
+	x, y := square.ToCoords()
 	width, height := b.Size()
 	return x < width && x >= 0 && y < height && y >= 0
 }
@@ -114,7 +114,7 @@ func (b Board[T]) Place(item T, square Square) (T, error) {
 	if err != nil {
 		return zero, fmt.Errorf("retrieving item: %w", err)
 	}
-	x, y := square.toCoords()
+	x, y := square.ToCoords()
 	b[y][x] = item
 	return old, nil
 }
