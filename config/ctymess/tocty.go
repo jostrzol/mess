@@ -18,13 +18,19 @@ func GameStateToCty(state *mess.State) cty.Value {
 }
 
 func PlayerToCty(player *mess.Player) cty.Value {
-	piecesCty := make([]cty.Value, 0, len(player.Pieces()))
+	pieces := make([]cty.Value, 0, len(player.Pieces()))
 	for piece := range player.Pieces() {
-		piecesCty = append(piecesCty, PieceToCty(piece))
+		pieces = append(pieces, PieceToCty(piece))
+	}
+	var piecesCty cty.Value
+	if len(pieces) == 0 {
+		piecesCty = cty.ListValEmpty(Piece)
+	} else {
+		piecesCty = cty.ListVal(pieces)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color":             cty.StringVal(player.Color().String()),
-		"pieces":            cty.ListVal(piecesCty),
+		"pieces":            piecesCty,
 		"forward_direction": OffsetToCty(player.ForwardDirection()),
 	})
 }
