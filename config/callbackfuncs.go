@@ -83,11 +83,11 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.Mo
 	}, nil
 }
 
-func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.MoveValidator, error) {
-	validators := make([]mess.MoveValidator, 0, len(c.StateValidators))
+func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, error) {
+	validators := make([]mess.StateValidator, 0, len(c.StateValidators))
 
 	for validatorName, validatorCty := range c.StateValidators {
-		validatorFunc := func(state *mess.State, move *mess.Move) bool {
+		validator := func(state *mess.State, move *mess.Move) bool {
 			stateCty := ctymess.GameStateToCty(state)
 			moveCty := ctymess.MoveToCty(move)
 			c.refreshGameStateInContext()
@@ -103,7 +103,7 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.MoveValidator, er
 			}
 			return result
 		}
-		validators = append(validators, mess.StateValidator(c.State, validatorFunc))
+		validators = append(validators, validator)
 	}
 	return validators, nil
 }

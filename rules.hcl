@@ -93,7 +93,7 @@ composite_function "motion_neighbours_straight" {
   result = {
     dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if dest == null ? false : !is_mine(dest)]
+    return = [for dest in dests: dest if dest == null ? false : !belongs_to(piece.color, dest)]
   }
 }
 
@@ -144,7 +144,7 @@ composite_function "motion_forward_diagonal" {
     forward_y = owner_of(piece).forward_direction[1]
     dposes    = [[-1, forward_y], [1, forward_y]]
     dests     = [for dpos in dposes: get_square_relative(square, dpos)]
-    return    = [for dest in dests: dest if dest == null ? false : piece_at(dest) != null && !is_mine(dest)]
+    return    = [for dest in dests: dest if dest == null ? false : piece_at(dest) != null && !belongs_to(piece.color, dest)]
   }
 }
 
@@ -173,7 +173,7 @@ composite_function "motion_hook" {
   result = {
     dposes = [[2, 1], [2, -1], [-2, 1], [-2, -1], [1, 2], [-1, 2], [1, -2], [-1, -2]]
     dests  = [for dpos in dposes: get_square_relative(square, dpos)]
-    return = [for dest in dests: dest if dest == null ? false : !is_mine(dest)]
+    return = [for dest in dests: dest if dest == null ? false : !belongs_to(piece.color, dest)]
   }
 }
 
@@ -185,7 +185,7 @@ composite_function "motion_line" {
   params = [square, piece, dpos]
   result = {
     next   = get_square_relative(square, dpos)
-    return = next == null ? [] : piece_at(next) == null ? concat([next], motion_line(next, piece, dpos)) : is_mine(next) ? [] : [next]
+    return = next == null ? [] : piece_at(next) == null ? concat([next], motion_line(next, piece, dpos)) : belongs_to(piece.color, next) ? [] : [next]
   }
 }
 
@@ -218,23 +218,23 @@ state_validators {
   // Checks if the current player's king is not standing on an attacke square
   function "is_king_safe" {
     params = [game, move]
-    result = all([for piece in move.player.pieces: !is_attacked(piece.square) if piece.type == "king"]...)
+    result = all([for piece in move.player.pieces: !is_attacked_by(opponent_color(piece.color), piece.square) if piece.type == "king"]...)
   }
 
   // If the last move was performed by a king, checks if all squares on his path were safe
-  function "is_kings_path_save" {
-    params = [game, move]
-    result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked(s)]...)
-  }
+  // function "is_kings_path_save" {
+  //   params = [game, move]
+  //   result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked(s)]...)
+  // }
 }
 
 // ===== HELPER FUNCTIONS ======================================
-// Checks if square is occupied by a piece of the current player
-composite_function "is_mine" {
-  params = [square]
+// Checks if square is occupied by a piece of a given color
+composite_function "belongs_to" {
+  params = [color, square]
   result = {
     piece = piece_at(square)
-    return = piece == null ? false : piece.color == game.current_player.color
+    return = piece == null ? false : piece.color == color
   }
 }
 

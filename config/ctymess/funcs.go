@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
@@ -264,10 +265,15 @@ func OwnerOfFunc(state *mess.State) function.Function {
 }
 
 // TODO: block usage in generators (don't include it in EvalContext for generators).
-func IsAttackedFunc(state *mess.State) function.Function {
+func IsAttackedByFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
-		Description: "Checks if given square can be reached in the next turn by the opponent",
+		Description: "Checks if player of the given color can reach the given square",
 		Params: []function.Parameter{
+			{
+				Name:             "color",
+				Type:             cty.String,
+				AllowDynamicType: true,
+			},
 			{
 				Name:             "square",
 				Type:             cty.String,
@@ -277,20 +283,18 @@ func IsAttackedFunc(state *mess.State) function.Function {
 		Type: function.StaticReturnType(cty.Bool),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
 			var square board.Square
+			var color *color.Color
 			var err error
-			if square, err = SquareFromCty(args[0]); err != nil {
+
+			if color, err = ColorFromCty(args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
+			}
+			if square, err = SquareFromCty(args[1]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
 			}
 
-			piece, err := state.Board().At(square)
-			if err != nil {
-				log.Printf("getting piece at %v - returning null: %v", square, err)
-				return cty.False, nil
-			} else if piece != nil && piece.Owner() == state.CurrentPlayer() {
-				return cty.False, nil
-			}
-
-			for _, attacked := range state.CurrentOpponent().AttackedSquares() {
+			player := state.Player(*color)
+			for _, attacked := range player.AttackedSquares() {
 				if attacked == square {
 					return cty.True, nil
 				}
@@ -320,7 +324,7 @@ func ValidMovesFunc(state *mess.State) function.Function {
 				return cty.DynamicVal, fmt.Errorf("given piece not found")
 			}
 
-			moves := piece.ValidMoves()
+			moves := piece.Moves()
 			if len(moves) == 0 {
 				return cty.ListValEmpty(cty.String), nil
 			}

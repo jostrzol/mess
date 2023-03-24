@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"sort"
 
 	"github.com/jostrzol/mess/config"
 	"github.com/jostrzol/mess/pkg/board"
@@ -12,67 +11,69 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func chooseSquare(board *mess.PieceBoard) brd.Square {
-	var square brd.Square
-	var squareStr string
-	var err error
-	for ok := false; !ok; {
+func chooseMove(state *mess.State) *mess.Move {
+	validMoves := state.ValidMoves()
+	for {
+		var srcStr string
+		// srcStr = "A3"
+		println("Choose a square with your piece")
 		print("> ")
-		// squareStr = "A1"
-		fmt.Scan(&squareStr)
-		square, err = brd.NewSquare(squareStr)
+		fmt.Scanf("%s", &srcStr)
+
+		src, err := brd.NewSquare(srcStr)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			println("Try again")
-		} else if !board.Contains(square) {
-			println("Square not in board")
+			continue
+		} else if !state.Board().Contains(src) {
+			println("Square not on board")
 			println("Try again")
-		} else {
-			ok = true
+			continue
 		}
-	}
-	return square
-}
 
-func choosePiece(board *mess.PieceBoard) *mess.Piece {
-	var piece *mess.Piece
-	var err error
-	for piece == nil || err != nil {
-		square := chooseSquare(board)
-		piece, err = board.At(square)
+		piece, _ := state.Board().At(src)
+		if piece == nil || piece.Owner() != state.CurrentPlayer() {
+			println("That belongs to your opponent!")
+			continue
+		}
+
+		validForPiece := make(map[board.Square]mess.Move, 0)
+		for _, validMove := range validMoves {
+			if validMove.Piece == piece {
+				validForPiece[validMove.To] = validMove
+			}
+		}
+
+		if len(validForPiece) == 0 {
+			println("No valid moves for this piece!")
+			continue
+		} else {
+			println("Valid destinations:")
+			for _, validMove := range validForPiece {
+				fmt.Printf("-> %v\n", &validMove.To)
+			}
+		}
+
+		var dstStr string
+		// dstStr = "A2"
+		println("Choose a destination square")
+		print("> ")
+		fmt.Scanf("%s", &dstStr)
+
+		dst, err := brd.NewSquare(dstStr)
 		if err != nil {
-			println(err)
+			fmt.Printf("%v\n", err)
 			println("Try again")
 		}
-		if piece == nil {
-			println("No piece there")
-			println("Try again")
-		}
-	}
-	return piece
-}
 
-func chooseMove(board *mess.PieceBoard, moves []mess.Move) brd.Square {
-	var move brd.Square
-	for ok := false; !ok; {
-		move = chooseSquare(board)
-		if !contains(moves, move) {
-			println("Not an allowed move")
-			println("Try again")
-		} else {
-			ok = true
+		move, ok := validForPiece[dst]
+		if !ok {
+			println("Invalid move!")
+			continue
 		}
-	}
-	return move
-}
 
-func contains(moves []mess.Move, destination board.Square) bool {
-	for _, move := range moves {
-		if move.To == destination {
-			return true
-		}
+		return &move
 	}
-	return false
 }
 
 func main() {
@@ -89,36 +90,10 @@ func main() {
 	for !isFinished {
 		println("Board: (uppercase - white, lowercase - black)")
 		println(state.PrettyString())
-		println("Choose square with a piece")
-		piece := choosePiece(state.Board())
-		if piece.Owner() != state.CurrentPlayer() {
-			println("You must choose your piece")
-			continue
-		}
 
-		moves := piece.ValidMoves()
-		if len(moves) == 0 {
-			println("No moves for this piece")
-			continue
-		}
+		move := chooseMove(state)
 
-		sort.Slice(moves, func(i, j int) bool {
-			iSq := moves[i].To
-			jSq := moves[j].To
-			if iSq.Rank == jSq.Rank {
-				return iSq.File < jSq.File
-			}
-			return iSq.Rank < jSq.Rank
-		})
-
-		print("Possible moves: ")
-		for _, move := range moves {
-			fmt.Printf("%v ", &move.To)
-		}
-		println()
-		move := chooseMove(state.Board(), moves)
-
-		err = piece.MoveTo(move)
+		err = move.Perform()
 		if err != nil {
 			log.Fatal(err)
 		}

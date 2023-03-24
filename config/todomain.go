@@ -13,6 +13,9 @@ func (c *config) toGameState() error {
 	if err != nil {
 		return fmt.Errorf("parsing state validators: %w", err)
 	}
+	for _, validator := range stateValidators {
+		c.State.AddStateValidator(validator)
+	}
 
 	pieceTypes := make(map[string]*mess.PieceType, len(c.PieceTypes.PieceTypes))
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
@@ -23,9 +26,6 @@ func (c *config) toGameState() error {
 				return err
 			}
 			pieceType.AddMoveGenerator(moveGenerator)
-		}
-		for _, validator := range stateValidators {
-			pieceType.AddMoveValidator(validator)
 		}
 		pieceTypes[pieceType.Name()] = pieceType
 	}

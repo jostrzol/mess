@@ -14,7 +14,11 @@ type State struct {
 	currentPlayer *Player
 	record        []RecordedMove
 	isRecording   bool
+	validators    chainStateValidators
 }
+
+type StateValidator func(*State, *Move) bool
+type chainStateValidators []StateValidator
 
 func NewState(board *PieceBoard) *State {
 	players := NewPlayers(board)
@@ -58,8 +62,12 @@ func (g *State) CurrentPlayer() *Player {
 }
 
 func (g *State) CurrentOpponent() *Player {
+	return g.OpponentTo(g.currentPlayer)
+}
+
+func (g *State) OpponentTo(player *Player) *Player {
 	var opponentsColor color.Color
-	switch g.CurrentPlayer().Color() {
+	switch player.Color() {
 	case color.White:
 		opponentsColor = color.Black
 	case color.Black:
@@ -70,6 +78,42 @@ func (g *State) CurrentOpponent() *Player {
 
 func (g *State) EndTurn() {
 	g.currentPlayer = g.CurrentOpponent()
+}
+
+func (s *State) AddStateValidator(validator StateValidator) {
+	s.validators = append(s.validators, validator)
+}
+
+func (s *State) ValidMoves() []Move {
+	result := make([]Move, 0)
+	moves := s.currentPlayer.moves()
+	for _, move := range moves {
+		err := move.Perform()
+
+		isValid := false
+		if err != nil {
+			fmt.Printf("error performing move for validation: %v", err)
+		} else {
+			isValid = s.validate(&move)
+		}
+
+		for undone := s.Undo(); undone != nil && undone.Move != move; {
+		}
+
+		if isValid {
+			result = append(result, move)
+		}
+	}
+	return result
+}
+
+func (s *State) validate(move *Move) bool {
+	for _, validator := range s.validators {
+		if !validator(s, move) {
+			return false
+		}
+	}
+	return true
 }
 
 func (g *State) Handle(event event.Event) {

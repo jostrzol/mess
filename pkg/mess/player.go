@@ -9,11 +9,10 @@ import (
 )
 
 type Player struct {
-	color                 color.Color
-	pieces                map[*Piece]struct{}
-	prisoners             map[*Piece]struct{}
-	forwardDirection      brd.Offset
-	isCalculatingAttacked bool
+	color            color.Color
+	pieces           map[*Piece]struct{}
+	prisoners        map[*Piece]struct{}
+	forwardDirection brd.Offset
 }
 
 func NewPlayers(board event.Subject) map[color.Color]*Player {
@@ -29,7 +28,6 @@ func NewPlayers(board event.Subject) map[color.Color]*Player {
 		player.color = color
 		player.pieces = make(map[*Piece]struct{})
 		player.prisoners = make(map[*Piece]struct{})
-		player.isCalculatingAttacked = false
 		board.Observe(player)
 	}
 	return players
@@ -55,25 +53,18 @@ func (p *Player) String() string {
 	return p.color.String()
 }
 
-func (p *Player) ValidMoves() []Move {
+func (p *Player) moves() []Move {
 	result := make([]Move, 0)
 	for piece := range p.Pieces() {
-		result = append(result, piece.ValidMoves()...)
+		result = append(result, piece.Moves()...)
 	}
 	return result
 }
 
 func (p *Player) AttackedSquares() []board.Square {
-	// To prevent recursive calls
-	if p.isCalculatingAttacked {
-		return []board.Square{}
-	}
-	p.isCalculatingAttacked = true
-	defer func() { p.isCalculatingAttacked = false }()
-
 	resultSet := make(map[board.Square]struct{})
 	for piece := range p.pieces {
-		for _, move := range piece.ValidMoves() {
+		for _, move := range piece.Moves() {
 			resultSet[move.To] = struct{}{}
 		}
 	}

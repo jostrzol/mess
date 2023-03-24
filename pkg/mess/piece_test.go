@@ -145,7 +145,7 @@ func (s *PieceSuite) TestValidMoves() {
 			piece := Noones(tt.pieceType)
 			piece.PlaceOn(s.board, boardtest.NewSquare(tt.square))
 
-			moves := piece.ValidMoves()
+			moves := piece.Moves()
 
 			s.ElementsMatch(moves, movesFromDests(piece, tt.expectedDests...))
 		})
@@ -158,7 +158,7 @@ func (s *PieceSuite) TestValidMovesWithValidator() {
 
 	king.Type().AddMoveValidator(func(m *Move) bool { return m.To != boardtest.NewSquare("A2") })
 
-	moves := king.ValidMoves()
+	moves := king.Moves()
 
 	s.ElementsMatch(moves, movesFromDests(king, "B1"))
 }

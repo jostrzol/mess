@@ -10,11 +10,10 @@ import (
 )
 
 type Piece struct {
-	ty         *PieceType
-	owner      *Player
-	board      *PieceBoard
-	square     brd.Square
-	validMoves []Move
+	ty     *PieceType
+	owner  *Player
+	board  *PieceBoard
+	square brd.Square
 }
 
 func NewPiece(pieceType *PieceType, owner *Player) *Piece {
@@ -66,15 +65,8 @@ func (p *Piece) RemoveFromBoard() {
 	}
 }
 
-func (p *Piece) ValidMoves() []Move {
-	if p.validMoves == nil {
-		p.validMoves = p.generateValidMoves()
-	}
-	return p.validMoves
-}
-
-func (p *Piece) generateValidMoves() []Move {
-	return p.ty.validMoves(p)
+func (p *Piece) Moves() []Move {
+	return p.ty.moves(p)
 }
 
 func (p *Piece) Handle(event event.Event) {
@@ -93,24 +85,17 @@ func (p *Piece) Handle(event event.Event) {
 			p.board = nil
 		}
 	}
-	p.resetValidMoves()
-}
-
-func (p *Piece) resetValidMoves() {
-	p.validMoves = nil
 }
 
 type PieceType struct {
 	name           string
 	moveGenerators chainMoveGenerators
-	moveValidators chainMoveValidators
 }
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
 		name:           name,
 		moveGenerators: make(chainMoveGenerators, 0),
-		moveValidators: make(chainMoveValidators, 0),
 	}
 }
 
@@ -126,11 +111,7 @@ func (t *PieceType) AddMoveGenerator(generator MoveGenerator) {
 	t.moveGenerators = append(t.moveGenerators, generator)
 }
 
-func (t *PieceType) AddMoveValidator(validator MoveValidator) {
-	t.moveValidators = append(t.moveValidators, validator)
-}
-
-func (t *PieceType) validMoves(piece *Piece) []Move {
+func (t *PieceType) moves(piece *Piece) []Move {
 	result := make([]Move, 0)
 	for _, destination := range t.moveGenerators.Generate(piece) {
 		move := Move{
@@ -138,9 +119,7 @@ func (t *PieceType) validMoves(piece *Piece) []Move {
 			From:  piece.Square(),
 			To:    destination,
 		}
-		if t.moveValidators.Validate(&move) {
-			result = append(result, move)
-		}
+		result = append(result, move)
 	}
 	return result
 }
@@ -163,40 +142,14 @@ func (g chainMoveGenerators) Generate(piece *Piece) []brd.Square {
 	return destinations
 }
 
-type MoveValidator func(*Move) bool
-
-// StateValidator creates a new validator that performs the given
-// move and then evaluates the given function. The move is undone
-// afterwards.
-func StateValidator(state *State, validator func(*State, *Move) bool) MoveValidator {
-	return func(move *Move) bool {
-		move.Perform()
-		isValid := validator(state, move)
-		for undone := state.Undo(); undone != nil && undone.Move != *move; {
-		}
-		return isValid
-	}
-}
-
-type chainMoveValidators []MoveValidator
-
-func (g chainMoveValidators) Validate(move *Move) bool {
-	for _, validator := range g {
-		if !validator(move) {
-			return false
-		}
-	}
-	return true
-}
-
 type Move struct {
 	Piece *Piece
 	From  brd.Square
 	To    brd.Square
 }
 
-func (m *Move) Perform() {
-	m.Piece.MoveTo(m.To)
+func (m *Move) Perform() error {
+	return m.Piece.MoveTo(m.To)
 }
 
 func (m *Move) String() string {
