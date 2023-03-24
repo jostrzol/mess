@@ -122,7 +122,7 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 	s.Equal(knight, piece)
 }
 
-func (s *PieceSuite) TestValidMoves() {
+func (s *PieceSuite) TestMoves() {
 	tests := []struct {
 		pieceType     *PieceType
 		square        string
@@ -150,17 +150,6 @@ func (s *PieceSuite) TestValidMoves() {
 			s.ElementsMatch(moves, movesFromDests(piece, tt.expectedDests...))
 		})
 	}
-}
-
-func (s *PieceSuite) TestValidMovesWithValidator() {
-	king := Noones(King(s.T()))
-	king.PlaceOn(s.board, boardtest.NewSquare("A1"))
-
-	king.Type().AddMoveValidator(func(m *Move) bool { return m.To != boardtest.NewSquare("A2") })
-
-	moves := king.Moves()
-
-	s.ElementsMatch(moves, movesFromDests(king, "B1"))
 }
 
 func movesFromDests(piece *Piece, destinations ...string) []Move {
@@ -352,54 +341,5 @@ func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
 		square, err := brd.NewSquare(str)
 		assert.NoError(t, err)
 		assert.Containsf(t, actual, square, "%v doesnt contain square %v", actual, square)
-	}
-}
-
-func trueMoveValidator(*Move) bool  { return true }
-func falseMoveValidator(*Move) bool { return false }
-
-func TestChainMoveValidator(t *testing.T) {
-	tests := []struct {
-		name       string
-		validators []MoveValidator
-		expected   bool
-	}{
-		{
-			name:       "Empty",
-			validators: []MoveValidator{},
-			expected:   true,
-		},
-		{
-			name:       "OneTrue",
-			validators: []MoveValidator{trueMoveValidator},
-			expected:   true,
-		},
-		{
-			name:       "OneFalse",
-			validators: []MoveValidator{falseMoveValidator},
-			expected:   false,
-		},
-		{
-			name:       "OneFalseOneTrue",
-			validators: []MoveValidator{falseMoveValidator, trueMoveValidator},
-			expected:   false,
-		},
-		{
-			name:       "TwoFalse",
-			validators: []MoveValidator{falseMoveValidator, falseMoveValidator},
-			expected:   false,
-		},
-		{
-			name:       "TwoTrue",
-			validators: []MoveValidator{trueMoveValidator, trueMoveValidator},
-			expected:   true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			validators := chainMoveValidators(tt.validators)
-			isValid := validators.Validate(nil)
-			assert.Equal(t, tt.expected, isValid)
-		})
 	}
 }

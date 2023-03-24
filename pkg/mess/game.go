@@ -18,9 +18,6 @@ type State struct {
 	validMoves    []Move
 }
 
-type StateValidator func(*State, *Move) bool
-type chainStateValidators []StateValidator
-
 func NewState(board *PieceBoard) *State {
 	players := NewPlayers(board)
 	state := &State{
@@ -81,6 +78,18 @@ func (g *State) EndTurn() {
 	g.currentPlayer = g.CurrentOpponent()
 }
 
+type StateValidator func(*State, *Move) bool
+type chainStateValidators []StateValidator
+
+func (validators chainStateValidators) Validate(state *State, move *Move) bool {
+	for _, validator := range validators {
+		if !validator(state, move) {
+			return false
+		}
+	}
+	return true
+}
+
 func (s *State) AddStateValidator(validator StateValidator) {
 	s.validators = append(s.validators, validator)
 }
@@ -102,7 +111,7 @@ func (s *State) generateValidMoves() {
 		if err != nil {
 			fmt.Printf("error performing move for validation: %v", err)
 		} else {
-			isValid = s.validate(&move)
+			isValid = s.validators.Validate(s, &move)
 		}
 
 		for undone := s.Undo(); undone != nil && undone.Move != move; {
@@ -113,15 +122,6 @@ func (s *State) generateValidMoves() {
 		}
 	}
 	s.validMoves = result
-}
-
-func (s *State) validate(move *Move) bool {
-	for _, validator := range s.validators {
-		if !validator(s, move) {
-			return false
-		}
-	}
-	return true
 }
 
 func (g *State) Handle(event event.Event) {

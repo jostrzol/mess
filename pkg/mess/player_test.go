@@ -121,15 +121,15 @@ func (s *PlayerSuiteRealBoard) SetupTest() {
 	s.black = s.players[color.Black]
 }
 
-func (s *PlayerSuiteRealBoard) TestValidMovesNone() {
-	s.Empty(s.white.ValidMoves())
+func (s *PlayerSuiteRealBoard) TestMovesNone() {
+	s.Empty(s.white.moves())
 }
 
-func (s *PlayerSuiteRealBoard) TestValidMovesOnePiece() {
+func (s *PlayerSuiteRealBoard) TestMovesOnePiece() {
 	king := NewPiece(King(s.T()), s.white)
 	s.board.Place(king, boardtest.NewSquare("A1"))
 
-	moves := s.white.ValidMoves()
+	moves := s.white.moves()
 	s.ElementsMatch(moves, []Move{
 		{Piece: king,
 			From: boardtest.NewSquare("A1"),
@@ -140,14 +140,14 @@ func (s *PlayerSuiteRealBoard) TestValidMovesOnePiece() {
 	})
 }
 
-func (s *PlayerSuiteRealBoard) TestValidMovesOnePieceOneEnemy() {
+func (s *PlayerSuiteRealBoard) TestMovesOnePieceOneEnemy() {
 	kingW := NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW, boardtest.NewSquare("A1"))
 
 	kingB := NewPiece(King(s.T()), s.black)
 	s.board.Place(kingB, boardtest.NewSquare("A3"))
 
-	moves := s.white.ValidMoves()
+	moves := s.white.moves()
 	s.ElementsMatch(moves, []Move{
 		{Piece: kingW,
 			From: boardtest.NewSquare("A1"),
@@ -158,14 +158,14 @@ func (s *PlayerSuiteRealBoard) TestValidMovesOnePieceOneEnemy() {
 	})
 }
 
-func (s *PlayerSuiteRealBoard) TestValidMovesTwoPieces() {
+func (s *PlayerSuiteRealBoard) TestMovesTwoPieces() {
 	kingW1 := NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW1, boardtest.NewSquare("A1"))
 
 	kingW2 := NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW2, boardtest.NewSquare("A3"))
 
-	moves := s.white.ValidMoves()
+	moves := s.white.moves()
 	s.ElementsMatch(moves, []Move{
 		{Piece: kingW1,
 			From: boardtest.NewSquare("A1"),
