@@ -175,10 +175,7 @@ Blocks:
 
 			return result, nil
 		}
-		spec.Type = func(args []cty.Value) (cty.Type, error) {
-			val, err := impl(args)
-			return val.Type(), err
-		}
+		spec.Type = function.StaticReturnType(cty.DynamicPseudoType)
 		spec.Impl = func(args []cty.Value, retType cty.Type) (cty.Value, error) {
 			return impl(args)
 		}

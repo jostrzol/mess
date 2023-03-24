@@ -9,10 +9,11 @@ import (
 )
 
 type Player struct {
-	color            color.Color
-	pieces           map[*Piece]struct{}
-	prisoners        map[*Piece]struct{}
-	forwardDirection brd.Offset
+	color                 color.Color
+	pieces                map[*Piece]struct{}
+	prisoners             map[*Piece]struct{}
+	forwardDirection      brd.Offset
+	isCalculatingAttacked bool
 }
 
 func NewPlayers(board event.Subject) map[color.Color]*Player {
@@ -28,6 +29,7 @@ func NewPlayers(board event.Subject) map[color.Color]*Player {
 		player.color = color
 		player.pieces = make(map[*Piece]struct{})
 		player.prisoners = make(map[*Piece]struct{})
+		player.isCalculatingAttacked = false
 		board.Observe(player)
 	}
 	return players
@@ -62,6 +64,13 @@ func (p *Player) ValidMoves() []Move {
 }
 
 func (p *Player) AttackedSquares() []board.Square {
+	// To prevent recursive calls
+	if p.isCalculatingAttacked {
+		return []board.Square{}
+	}
+	p.isCalculatingAttacked = true
+	defer func() { p.isCalculatingAttacked = false }()
+
 	resultSet := make(map[board.Square]struct{})
 	for piece := range p.pieces {
 		for _, move := range piece.ValidMoves() {

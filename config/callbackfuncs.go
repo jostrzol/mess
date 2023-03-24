@@ -32,19 +32,25 @@ func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Pla
 	}
 
 	var result struct {
-		IsFinished  bool
-		WinnerColor *string
+		IsFinished     bool
+		WinnerColorCty cty.Value
 	}
 	if err = gocty.FromCtyValue(resultCty, &result); err != nil {
 		log.Printf("parsing pick_winner user-defined function's result: %v", err)
 		return false, nil
 	}
 
-	if !result.IsFinished || result.WinnerColor == nil {
+	if !result.IsFinished || result.WinnerColorCty.IsNull() {
 		return result.IsFinished, nil
 	}
 
-	color, err := color.ColorString(*result.WinnerColor)
+	var winnerColor string
+	if err = gocty.FromCtyValue(result.WinnerColorCty, &winnerColor); err != nil {
+		log.Printf("parsing pick_winner user-defined function's result: winner color: %v", err)
+		return false, nil
+	}
+
+	color, err := color.ColorString(winnerColor)
 	if err != nil {
 		log.Printf("parsing winner color: %v", err)
 		return false, nil
@@ -91,7 +97,7 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.MoveValidator, er
 				return false
 			}
 			var result bool
-			err = gocty.FromCtyValue(resultCty, result)
+			err = gocty.FromCtyValue(resultCty, &result)
 			if err != nil {
 				log.Printf("parsing state validator result: %v", err)
 			}

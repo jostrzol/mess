@@ -321,6 +321,10 @@ func ValidMovesFunc(state *mess.State) function.Function {
 			}
 
 			moves := piece.ValidMoves()
+			if len(moves) == 0 {
+				return cty.ListValEmpty(cty.String), nil
+			}
+
 			result := make([]cty.Value, len(moves))
 			for i, move := range moves {
 				result[i] = cty.StringVal(move.To.String())

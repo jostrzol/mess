@@ -224,7 +224,7 @@ state_validators {
   // If the last move was performed by a king, checks if all squares on his path were safe
   function "is_kings_path_save" {
     params = [game, move]
-    result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked(s)])
+    result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked(s)]...)
   }
 }
 
@@ -265,15 +265,15 @@ composite_function "square_range" {
 
 initial_state {
   pieces "white" {
-    A2 = "king"
-    A3 = "rook"
-    E5 = "queen"
+    A3 = "king"
+    B3 = "bishop"
+    C3 = "rook"
+    D3 = "knight"
+    E3 = "queen"
     C1 = "pawn"
   }
   pieces "black" {
     A1 = "king"
-    B1 = "knight"
-    B2 = "bishop"
   }
 }
 
@@ -317,7 +317,7 @@ composite_function "pick_winner" {
   }
 }
 
-// Returns the check_mated king, if any - else returns null.
+// Returns the check-mated king, if any - else returns null.
 composite_function "check_mated_king" {
   params = [game]
   result = {
@@ -332,11 +332,11 @@ composite_function "check_mated_king" {
 // Returns the given player's opponent.
 function "opponent" {
   params = [player]
-  result = [_player for _player in game.players if _player != player][0]
+  result = [for _player in game.players: _player if _player != player][0]
 }
 
 // Returns the color belonging to the opponent of the player having the given color.
 function "opponent_color" {
   params = [color]
-  result = [_player for _player in game.players if _player != player][0]
+  result = [for _player in game.players: _player.color if _player.color != color][0]
 }
