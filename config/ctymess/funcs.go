@@ -304,7 +304,7 @@ func IsAttackedByFunc(state *mess.State) function.Function {
 	})
 }
 
-func ValidMovesFunc(state *mess.State) function.Function {
+func ValidMovesForFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: "Returns all the squares that the given piece can go to in 1 turn",
 		Params: []function.Parameter{
@@ -314,7 +314,7 @@ func ValidMovesFunc(state *mess.State) function.Function {
 				AllowDynamicType: true,
 			},
 		},
-		Type: function.StaticReturnType(cty.List(cty.String)),
+		Type: function.StaticReturnType(cty.List(Move)),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
 			var piece *mess.Piece
 			var err error
@@ -324,15 +324,17 @@ func ValidMovesFunc(state *mess.State) function.Function {
 				return cty.DynamicVal, fmt.Errorf("given piece not found")
 			}
 
-			moves := piece.Moves()
-			if len(moves) == 0 {
-				return cty.ListValEmpty(cty.String), nil
+			result := make([]cty.Value, 0)
+			for _, move := range state.ValidMoves() {
+				if move.Piece == piece {
+					result = append(result, MoveToCty(&move))
+				}
 			}
 
-			result := make([]cty.Value, len(moves))
-			for i, move := range moves {
-				result[i] = cty.StringVal(move.To.String())
+			if len(result) == 0 {
+				return cty.ListValEmpty(Move), nil
 			}
+
 			return cty.ListVal(result), nil
 		},
 	})

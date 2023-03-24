@@ -15,6 +15,7 @@ type State struct {
 	record        []RecordedMove
 	isRecording   bool
 	validators    chainStateValidators
+	validMoves    []Move
 }
 
 type StateValidator func(*State, *Move) bool
@@ -85,6 +86,13 @@ func (s *State) AddStateValidator(validator StateValidator) {
 }
 
 func (s *State) ValidMoves() []Move {
+	if s.validMoves == nil {
+		s.generateValidMoves()
+	}
+	return s.validMoves
+}
+
+func (s *State) generateValidMoves() {
 	result := make([]Move, 0)
 	moves := s.currentPlayer.moves()
 	for _, move := range moves {
@@ -104,7 +112,7 @@ func (s *State) ValidMoves() []Move {
 			result = append(result, move)
 		}
 	}
-	return result
+	s.validMoves = result
 }
 
 func (s *State) validate(move *Move) bool {
@@ -130,6 +138,8 @@ func (g *State) Handle(event event.Event) {
 	case PieceCaptured:
 		g.recordCapture(&e)
 	}
+
+	g.validMoves = nil
 }
 
 func (g *State) recordCapture(event *PieceCaptured) {

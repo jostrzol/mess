@@ -41,6 +41,10 @@ func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Pla
 	}
 
 	if !result.IsFinished || result.WinnerColorCty.IsNull() {
+		// check if the current player can move - if not it's a stalemate
+		if len(c.State.ValidMoves()) == 0 {
+			result.IsFinished = true
+		}
 		return result.IsFinished, nil
 	}
 

@@ -270,10 +270,12 @@ initial_state {
     C3 = "rook"
     D3 = "knight"
     E3 = "queen"
-    C1 = "pawn"
+    C1 = "rook"
+    E1 = "pawn"
   }
   pieces "black" {
     A1 = "king"
+    B1 = "queen"
   }
 }
 
@@ -323,8 +325,8 @@ composite_function "check_mated_king" {
   result = {
     pieces  = concat([for player in game.players: player.pieces]...)
     kings   = [for piece in pieces: piece if piece.type == "king"]
-    checked = [for king in kings: king if is_attacked(king.square)]
-    mated   = [for king in checked: king if length(valid_moves(king)) == 0]
+    checked = [for king in kings: king if is_attacked_by(opponent_color(king.color), king.square)]
+    mated   = [for king in checked: king if length(valid_moves_for(king)) == 0]
     return  = length(mated) == 0 ? null : mated[0]
   }
 }

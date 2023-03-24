@@ -41,7 +41,7 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 			"piece_at":            ctymess.PieceAtFunc(state),
 			"owner_of":            ctymess.OwnerOfFunc(state),
 			"is_attacked_by":      ctymess.IsAttackedByFunc(state),
-			"valid_moves":         ctymess.ValidMovesFunc(state),
+			"valid_moves_for":     ctymess.ValidMovesForFunc(state),
 		},
 		Variables: map[string]cty.Value{
 			"game": cty.DynamicVal,
