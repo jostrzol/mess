@@ -119,6 +119,7 @@ func (s *State) generateValidMoves() {
 
 		if isValid {
 			result = append(result, move)
+			fmt.Printf("DEBUG: generated move: %v\n", &move)
 		}
 	}
 	s.validMoves = result

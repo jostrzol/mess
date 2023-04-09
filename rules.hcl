@@ -314,19 +314,20 @@ composite_function "decide_winner" {
 composite_function "pick_winner" {
   params = [game]
   result = {
-    losing_king = check_mated_king(game)
-    return      = losing_king == null ? [false, null] : [true, opponent_color(losing_king.color)]
+    losing_player = check_mated_player(game)
+    return        = losing_player == null ? [false, null] : [true, opponent(losing_player).color]
   }
 }
 
-// Returns the check-mated king, if any - else returns null.
-composite_function "check_mated_king" {
+// Returns the check-mated player, if any - else returns null.
+composite_function "check_mated_player" {
   params = [game]
   result = {
     pieces  = concat([for player in game.players: player.pieces]...)
     kings   = [for piece in pieces: piece if piece.type == "king"]
-    checked = [for king in kings: king if is_attacked_by(opponent_color(king.color), king.square)]
-    mated   = [for king in checked: king if length(valid_moves_for(king)) == 0]
+    checked = [for king in kings: owner_of(king) if is_attacked_by(opponent_color(king.color), king.square)]
+    valid_moves = [for player in checked: concat([for piece in player.pieces: valid_moves_for(piece)]...)]
+    mated   = [for i, player in checked: player if length(valid_moves[i]) == 0]
     return  = length(mated) == 0 ? null : mated[0]
   }
 }

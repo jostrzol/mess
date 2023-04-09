@@ -51,6 +51,10 @@ var ConcatFunc = function.New(&function.Spec{
 			result = append(result, list.AsValueSlice()...)
 		}
 
+		if len(result) == 0 {
+			return cty.ListValEmpty(cty.DynamicPseudoType), nil
+		}
+
 		return cty.ListVal(result), nil
 	},
 })
