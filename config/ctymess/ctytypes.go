@@ -22,14 +22,14 @@ var Piece = cty.Object(map[string]cty.Type{
 	"square": cty.String,
 })
 
-var Record = cty.List(Move);
+var Record = cty.List(Move)
 
 var RecordedMove = cty.Object(map[string]cty.Type{
-	"player": Player,
-	"piece":  Piece,
-	"src":    cty.String,
-	"dst":    cty.String,
-	"captures":    cty.List(Piece),
+	"player":   Player,
+	"piece":    Piece,
+	"src":      cty.String,
+	"dst":      cty.String,
+	"captures": cty.List(Piece),
 })
 
 var Move = cty.Object(map[string]cty.Type{
