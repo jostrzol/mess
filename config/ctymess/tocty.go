@@ -13,7 +13,8 @@ func GameStateToCty(state *mess.State) cty.Value {
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"players":        cty.MapVal(players),
-		"current_player": PlayerToCty(state.CurrentPlayer()),
+		"current_player": players[state.CurrentPlayer().Color().String()],
+		"record":         RecordToCty(state.Record()),
 	})
 }
 
@@ -22,15 +23,9 @@ func PlayerToCty(player *mess.Player) cty.Value {
 	for piece := range player.Pieces() {
 		pieces = append(pieces, PieceToCty(piece))
 	}
-	var piecesCty cty.Value
-	if len(pieces) == 0 {
-		piecesCty = cty.ListValEmpty(Piece)
-	} else {
-		piecesCty = cty.ListVal(pieces)
-	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color":             cty.StringVal(player.Color().String()),
-		"pieces":            piecesCty,
+		"pieces":            listOrEmpty(Piece, pieces),
 		"forward_direction": OffsetToCty(player.ForwardDirection()),
 	})
 }
@@ -54,6 +49,25 @@ func OffsetToCty(offset board.Offset) cty.Value {
 	})
 }
 
+func RecordToCty(record []mess.RecordedMove) cty.Value {
+	result := make([]cty.Value, 0, len(record))
+	for _, move := range record {
+		captures := make([]cty.Value, 0, len(move.Captures))
+		for piece := range move.Captures {
+			captures = append(captures, PieceToCty(piece))
+		}
+		moveCty := cty.ObjectVal(map[string]cty.Value{
+			"piece":    PieceToCty(move.Piece),
+			"player":   PlayerToCty(move.Piece.Owner()),
+			"src":      cty.StringVal(move.From.String()),
+			"dst":      cty.StringVal(move.To.String()),
+			"captures": listOrEmpty(Piece, captures),
+		})
+		result = append(result, moveCty)
+	}
+	return listOrEmpty(RecordedMove, result)
+}
+
 func MoveToCty(move *mess.Move) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
 		"piece":  PieceToCty(move.Piece),
@@ -61,4 +75,11 @@ func MoveToCty(move *mess.Move) cty.Value {
 		"src":    cty.StringVal(move.From.String()),
 		"dst":    cty.StringVal(move.To.String()),
 	})
+}
+
+func listOrEmpty(listType cty.Type, slice []cty.Value) cty.Value {
+	if len(slice) == 0 {
+		return cty.ListValEmpty(listType)
+	}
+	return cty.ListVal(slice)
 }

@@ -90,20 +90,20 @@ func (validators chainStateValidators) Validate(state *State, move *Move) bool {
 	return true
 }
 
-func (s *State) AddStateValidator(validator StateValidator) {
-	s.validators = append(s.validators, validator)
+func (g *State) AddStateValidator(validator StateValidator) {
+	g.validators = append(g.validators, validator)
 }
 
-func (s *State) ValidMoves() []Move {
-	if s.validMoves == nil {
-		s.generateValidMoves()
+func (g *State) ValidMoves() []Move {
+	if g.validMoves == nil {
+		g.generateValidMoves()
 	}
-	return s.validMoves
+	return g.validMoves
 }
 
-func (s *State) generateValidMoves() {
+func (g *State) generateValidMoves() {
 	result := make([]Move, 0)
-	moves := s.currentPlayer.moves()
+	moves := g.currentPlayer.moves()
 	for _, move := range moves {
 		err := move.Perform()
 
@@ -111,10 +111,10 @@ func (s *State) generateValidMoves() {
 		if err != nil {
 			fmt.Printf("error performing move for validation: %v", err)
 		} else {
-			isValid = s.validators.Validate(s, &move)
+			isValid = g.validators.Validate(g, &move)
 		}
 
-		for undone := s.Undo(); undone != nil && undone.Move != move; {
+		for undone := g.Undo(); undone != nil && undone.Move != move; {
 		}
 
 		if isValid {
@@ -122,7 +122,7 @@ func (s *State) generateValidMoves() {
 			fmt.Printf("DEBUG: generated move: %v\n", &move)
 		}
 	}
-	s.validMoves = result
+	g.validMoves = result
 }
 
 func (g *State) Handle(event event.Event) {
@@ -173,6 +173,10 @@ func (g *State) Undo() *RecordedMove {
 	}
 	g.record = g.record[:len(g.record)-1]
 	return &lastMove
+}
+
+func (g *State) Record() []RecordedMove {
+	return g.record
 }
 
 type RecordedMove struct {

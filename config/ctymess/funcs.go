@@ -51,11 +51,7 @@ var ConcatFunc = function.New(&function.Spec{
 			result = append(result, list.AsValueSlice()...)
 		}
 
-		if len(result) == 0 {
-			return cty.ListValEmpty(cty.DynamicPseudoType), nil
-		}
-
-		return cty.ListVal(result), nil
+		return listOrEmpty(cty.DynamicPseudoType, result), nil
 	},
 })
 
@@ -335,11 +331,7 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 				}
 			}
 
-			if len(result) == 0 {
-				return cty.ListValEmpty(Move), nil
-			}
-
-			return cty.ListVal(result), nil
+			return listOrEmpty(Move, result), nil
 		},
 	})
 }

@@ -153,5 +153,5 @@ func (m *Move) Perform() error {
 }
 
 func (m *Move) String() string {
-	return fmt.Sprintf("%v->%v", m.From, m.To)
+	return fmt.Sprintf("%v: %v->%v", m.Piece, m.From, m.To)
 }

@@ -335,7 +335,7 @@ composite_function "check_mated_player" {
 // Returns the given player's opponent.
 function "opponent" {
   params = [player]
-  result = [for _player in game.players: _player if _player != player][0]
+  result = [for _player in game.players: _player if _player.color != player.color][0]
 }
 
 // Returns the color belonging to the opponent of the player having the given color.

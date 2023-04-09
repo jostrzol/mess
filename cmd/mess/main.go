@@ -32,7 +32,10 @@ func chooseMove(state *mess.State) *mess.Move {
 		}
 
 		piece, _ := state.Board().At(src)
-		if piece == nil || piece.Owner() != state.CurrentPlayer() {
+		if piece == nil {
+			println("That square is empty!")
+			continue
+		} else if piece.Owner() != state.CurrentPlayer() {
 			println("That belongs to your opponent!")
 			continue
 		}
@@ -88,6 +91,10 @@ func main() {
 	var winner *mess.Player
 	isFinished := false
 	for !isFinished {
+		// generate moves first so that debug logs print before the board does
+		// (the moves are cached anyway, so this computation won't get wasted)
+    state.ValidMoves()
+
 		println("Board: (uppercase - white, lowercase - black)")
 		println(state.PrettyString())
 
