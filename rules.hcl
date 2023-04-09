@@ -64,9 +64,9 @@ piece_types {
       generator = "motion_forward_straight"
       # actions   = ["promote"]
     }
-    # motion {
-    #   generator = "motion_forward_straight_double"
-    # }
+    motion {
+      generator = "motion_forward_straight_double"
+    }
     motion {
       generator = "motion_forward_diagonal"
       # actions   = ["promote"]
@@ -126,15 +126,15 @@ composite_function "motion_forward_straight" {
 
 // Generates a motion two square forwards, given that both the destination square and the transitional
 // square are not occupied by any piece and that the piece has not moved yet before.
-# composite_function "motion_forward_straight_double" {
-#   params = [square, piece]
-#   result = {
-#     dpos   = [dcoord * 2 for dcoord in owner_of(piece).forward_direction]
-#     dest   = get_square_relative(square, dpos)
-#     middle = get_square_relative(square, owner_of(piece).forward_direction)
-#     return = dest == null ? [] : piece_at(dest) != null || piece_at(middle) != null || has_ever_moved(piece) ? [] : [dest]
-#   }
-# }
+composite_function "motion_forward_straight_double" {
+  params = [square, piece]
+  result = {
+    dpos   = [for dcoord in owner_of(piece).forward_direction: dcoord * 2]
+    dest   = get_square_relative(square, dpos)
+    middle = get_square_relative(square, owner_of(piece).forward_direction)
+    return = dest == null ? [] : piece_at(dest) != null || piece_at(middle) != null || has_ever_moved(piece) ? [] : [dest]
+  }
+}
 
 // Generates 2 motions: one square forwards and to either side, given that the
 // destination squares are occupied by the opposing player.
@@ -241,7 +241,7 @@ composite_function "belongs_to" {
 // Checks if the given piece has ever moved in the current game.
 function "has_ever_moved" {
   params = [piece]
-  result = length([move for move in game.record if move.piece == piece]) != 0
+  result = length([for move in game.record: move if move.piece == piece]) != 0
 }
 
 // Returns the last element in the given collection or null if empty.
@@ -272,6 +272,7 @@ initial_state {
     E3 = "queen"
     C1 = "rook"
     E1 = "pawn"
+    F1 = "pawn"
   }
   pieces "black" {
     A1 = "king"
