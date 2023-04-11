@@ -23,10 +23,10 @@ board {
 
 piece_types {
   piece_type "king" {
-    # motion {
-    #   generator = "motion_castling"
-    #   actions   = ["displace_rook_after_castling"]
-    # }
+    motion {
+      generator = "motion_castling"
+      # actions   = ["displace_rook_after_castling"]
+    }
     motion {
       generator = "motion_neighbours_straight"
     }
@@ -103,16 +103,16 @@ composite_function "motion_neighbours_straight" {
 //   * the rook at the appropriate side must have never moved in this game,
 //   * there must be no pieces between the king and the rook,
 //   * squares on the king's path must not be attacked (including both ends).
-# composite_function "motion_castling" {
-#   params = [square, piece]
-#   result = {
-#     rooks       = [_piece for _piece in owner_of(piece).pieces if _piece.type == "rook" && !has_ever_moved(_piece)]
-#     paths       = [square_range(piece.square, rook.square) for rook in rooks]
-#     inner_paths = [slice(path, 1, -1) for path in paths]
-#     king_dests  = [path[2] for path in paths]
-#     return      = [dest for i, dest in king_dests if all([s.piece == null for s in inner_paths[i]]...) && !has_ever_moved(king)]
-#   }
-# }
+composite_function "motion_castling" {
+  params = [square, piece]
+  result = {
+    rooks       = [for _piece in owner_of(piece).pieces: _piece if _piece.type == "rook" && !has_ever_moved(_piece)]
+    paths       = [for rook in rooks: square_range(piece.square, rook.square)]
+    inner_paths = [for path in paths: slice(path, 1, length(path)-1)]
+    king_dests  = [for path in paths: length(path) > 3 ? path[2] : null]
+    return      = has_ever_moved(piece) ? [] : [for i, dest in king_dests: dest if all([for s in inner_paths[i]: piece_at(s) == null]...)]
+  }
+}
 
 // Generates a motion one square forwards, given that the destination square
 // is not occupied by any piece.
@@ -222,10 +222,10 @@ state_validators {
   }
 
   // If the last move was performed by a king, checks if all squares on his path were safe
-  // function "is_kings_path_save" {
-  //   params = [game, move]
-  //   result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked(s)]...)
-  // }
+  # function "is_kings_path_save" {
+  #   params = [game, move]
+  #   result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked_by(opponent_color(move.piece.color), s)]...)
+  # }
 }
 
 // ===== HELPER FUNCTIONS ======================================
@@ -255,53 +255,63 @@ function "last_or_null" {
 composite_function "square_range" {
   params = [end1, end2]
   result = {
-    pos1 = square_to_coords(end1)
-    pos2 = square_to_coords(end2)
-    horiz = [for x in range(pos1[0], pos2[0] + 1): coords_to_square([x, pos1[1]])]
-    vert = [for y in range(pos1[1], pos2[1] + 1): coords_to_square([pos1[0], y])]
+    pos1   = square_to_coords(end1)
+    pos2   = square_to_coords(end2)
+    xdir   = pos2[0] - pos1[0] == 0 ? 1 : (pos2[0] - pos1[0]) / abs(pos2[0] - pos1[0])
+    ydir   = pos2[1] - pos1[1] == 0 ? 0 : (pos2[1] - pos1[1]) / abs(pos2[1] - pos1[1])
+    horiz  = [for x in range(pos1[0], pos2[0] + xdir): coords_to_square([x, pos1[1]])]
+    vert   = [for y in range(pos1[1] + ydir, pos2[1] + ydir): coords_to_square([pos2[0], y])]
     return = concat(horiz, vert)
   }
 }
 
+// Returns the given player's opponent.
+function "opponent" {
+  params = [player]
+  result = [for _player in game.players: _player if _player.color != player.color][0]
+}
+
+// Returns the color belonging to the opponent of the player having the given color.
+function "opponent_color" {
+  params = [color]
+  result = [for _player in game.players: _player.color if _player.color != color][0]
+}
+
+// ===== INITIAL STATE =========================================
 initial_state {
   pieces "white" {
-    A3 = "king"
-    B3 = "bishop"
-    C3 = "rook"
-    D3 = "knight"
-    E3 = "queen"
-    C1 = "rook"
-    E1 = "pawn"
-    F1 = "pawn"
+    E1 = "king"
+    A1 = "rook"
+    H1 = "rook"
+    G1 = "knight"
+    # A3 = "king"
+    # B3 = "bishop"
+    # C3 = "rook"
+    # D3 = "knight"
+    # E3 = "queen"
+    # C1 = "rook"
+    # E1 = "pawn"
+    # F1 = "pawn"
   }
   pieces "black" {
-    A1 = "king"
-    B1 = "queen"
-  }
-}
-
-variable "piece_points" {
-  value = {
-    king = 1000
-    queen = 9
-    rook = 5
-    knight = 3
-    bishop = 3
-    pawn = 1
-  }
-}
-
-function "calc_player_points" {
-  params = [player]
-  result = sum([for i, piece in player.pieces: piece_points[piece.type]]...)
-}
-
-composite_function "decide_winner" {
-  params = [game]
-  result = {
-    points_per_player = {for i, player in game.players: calc_player_points(player) => player...}
-    best_players = points_per_player[max(keys(points_per_player)...)]
-    return = length(best_players) == 1 ? best_players[0] : null
+    A8 = "rook"
+    B8 = "knight"
+    C8 = "bishop"
+    D8 = "queen"
+    E8 = "king"
+    F8 = "bishop"
+    G8 = "knight"
+    H8 = "rook"
+    A7 = "pawn"
+    B7 = "pawn"
+    C7 = "pawn"
+    D7 = "pawn"
+    E7 = "pawn"
+    F7 = "pawn"
+    G7 = "pawn"
+    H7 = "pawn"
+    # A1 = "king"
+    # B1 = "queen"
   }
 }
 
@@ -331,16 +341,4 @@ composite_function "check_mated_player" {
     mated   = [for i, player in checked: player if length(valid_moves[i]) == 0]
     return  = length(mated) == 0 ? null : mated[0]
   }
-}
-
-// Returns the given player's opponent.
-function "opponent" {
-  params = [player]
-  result = [for _player in game.players: _player if _player.color != player.color][0]
-}
-
-// Returns the color belonging to the opponent of the player having the given color.
-function "opponent_color" {
-  params = [color]
-  result = [for _player in game.players: _player.color if _player.color != color][0]
 }

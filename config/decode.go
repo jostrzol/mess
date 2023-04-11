@@ -33,6 +33,7 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 			"length":              stdlib.LengthFunc,
 			"range":               stdlib.RangeFunc,
 			"slice":               stdlib.SliceFunc,
+			"abs":                 stdlib.AbsoluteFunc,
 			"sum":                 ctymess.SumFunc,
 			"concat":              ctymess.ConcatFunc,
 			"all":                 ctymess.AllFunc,
