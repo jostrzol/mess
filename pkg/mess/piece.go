@@ -14,6 +14,7 @@ type Piece struct {
 	owner  *Player
 	board  *PieceBoard
 	square brd.Square
+	moves  []Move
 }
 
 func NewPiece(pieceType *PieceType, owner *Player) *Piece {
@@ -66,7 +67,14 @@ func (p *Piece) RemoveFromBoard() {
 }
 
 func (p *Piece) Moves() []Move {
-	return p.ty.moves(p)
+	if p.moves == nil {
+		p.generateMoves()
+	}
+	return p.moves
+}
+
+func (p *Piece) generateMoves() {
+	p.moves = p.ty.moves(p)
 }
 
 func (p *Piece) Handle(event event.Event) {
@@ -85,6 +93,7 @@ func (p *Piece) Handle(event event.Event) {
 			p.board = nil
 		}
 	}
+	p.moves = nil
 }
 
 type PieceType struct {

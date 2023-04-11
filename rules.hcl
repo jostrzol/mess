@@ -212,20 +212,18 @@ composite_function "motion_line_straight" {
 //   * the current game state,
 //   * the last move,
 // and return true if the state is valid or false otherwise.
-
-
 state_validators {
-  // Checks if the current player's king is not standing on an attacke square
+  // Checks if the current player's king is not standing on an attacked square
   function "is_king_safe" {
     params = [game, move]
     result = all([for piece in move.player.pieces: !is_attacked_by(opponent_color(piece.color), piece.square) if piece.type == "king"]...)
   }
 
-  // If the last move was performed by a king, checks if all squares on his path were safe
-  # function "is_kings_path_save" {
-  #   params = [game, move]
-  #   result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked_by(opponent_color(move.piece.color), s)]...)
-  # }
+  // If the move was performed by a king, checks if all squares on his path were safe
+  function "is_kings_path_save" {
+    params = [game, move]
+    result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked_by(opponent_color(move.piece.color), s)]...)
+  }
 }
 
 // ===== HELPER FUNCTIONS ======================================
@@ -284,14 +282,6 @@ initial_state {
     A1 = "rook"
     H1 = "rook"
     G1 = "knight"
-    # A3 = "king"
-    # B3 = "bishop"
-    # C3 = "rook"
-    # D3 = "knight"
-    # E3 = "queen"
-    # C1 = "rook"
-    # E1 = "pawn"
-    # F1 = "pawn"
   }
   pieces "black" {
     A8 = "rook"
@@ -310,8 +300,6 @@ initial_state {
     F7 = "pawn"
     G7 = "pawn"
     H7 = "pawn"
-    # A1 = "king"
-    # B1 = "queen"
   }
 }
 
