@@ -25,7 +25,13 @@ func NewPiece(pieceType *PieceType, owner *Player) *Piece {
 }
 
 func (p *Piece) String() string {
-	return fmt.Sprintf("%s %s", p.Color(), p.ty)
+	var colorStr string
+	if p.owner != nil {
+		colorStr = p.Color().String()
+	} else {
+		colorStr = "noone's"
+	}
+	return fmt.Sprintf("%s %s", colorStr, p.ty)
 }
 
 func (p *Piece) Type() *PieceType {
@@ -122,39 +128,58 @@ func (t *PieceType) AddMoveGenerator(generator MoveGenerator) {
 
 func (t *PieceType) moves(piece *Piece) []Move {
 	result := make([]Move, 0)
-	for _, destination := range t.moveGenerators.Generate(piece) {
+	for _, generated := range t.moveGenerators.Generate(piece) {
 		move := Move{
-			Piece: piece,
-			From:  piece.Square(),
-			To:    destination,
+			Piece:  piece,
+			From:   piece.Square(),
+			To:     generated.destination,
+			Action: generated.action,
 		}
 		result = append(result, move)
 	}
 	return result
 }
 
-type MoveGenerator func(*Piece) []board.Square
-type chainMoveGenerators []MoveGenerator
+type MoveAction = func(*Piece, board.Square, board.Square)
+type MoveGenerator func(*Piece) ([]board.Square, MoveAction)
 
-func (g chainMoveGenerators) Generate(piece *Piece) []brd.Square {
-	destinationSet := make(map[brd.Square]bool, 0)
+type chainMoveGenerators []MoveGenerator
+type moveGeneratorResult struct {
+	destination board.Square
+	action      MoveAction
+}
+
+func (g chainMoveGenerators) Generate(piece *Piece) []moveGeneratorResult {
+	resultSet := make(map[brd.Square][]MoveAction, 0)
 	for _, generator := range g {
-		newDestinations := generator(piece)
-		for _, destination := range newDestinations {
-			destinationSet[destination] = true
+		destinations, action := generator(piece)
+		for _, destination := range destinations {
+			if action != nil {
+				resultSet[destination] = append(resultSet[destination], action)
+			} else if _, present := resultSet[destination]; !present {
+				resultSet[destination] = make([]MoveAction, 0)
+			}
 		}
 	}
-	destinations := make([]brd.Square, 0, len(destinationSet))
-	for s := range destinationSet {
-		destinations = append(destinations, s)
+	result := make([]moveGeneratorResult, 0, len(resultSet))
+	for destination, actions := range resultSet {
+		result = append(result, moveGeneratorResult{
+			destination: destination,
+			action: func(p *Piece, from, to brd.Square) {
+				for _, action := range actions {
+					action(piece, from, to)
+				}
+			},
+		})
 	}
-	return destinations
+	return result
 }
 
 type Move struct {
-	Piece *Piece
-	From  brd.Square
-	To    brd.Square
+	Piece  *Piece
+	From   brd.Square
+	To     brd.Square
+	Action MoveAction
 }
 
 func (m *Move) Perform() error {

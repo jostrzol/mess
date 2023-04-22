@@ -2,6 +2,7 @@ package mess
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/jostrzol/mess/pkg/board"
@@ -16,7 +17,7 @@ import (
 func Rook(t *testing.T) *PieceType {
 	t.Helper()
 	pieceType := NewPieceType("rook")
-	pieceType.AddMoveGenerator(func(piece *Piece) []board.Square {
+	pieceType.AddMoveGenerator(func(piece *Piece) ([]board.Square, MoveAction) {
 		result := make([]board.Square, 0)
 		for _, offset := range []board.Offset{
 			{X: 1, Y: 0},
@@ -30,7 +31,7 @@ func Rook(t *testing.T) *PieceType {
 				square = square.Offset(offset)
 			}
 		}
-		return result
+		return result, nil
 	})
 	return pieceType
 }
@@ -147,19 +148,56 @@ func (s *PieceSuite) TestMoves() {
 
 			moves := piece.Moves()
 
-			s.ElementsMatch(moves, movesFromDests(piece, tt.expectedDests...))
+			movesMatch(s.T(), moves, movesMatcher(piece, tt.expectedDests...))
 		})
 	}
 }
 
-func movesFromDests(piece *Piece, destinations ...string) []Move {
-	result := make([]Move, len(destinations))
-	for i, destination := range destinations {
-		result[i].Piece = piece
-		result[i].From = piece.Square()
-		result[i].To = boardtest.NewSquare(destination)
+type MovesMatcher struct {
+	Piece        *Piece
+	Destinations []string
+}
+
+func movesMatcher(piece *Piece, destinations ...string) MovesMatcher {
+	return MovesMatcher{Piece: piece, Destinations: destinations}
+}
+
+func movesMatch(t *testing.T, moves []Move, matchers ...MovesMatcher) {
+	anyNotFound := false
+	var msg strings.Builder
+	msg.WriteString(fmt.Sprintf("matching moves (%v) to (%v):\n", moves, matchers))
+
+	for _, matcher := range matchers {
+		for _, destination := range matcher.Destinations {
+			dest := boardtest.NewSquare(destination)
+			src := matcher.Piece.Square()
+			found := -1
+			for i, move := range moves {
+				if move.Piece == matcher.Piece && move.From == src && move.To == dest {
+					found = i
+					break
+				}
+			}
+			if found != -1 {
+				moves[found] = moves[len(moves)-1]
+				moves = moves[:len(moves)-1]
+				msg.WriteString(fmt.Sprintf("FOUND:\t\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
+			} else {
+				anyNotFound = true
+				msg.WriteString(fmt.Sprintf("NOT FOUND:\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
+			}
+		}
 	}
-	return result
+
+	if len(moves) > 0 {
+		for _, move := range moves {
+			msg.WriteString(fmt.Sprintf("UNEXPECTED:\t%v,\n", &move))
+		}
+	}
+
+	if anyNotFound || len(moves) > 0 {
+		t.Errorf(msg.String())
+	}
 }
 
 func (s *PieceSuite) TestMove() {
@@ -257,20 +295,20 @@ func TestPieceSuite(t *testing.T) {
 
 func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
 	t.Helper()
-	return func(piece *Piece) []brd.Square {
+	return func(piece *Piece) ([]brd.Square, MoveAction) {
 		destinations := make([]brd.Square, 0, len(strings))
 		for _, squareStr := range strings {
 			square, err := brd.NewSquare(squareStr)
 			assert.NoError(t, err)
 			destinations = append(destinations, square)
 		}
-		return destinations
+		return destinations, nil
 	}
 }
 
 func offsetMoveGenerator(t *testing.T, offsets ...board.Offset) MoveGenerator {
 	t.Helper()
-	return func(piece *Piece) []brd.Square {
+	return func(piece *Piece) ([]brd.Square, MoveAction) {
 		destinations := make([]brd.Square, 0, len(offsets))
 		for _, offset := range offsets {
 			square := piece.Square().Offset(offset)
@@ -278,7 +316,7 @@ func offsetMoveGenerator(t *testing.T, offsets ...board.Offset) MoveGenerator {
 				destinations = append(destinations, square)
 			}
 		}
-		return destinations
+		return destinations, nil
 	}
 }
 
@@ -329,8 +367,11 @@ func TestChainMoveGenerators(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			generators := chainMoveGenerators(tt.generators)
-			moves := generators.Generate(nil)
-			assertSquaresMatch(t, moves, tt.expected...)
+			destinations := make([]board.Square, 0)
+			for _, generated := range generators.Generate(nil) {
+				destinations = append(destinations, generated.destination)
+			}
+			assertSquaresMatch(t, destinations, tt.expected...)
 		})
 	}
 }

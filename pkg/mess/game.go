@@ -3,6 +3,7 @@ package mess
 import (
 	"fmt"
 
+	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
 	"github.com/jostrzol/mess/pkg/iter"
@@ -114,7 +115,7 @@ func (g *State) generateValidMoves() {
 			isValid = g.validators.Validate(g, &move)
 		}
 
-		for undone := g.Undo(); undone != nil && undone.Move != move; {
+		for undone := g.Undo(); undone != nil && !undone.ComesFrom(&move); {
 		}
 
 		if isValid {
@@ -133,7 +134,9 @@ func (g *State) Handle(event event.Event) {
 	switch e := event.(type) {
 	case PieceMoved:
 		g.record = append(g.record, RecordedMove{
-			Move:     Move(e),
+			Piece:    e.Piece,
+			From:     e.From,
+			To:       e.To,
 			Captures: map[*Piece]struct{}{},
 		})
 	case PieceCaptured:
@@ -180,8 +183,14 @@ func (g *State) Record() []RecordedMove {
 }
 
 type RecordedMove struct {
-	Move
+	Piece    *Piece
+	From     board.Square
+	To       board.Square
 	Captures map[*Piece]struct{}
+}
+
+func (rm *RecordedMove) ComesFrom(move *Move) bool {
+	return rm.Piece == move.Piece && rm.From == move.From && rm.To == move.To
 }
 
 type Controller interface {

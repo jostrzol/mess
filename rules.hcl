@@ -25,7 +25,7 @@ piece_types {
   piece_type "king" {
     motion {
       generator = "motion_castling"
-      # actions   = ["displace_rook_after_castling"]
+      actions   = ["displace_rook_after_castling"]
     }
     motion {
       generator = "motion_neighbours_straight"
@@ -205,23 +205,63 @@ composite_function "motion_line_straight" {
   }
 }
 
+// ===== ACTION FUNCTIONS ========================================
+// Actions executed after piece movement.
+// They receive 1 parameter - move that has just taken place.
+
+// Exchanges a piece for a new one of any type except pawn and king. Works only if moved to the last
+// rank.
+# composite_function "promote" {
+#   params = [move]
+#   result = {
+#     valid_piece_types = [type for type in piece_types if !contains(["king", "pawn"], type.name)]
+#     forward_y         = piece.owner.forward_direction[1]
+#     last_rank         = forward_y == 1 ? board.height : 1
+#     _                 = dest.rank == last_rank ? exchange_piece(piece, valid_piece_types) : null
+#     return            = null
+#   }
+# }
+
+// Captures an opposing pawn after an en passant.
+# composite_function "capture_en_passant" {
+#   params = [move]
+#   result = {
+#     backward         = [-1 * dcoord for dcoord in piece.owner.forward_direction]
+#     piece_to_capture = get_square_relative(dest, backward).piece
+#     _                = capture(piece_to_capture)
+#     return           = null
+#   }
+# }
+
+// Displaces the rook to the appropriate square after castling.
+composite_function "displace_rook_after_castling" {
+  params = [move]
+  result = {
+    src_pos    = square_to_coords(move.src)
+    dst_pos    = square_to_coords(move.dst)
+    dx         = dst_pos[0] - src_pos[0]
+    rook_src   = coords_to_square([dx > 0 ? board.width - 1 : 0, src_pos[1]])
+    rook_dest  = get_square_relative(move.dst, [dx > 0 ? -1 : 1, 0])
+    _          = move(piece_at(rook_src), rook_dest)
+    return     = null
+  }
+}
+
 // ===== GAME STATE VALIDATORS ===================================
 // Validators are called just after a move is taken. If any validator returns false, then the move
 // is reversed - it cannot be completed.
-// Validators receive:
-//   * the current game state,
-//   * the last move,
-// and return true if the state is valid or false otherwise.
+// Validators receive 1 parameter - the last move and return true if the state is valid or false otherwise.
+
 state_validators {
   // Checks if the current player's king is not standing on an attacked square
   function "is_king_safe" {
-    params = [game, move]
+    params = [move]
     result = all([for piece in move.player.pieces: !is_attacked_by(opponent_color(piece.color), piece.square) if piece.type == "king"]...)
   }
 
   // If the move was performed by a king, checks if all squares on his path were safe
   function "is_kings_path_save" {
-    params = [game, move]
+    params = [move]
     result = move.piece.type != "king" ? true : all([for s in square_range(move.src, move.dst): !is_attacked_by(opponent_color(move.piece.color), s)]...)
   }
 }

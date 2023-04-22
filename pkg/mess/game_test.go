@@ -68,11 +68,9 @@ func (s *GameSuite) TestRecordMove() {
 			moves: []move{{&rook, emptySquare1}},
 			expected: []RecordedMove{
 				{
-					Move: Move{
-						Piece: &rook,
-						From:  rookSquare,
-						To:    emptySquare1,
-					},
+					Piece:    &rook,
+					From:     rookSquare,
+					To:       emptySquare1,
 					Captures: map[*Piece]struct{}{},
 				},
 			},
@@ -82,19 +80,15 @@ func (s *GameSuite) TestRecordMove() {
 			moves: []move{{&rook, emptySquare1}, {&rook, emptySquare2}},
 			expected: []RecordedMove{
 				{
-					Move: Move{
-						Piece: &rook,
-						From:  rookSquare,
-						To:    emptySquare1,
-					},
+					Piece:    &rook,
+					From:     rookSquare,
+					To:       emptySquare1,
 					Captures: map[*Piece]struct{}{},
 				},
 				{
-					Move: Move{
-						Piece: &rook,
-						From:  emptySquare1,
-						To:    emptySquare2,
-					},
+					Piece:    &rook,
+					From:     emptySquare1,
+					To:       emptySquare2,
 					Captures: map[*Piece]struct{}{},
 				},
 			},
@@ -104,11 +98,9 @@ func (s *GameSuite) TestRecordMove() {
 			moves: []move{{&rook, knightSquare}},
 			expected: []RecordedMove{
 				{
-					Move: Move{
-						Piece: &rook,
-						From:  rookSquare,
-						To:    knightSquare,
-					},
+					Piece: &rook,
+					From:  rookSquare,
+					To:    knightSquare,
 					Captures: map[*Piece]struct{}{
 						&knight: {},
 					},
@@ -120,21 +112,17 @@ func (s *GameSuite) TestRecordMove() {
 			moves: []move{{&rook, knightSquare}, {&rook, kingSquare}},
 			expected: []RecordedMove{
 				{
-					Move: Move{
-						Piece: &rook,
-						From:  rookSquare,
-						To:    knightSquare,
-					},
+					Piece: &rook,
+					From:  rookSquare,
+					To:    knightSquare,
 					Captures: map[*Piece]struct{}{
 						&knight: {},
 					},
 				},
 				{
-					Move: Move{
-						Piece: &rook,
-						From:  knightSquare,
-						To:    kingSquare,
-					},
+					Piece: &rook,
+					From:  knightSquare,
+					To:    kingSquare,
 					Captures: map[*Piece]struct{}{
 						&king: {},
 					},
@@ -178,11 +166,9 @@ func (s *GameSuite) TestUndo() {
 	move := s.game.Undo()
 
 	expected := &RecordedMove{
-		Move: Move{
-			Piece: rook,
-			From:  a1,
-			To:    a2,
-		},
+		Piece:    rook,
+		From:     a1,
+		To:       a2,
 		Captures: map[*Piece]struct{}{},
 	}
 	s.Equal(expected, move)
@@ -212,11 +198,9 @@ func (s *GameSuite) TestUndoDoubleMove() {
 	move := s.game.Undo()
 
 	expected := &RecordedMove{
-		Move: Move{
-			Piece: rook,
-			From:  a2,
-			To:    a3,
-		},
+		Piece:    rook,
+		From:     a2,
+		To:       a3,
 		Captures: map[*Piece]struct{}{},
 	}
 	s.Equal(expected, move)
@@ -249,11 +233,9 @@ func (s *GameSuite) TestUndoCapture() {
 	move := s.game.Undo()
 
 	expected := &RecordedMove{
-		Move: Move{
-			Piece: rook,
-			From:  a1,
-			To:    a2,
-		},
+		Piece:    rook,
+		From:     a1,
+		To:       a2,
 		Captures: map[*Piece]struct{}{knight: {}},
 	}
 	s.Equal(expected, move)
@@ -273,7 +255,7 @@ func (s *GameSuite) TestValidMoves() {
 
 	moves := s.game.ValidMoves()
 
-	s.ElementsMatch(moves, movesFromDests(king, "A2", "B1"))
+	movesMatch(s.T(), moves, movesMatcher(king, "A2", "B1"))
 }
 
 func (s *GameSuite) TestValidMovesWithValidator() {
@@ -286,7 +268,7 @@ func (s *GameSuite) TestValidMovesWithValidator() {
 
 	moves := s.game.ValidMoves()
 
-	s.ElementsMatch(moves, movesFromDests(king, "B1"))
+	movesMatch(s.T(), moves, movesMatcher(king, "B1"))
 }
 
 func TestGameSuite(t *testing.T) {

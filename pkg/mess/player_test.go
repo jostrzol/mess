@@ -130,14 +130,7 @@ func (s *PlayerSuiteRealBoard) TestMovesOnePiece() {
 	s.board.Place(king, boardtest.NewSquare("A1"))
 
 	moves := s.white.moves()
-	s.ElementsMatch(moves, []Move{
-		{Piece: king,
-			From: boardtest.NewSquare("A1"),
-			To:   boardtest.NewSquare("A2")},
-		{Piece: king,
-			From: boardtest.NewSquare("A1"),
-			To:   boardtest.NewSquare("B1")},
-	})
+	movesMatch(s.T(), moves, movesMatcher(king, "A2", "B1"))
 }
 
 func (s *PlayerSuiteRealBoard) TestMovesOnePieceOneEnemy() {
@@ -148,14 +141,7 @@ func (s *PlayerSuiteRealBoard) TestMovesOnePieceOneEnemy() {
 	s.board.Place(kingB, boardtest.NewSquare("A3"))
 
 	moves := s.white.moves()
-	s.ElementsMatch(moves, []Move{
-		{Piece: kingW,
-			From: boardtest.NewSquare("A1"),
-			To:   boardtest.NewSquare("A2")},
-		{Piece: kingW,
-			From: boardtest.NewSquare("A1"),
-			To:   boardtest.NewSquare("B1")},
-	})
+	movesMatch(s.T(), moves, movesMatcher(kingW, "A2", "B1"))
 }
 
 func (s *PlayerSuiteRealBoard) TestMovesTwoPieces() {
@@ -166,20 +152,7 @@ func (s *PlayerSuiteRealBoard) TestMovesTwoPieces() {
 	s.board.Place(kingW2, boardtest.NewSquare("A3"))
 
 	moves := s.white.moves()
-	s.ElementsMatch(moves, []Move{
-		{Piece: kingW1,
-			From: boardtest.NewSquare("A1"),
-			To:   boardtest.NewSquare("A2")},
-		{Piece: kingW1,
-			From: boardtest.NewSquare("A1"),
-			To:   boardtest.NewSquare("B1")},
-		{Piece: kingW2,
-			From: boardtest.NewSquare("A3"),
-			To:   boardtest.NewSquare("A2")},
-		{Piece: kingW2,
-			From: boardtest.NewSquare("A3"),
-			To:   boardtest.NewSquare("B3")},
-	})
+	movesMatch(s.T(), moves, movesMatcher(kingW1, "A2", "B1"), movesMatcher(kingW2, "A2", "B3"))
 }
 
 func TestPlayerSourceRealBoard(t *testing.T) {

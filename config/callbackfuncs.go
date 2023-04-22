@@ -69,21 +69,21 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.Mo
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
 
-	return func(piece *mess.Piece) []board.Square {
+	return func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
 		pieceCty := ctymess.PieceToCty(piece)
 		squareCty := ctymess.SquareToCty(piece.Square())
 		c.refreshGameStateInContext()
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
 			log.Printf("calling motion generator %q for %v at %v: %v", name, piece, piece.Square(), err)
-			return make([]board.Square, 0)
+			return make([]board.Square, 0), nil
 		}
 
 		squares, err := ctymess.SquaresFromCty(result)
 		if err != nil {
 			log.Printf("parsing motion generator result: %v", err)
 		}
-		return squares
+		return squares, nil
 	}, nil
 }
 
@@ -92,10 +92,9 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, e
 
 	for validatorName, validatorCty := range c.StateValidators {
 		validator := func(state *mess.State, move *mess.Move) bool {
-			stateCty := ctymess.GameStateToCty(state)
 			moveCty := ctymess.MoveToCty(move)
 			c.refreshGameStateInContext()
-			resultCty, err := validatorCty.Call([]cty.Value{stateCty, moveCty})
+			resultCty, err := validatorCty.Call([]cty.Value{moveCty})
 			if err != nil {
 				log.Printf("calling state validator %q for move %v: %v", validatorName, move, err)
 				return false
