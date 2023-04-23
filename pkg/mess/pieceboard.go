@@ -51,6 +51,10 @@ func (b *PieceBoard) PrettyString() string {
 	})
 }
 
+func (b *PieceBoard) Size() (int, int) {
+	return b.wrapped.Size()
+}
+
 func (b *PieceBoard) At(square board.Square) (*Piece, error) {
 	return b.wrapped.At(square)
 }
@@ -94,28 +98,39 @@ type PiecePlaced struct {
 	Square board.Square
 }
 
-func (b *PieceBoard) RemoveAt(square board.Square) error {
+func (b *PieceBoard) CaptureAt(square board.Square, capturedBy *Player) error {
 	old, err := b.wrapped.Place(nil, square)
 	if err != nil {
 		return err
+	} else if old == nil {
+		return fmt.Errorf("tried to capture empty square at %v", square)
 	}
-	if old != nil {
-		b.notifyRemoved(old)
-	}
+	b.notifyRemovedAndCaptured(old, capturedBy)
 	return nil
 }
 
-func (b *PieceBoard) notifyRemoved(piece *Piece) {
+func (b *PieceBoard) notifyRemovedAndCaptured(piece *Piece, capturedBy *Player) {
 	b.Notify(PieceRemoved{
 		Piece:  piece,
 		Square: piece.Square(),
 	})
 	b.Unobserve(piece)
+	b.Notify(PieceCaptured{
+		Piece:        piece,
+		CapturedFrom: piece.Owner(),
+		CapturedBy:   capturedBy,
+	})
 }
 
 type PieceRemoved struct {
 	Piece  *Piece
 	Square board.Square
+}
+
+type PieceCaptured struct {
+	Piece        *Piece
+	CapturedBy   *Player
+	CapturedFrom *Player
 }
 
 func (b *PieceBoard) Move(piece *Piece, square board.Square) error {
@@ -140,12 +155,7 @@ func (b *PieceBoard) Move(piece *Piece, square board.Square) error {
 	})
 
 	if old != nil {
-		b.notifyRemoved(old)
-		b.Notify(PieceCaptured{
-			Piece:        old,
-			CapturedFrom: old.Owner(),
-			CapturedBy:   piece.Owner(),
-		})
+		b.notifyRemovedAndCaptured(old, piece.Owner())
 	}
 	return nil
 }
@@ -154,9 +164,4 @@ type PieceMoved struct {
 	Piece *Piece
 	From  board.Square
 	To    board.Square
-}
-type PieceCaptured struct {
-	Piece        *Piece
-	CapturedBy   *Player
-	CapturedFrom *Player
 }

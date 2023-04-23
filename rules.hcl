@@ -73,7 +73,7 @@ piece_types {
     }
     motion {
       generator = "motion_en_passant"
-      # actions   = ["capture_en_passant"]
+      actions   = ["capture_en_passant"]
     }
   }
 }
@@ -207,12 +207,15 @@ composite_function "motion_line_straight" {
 
 // ===== ACTION FUNCTIONS ========================================
 // Actions executed after piece movement.
-// They receive 1 parameter - move that has just taken place.
+// They receive 3 parameters:
+// * the piece that moved,
+// * the source square,
+// * the destination square.
 
 // Exchanges a piece for a new one of any type except pawn and king. Works only if moved to the last
 // rank.
 # composite_function "promote" {
-#   params = [move]
+#   params = [piece, src, dst]
 #   result = {
 #     valid_piece_types = [type for type in piece_types if !contains(["king", "pawn"], type.name)]
 #     forward_y         = piece.owner.forward_direction[1]
@@ -223,15 +226,16 @@ composite_function "motion_line_straight" {
 # }
 
 // Captures an opposing pawn after an en passant.
-# composite_function "capture_en_passant" {
-#   params = [move]
-#   result = {
-#     backward         = [-1 * dcoord for dcoord in piece.owner.forward_direction]
-#     piece_to_capture = get_square_relative(dest, backward).piece
-#     _                = capture(piece_to_capture)
-#     return           = null
-#   }
-# }
+composite_function "capture_en_passant" {
+  params = [piece, src, dst]
+  result = {
+    backward        = [for dpos in owner_of(piece).forward_direction : -1 * dpos]
+    attacked_square = get_square_relative(dst, backward)
+    attacked_piece  = piece_at(attacked_square)
+    _               = capture(attacked_piece)
+    return          = null
+  }
+}
 
 // Displaces the rook to the appropriate square after castling.
 composite_function "displace_rook_after_castling" {

@@ -66,10 +66,11 @@ func (p *Piece) MoveTo(square brd.Square) error {
 	return p.board.Move(p, square)
 }
 
-func (p *Piece) RemoveFromBoard() {
+func (p *Piece) GetCapturedBy(player *Player) error {
 	if p.IsOnBoard() {
-		p.board.RemoveAt(p.square)
+		return p.board.CaptureAt(p.square, player)
 	}
+	return nil
 }
 
 func (p *Piece) Moves() []Move {

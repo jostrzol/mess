@@ -83,3 +83,11 @@ func listOrEmpty(listType cty.Type, slice []cty.Value) cty.Value {
 	}
 	return cty.ListVal(slice)
 }
+
+func BoardToCty(board *mess.PieceBoard) cty.Value {
+	width, height := board.Size()
+	return cty.ObjectVal(map[string]cty.Value{
+		"width":  cty.NumberIntVal(int64(width)),
+		"height": cty.NumberIntVal(int64(height)),
+	})
+}

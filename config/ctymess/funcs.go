@@ -373,3 +373,34 @@ func MoveFunc(state *mess.State) function.Function {
 		},
 	})
 }
+
+func CaptureFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Captures the given piece",
+		Params: []function.Parameter{
+			{
+				Name:             "piece",
+				Type:             Piece,
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(cty.EmptyTuple),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var piece *mess.Piece
+			var err error
+			if piece, err = PieceFromCty(state, args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'piece': %w", err)
+			} else if piece == nil {
+				return cty.DynamicVal, fmt.Errorf("given piece not found")
+			}
+
+			opponent := state.OpponentTo(piece.Owner())
+
+			if err = piece.GetCapturedBy(opponent); err != nil {
+				return cty.DynamicVal, fmt.Errorf("capturing %v: %w", piece, err)
+			}
+
+			return cty.EmptyTupleVal, nil
+		},
+	})
+}

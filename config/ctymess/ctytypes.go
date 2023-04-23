@@ -40,3 +40,8 @@ var Move = cty.Object(map[string]cty.Type{
 })
 
 var Coords = Offset
+
+var Board = cty.Object(map[string]cty.Type{
+	"width":  cty.Number,
+	"height": cty.Number,
+})
