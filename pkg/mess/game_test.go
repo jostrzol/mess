@@ -68,10 +68,11 @@ func (s *GameSuite) TestRecordMove() {
 			moves: []move{{&rook, emptySquare1}},
 			expected: []RecordedMove{
 				{
-					Piece:    &rook,
-					From:     rookSquare,
-					To:       emptySquare1,
-					Captures: map[*Piece]struct{}{},
+					Piece:      &rook,
+					From:       rookSquare,
+					To:         emptySquare1,
+					Captures:   map[*Piece]struct{}{},
+					TurnNumber: 1,
 				},
 			},
 		},
@@ -80,16 +81,18 @@ func (s *GameSuite) TestRecordMove() {
 			moves: []move{{&rook, emptySquare1}, {&rook, emptySquare2}},
 			expected: []RecordedMove{
 				{
-					Piece:    &rook,
-					From:     rookSquare,
-					To:       emptySquare1,
-					Captures: map[*Piece]struct{}{},
+					Piece:      &rook,
+					From:       rookSquare,
+					To:         emptySquare1,
+					Captures:   map[*Piece]struct{}{},
+					TurnNumber: 1,
 				},
 				{
-					Piece:    &rook,
-					From:     emptySquare1,
-					To:       emptySquare2,
-					Captures: map[*Piece]struct{}{},
+					Piece:      &rook,
+					From:       emptySquare1,
+					To:         emptySquare2,
+					Captures:   map[*Piece]struct{}{},
+					TurnNumber: 1,
 				},
 			},
 		},
@@ -104,6 +107,7 @@ func (s *GameSuite) TestRecordMove() {
 					Captures: map[*Piece]struct{}{
 						&knight: {},
 					},
+					TurnNumber: 1,
 				},
 			},
 		},
@@ -118,6 +122,7 @@ func (s *GameSuite) TestRecordMove() {
 					Captures: map[*Piece]struct{}{
 						&knight: {},
 					},
+					TurnNumber: 1,
 				},
 				{
 					Piece: &rook,
@@ -126,6 +131,7 @@ func (s *GameSuite) TestRecordMove() {
 					Captures: map[*Piece]struct{}{
 						&king: {},
 					},
+					TurnNumber: 1,
 				},
 			},
 		},
@@ -150,8 +156,34 @@ func (s *GameSuite) TestRecordMove() {
 	}
 }
 
+func (s *GameSuite) TestRecordTurnNumber() {
+	rook := *NewPiece(Rook(s.T()), s.game.currentPlayer)
+	rook.PlaceOn(s.game.board, boardtest.NewSquare("A1"))
+
+	err := rook.MoveTo(boardtest.NewSquare("A2"))
+	s.NoError(err)
+
+	s.game.EndTurn()
+
+	err = rook.MoveTo(boardtest.NewSquare("A3"))
+	s.NoError(err)
+
+	err = rook.MoveTo(boardtest.NewSquare("B3"))
+	s.NoError(err)
+
+	s.game.EndTurn()
+
+	err = rook.MoveTo(boardtest.NewSquare("A4"))
+	s.NoError(err)
+
+	s.Equal(s.game.record[0].TurnNumber, 1)
+	s.Equal(s.game.record[1].TurnNumber, 2)
+	s.Equal(s.game.record[2].TurnNumber, 2)
+	s.Equal(s.game.record[3].TurnNumber, 3)
+}
+
 func (s *GameSuite) TestUndoNothing() {
-	s.Nil(s.game.Undo())
+	s.game.UndoTurn()
 }
 
 func (s *GameSuite) TestUndo() {
@@ -163,15 +195,7 @@ func (s *GameSuite) TestUndo() {
 	err := rook.MoveTo(a2)
 	s.NoError(err)
 
-	move := s.game.Undo()
-
-	expected := &RecordedMove{
-		Piece:    rook,
-		From:     a1,
-		To:       a2,
-		Captures: map[*Piece]struct{}{},
-	}
-	s.Equal(expected, move)
+	s.game.UndoTurn()
 
 	pieceA1, err := s.game.Board().At(a1)
 	s.NoError(err)
@@ -191,19 +215,13 @@ func (s *GameSuite) TestUndoDoubleMove() {
 	err := rook.MoveTo(a2)
 	s.NoError(err)
 
+	s.game.EndTurn()
+
 	a3 := boardtest.NewSquare("A3")
 	err = rook.MoveTo(a3)
 	s.NoError(err)
 
-	move := s.game.Undo()
-
-	expected := &RecordedMove{
-		Piece:    rook,
-		From:     a2,
-		To:       a3,
-		Captures: map[*Piece]struct{}{},
-	}
-	s.Equal(expected, move)
+	s.game.UndoTurn()
 
 	pieceA1, err := s.game.Board().At(a1)
 	s.NoError(err)
@@ -230,15 +248,7 @@ func (s *GameSuite) TestUndoCapture() {
 	err := rook.MoveTo(a2)
 	s.NoError(err)
 
-	move := s.game.Undo()
-
-	expected := &RecordedMove{
-		Piece:    rook,
-		From:     a1,
-		To:       a2,
-		Captures: map[*Piece]struct{}{knight: {}},
-	}
-	s.Equal(expected, move)
+	s.game.UndoTurn()
 
 	pieceA1, err := s.game.Board().At(a1)
 	s.NoError(err)
