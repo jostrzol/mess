@@ -63,27 +63,46 @@ func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Pla
 	return true, state.Player(color)
 }
 
-func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (mess.MoveGenerator, error) {
+func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []board.Square, error) {
 	funcCty, ok := c.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
 
-	return func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
+	return func(piece *mess.Piece) []board.Square {
 		pieceCty := ctymess.PieceToCty(piece)
 		squareCty := ctymess.SquareToCty(piece.Square())
 		c.refreshGameStateInContext()
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
 			log.Printf("calling motion generator %q for %v at %v: %v", name, piece, piece.Square(), err)
-			return make([]board.Square, 0), nil
+			return make([]board.Square, 0)
 		}
 
 		squares, err := ctymess.SquaresFromCty(result)
 		if err != nil {
 			log.Printf("parsing motion generator result: %v", err)
 		}
-		return squares, nil
+		return squares
+	}, nil
+}
+
+func (c *callbackFunctionsConfig) GetCustomFuncAsAction(name string) (mess.MoveAction, error) {
+	funcCty, ok := c.CustomFuncs[name]
+	if !ok {
+		return nil, fmt.Errorf("user function %q not found", name)
+	}
+
+	return func(piece *mess.Piece, from board.Square, to board.Square) {
+		pieceCty := ctymess.PieceToCty(piece)
+		fromCty := ctymess.SquareToCty(from)
+		toCty := ctymess.SquareToCty(to)
+		c.refreshGameStateInContext()
+		_, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
+		if err != nil {
+			log.Printf("calling motion action %q for %v %v->%v: %v", name, piece, from, to, err)
+			return
+		}
 	}, nil
 }
 
@@ -91,12 +110,17 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, e
 	validators := make([]mess.StateValidator, 0, len(c.StateValidators))
 
 	for validatorName, validatorCty := range c.StateValidators {
+		// copy is required, because else the validator closure
+		// would always take validator and name from the last c.StateValidators
+		// entry (the iterator reference changes as the loop iterates)
+		valNameCopy := validatorName
+		valCopy := validatorCty
 		validator := func(state *mess.State, move *mess.Move) bool {
 			moveCty := ctymess.MoveToCty(move)
 			c.refreshGameStateInContext()
-			resultCty, err := validatorCty.Call([]cty.Value{moveCty})
+			resultCty, err := valCopy.Call([]cty.Value{moveCty})
 			if err != nil {
-				log.Printf("calling state validator %q for move %v: %v", validatorName, move, err)
+				log.Printf("calling state validator %q for move %v: %v", valNameCopy, move, err)
 				return false
 			}
 			var result bool

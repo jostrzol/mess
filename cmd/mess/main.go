@@ -93,7 +93,7 @@ func main() {
 	for !isFinished {
 		// generate moves first so that debug logs print before the board does
 		// (the moves are cached anyway, so this computation won't get wasted)
-    state.ValidMoves()
+		state.ValidMoves()
 
 		println("Board: (uppercase - white, lowercase - black)")
 		println(state.PrettyString())

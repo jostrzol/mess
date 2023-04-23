@@ -17,6 +17,7 @@ type State struct {
 	isRecording   bool
 	validators    chainStateValidators
 	validMoves    []Move
+	turnNumber    int
 }
 
 func NewState(board *PieceBoard) *State {
@@ -27,6 +28,7 @@ func NewState(board *PieceBoard) *State {
 		currentPlayer: players[color.White],
 		record:        []RecordedMove{},
 		isRecording:   true,
+		turnNumber:    1,
 	}
 	board.Observe(state)
 	return state
@@ -77,6 +79,7 @@ func (g *State) OpponentTo(player *Player) *Player {
 
 func (g *State) EndTurn() {
 	g.currentPlayer = g.CurrentOpponent()
+	g.turnNumber += 1
 }
 
 type StateValidator func(*State, *Move) bool
@@ -106,7 +109,7 @@ func (g *State) generateValidMoves() {
 	result := make([]Move, 0)
 	moves := g.currentPlayer.moves()
 	for _, move := range moves {
-		err := move.Perform()
+		err := move.PerformWithoutAction()
 
 		isValid := false
 		if err != nil {
@@ -114,9 +117,7 @@ func (g *State) generateValidMoves() {
 		} else {
 			isValid = g.validators.Validate(g, &move)
 		}
-
-		for undone := g.Undo(); undone != nil && !undone.ComesFrom(&move); {
-		}
+		g.UndoTurn()
 
 		if isValid {
 			result = append(result, move)
@@ -134,10 +135,11 @@ func (g *State) Handle(event event.Event) {
 	switch e := event.(type) {
 	case PieceMoved:
 		g.record = append(g.record, RecordedMove{
-			Piece:    e.Piece,
-			From:     e.From,
-			To:       e.To,
-			Captures: map[*Piece]struct{}{},
+			Piece:      e.Piece,
+			From:       e.From,
+			To:         e.To,
+			TurnNumber: g.turnNumber,
+			Captures:   map[*Piece]struct{}{},
 		})
 	case PieceCaptured:
 		g.recordCapture(&e)
@@ -154,9 +156,15 @@ func (g *State) recordCapture(event *PieceCaptured) {
 	lastMove.Captures[event.Piece] = struct{}{}
 }
 
-func (g *State) Undo() *RecordedMove {
+func (g *State) UndoTurn() {
+	for len(g.record) > 0 && g.record[len(g.record)-1].TurnNumber == g.turnNumber {
+		g.undoOne()
+	}
+}
+
+func (g *State) undoOne() {
 	if len(g.record) == 0 {
-		return nil
+		return
 	}
 	lastMove := g.record[len(g.record)-1]
 
@@ -175,7 +183,6 @@ func (g *State) Undo() *RecordedMove {
 		}
 	}
 	g.record = g.record[:len(g.record)-1]
-	return &lastMove
 }
 
 func (g *State) Record() []RecordedMove {
@@ -183,14 +190,11 @@ func (g *State) Record() []RecordedMove {
 }
 
 type RecordedMove struct {
-	Piece    *Piece
-	From     board.Square
-	To       board.Square
-	Captures map[*Piece]struct{}
-}
-
-func (rm *RecordedMove) ComesFrom(move *Move) bool {
-	return rm.Piece == move.Piece && rm.From == move.From && rm.To == move.To
+	Piece      *Piece
+	From       board.Square
+	To         board.Square
+	TurnNumber int
+	Captures   map[*Piece]struct{}
 }
 
 type Controller interface {

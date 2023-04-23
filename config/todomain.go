@@ -25,7 +25,25 @@ func (c *config) toGameState() error {
 			if err != nil {
 				return err
 			}
-			pieceType.AddMoveGenerator(moveGenerator)
+			actions := make([]mess.MoveAction, 0, len(motionConfig.ActionNames))
+			for _, actionName := range motionConfig.ActionNames {
+				action, err := c.Functions.GetCustomFuncAsAction(actionName)
+				if err != nil {
+					return err
+				}
+				actions = append(actions, action)
+			}
+			var action mess.MoveAction
+			if len(actions) != 0 {
+				action = func(piece *mess.Piece, from board.Square, to board.Square) {
+					for _, action := range actions {
+						action(piece, from, to)
+					}
+				}
+			}
+			pieceType.AddMoveGenerator(func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
+				return moveGenerator(piece), action
+			})
 		}
 		pieceTypes[pieceType.Name()] = pieceType
 	}

@@ -68,7 +68,7 @@ func (p *Player) AttackedSquares() []board.Square {
 			resultSet[move.To] = struct{}{}
 		}
 	}
-	result := make([]board.Square, len(resultSet))
+	result := make([]board.Square, 0, len(resultSet))
 	for square := range resultSet {
 		result = append(result, square)
 	}

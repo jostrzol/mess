@@ -163,10 +163,14 @@ func (g chainMoveGenerators) Generate(piece *Piece) []moveGeneratorResult {
 	}
 	result := make([]moveGeneratorResult, 0, len(resultSet))
 	for destination, actions := range resultSet {
+		// copy is required, because else the action closure
+		// would always take actions from the last resultSet entry
+		// (the 'action' reference changes as the loop iterates)
+		actionsCopy := actions
 		result = append(result, moveGeneratorResult{
 			destination: destination,
 			action: func(p *Piece, from, to brd.Square) {
-				for _, action := range actions {
+				for _, action := range actionsCopy {
 					action(piece, from, to)
 				}
 			},
@@ -182,8 +186,17 @@ type Move struct {
 	Action MoveAction
 }
 
-func (m *Move) Perform() error {
+func (m *Move) PerformWithoutAction() error {
 	return m.Piece.MoveTo(m.To)
+}
+
+func (m *Move) Perform() error {
+	err := m.Piece.MoveTo(m.To)
+	if err != nil {
+		return err
+	}
+	m.Action(m.Piece, m.From, m.To)
+	return nil
 }
 
 func (m *Move) String() string {

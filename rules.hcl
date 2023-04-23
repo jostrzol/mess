@@ -235,13 +235,13 @@ composite_function "motion_line_straight" {
 
 // Displaces the rook to the appropriate square after castling.
 composite_function "displace_rook_after_castling" {
-  params = [move]
+  params = [piece, src, dst]
   result = {
-    src_pos   = square_to_coords(move.src)
-    dst_pos   = square_to_coords(move.dst)
+    src_pos   = square_to_coords(src)
+    dst_pos   = square_to_coords(dst)
     dx        = dst_pos[0] - src_pos[0]
     rook_src  = coords_to_square([dx > 0 ? board.width - 1 : 0, src_pos[1]])
-    rook_dest = get_square_relative(move.dst, [dx > 0 ? -1 : 1, 0])
+    rook_dest = get_square_relative(dst, [dx > 0 ? -1 : 1, 0])
     _         = move(piece_at(rook_src), rook_dest)
     return    = null
   }

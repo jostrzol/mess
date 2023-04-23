@@ -44,6 +44,7 @@ func newEvalContext(state *mess.State) *hcl.EvalContext {
 			"owner_of":            ctymess.OwnerOfFunc(state),
 			"is_attacked_by":      ctymess.IsAttackedByFunc(state),
 			"valid_moves_for":     ctymess.ValidMovesForFunc(state),
+			"move":                ctymess.MoveFunc(state),
 		},
 		Variables: map[string]cty.Value{
 			"game": cty.DynamicVal,
@@ -80,7 +81,7 @@ type pieceTypeConfig struct {
 
 type motionConfig struct {
 	GeneratorName string   `hcl:"generator"`
-	ActionNames   []string `hcl:"action,optional"`
+	ActionNames   []string `hcl:"actions,optional"`
 }
 
 type initialStateConfig struct {

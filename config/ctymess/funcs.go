@@ -335,3 +335,41 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 		},
 	})
 }
+
+func MoveFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Moves the given piece to the given square",
+		Params: []function.Parameter{
+			{
+				Name:             "piece",
+				Type:             Piece,
+				AllowDynamicType: true,
+			},
+			{
+				Name:             "destination",
+				Type:             cty.String,
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(cty.EmptyTuple),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var piece *mess.Piece
+			var destination board.Square
+			var err error
+			if piece, err = PieceFromCty(state, args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'piece': %w", err)
+			} else if piece == nil {
+				return cty.DynamicVal, fmt.Errorf("given piece not found")
+			}
+			if destination, err = SquareFromCty(args[1]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'destination': %w", err)
+			}
+
+			if err = piece.MoveTo(destination); err != nil {
+				return cty.DynamicVal, fmt.Errorf("moving %v to %v: %w", piece, destination, err)
+			}
+
+			return cty.EmptyTupleVal, nil
+		},
+	})
+}
