@@ -71,10 +71,10 @@ piece_types {
       generator = "motion_forward_diagonal"
       # actions   = ["promote"]
     }
-    # motion {
-    #   generator = "motion_en_passant"
-    #   actions   = ["capture_en_passant"]
-    # }
+    motion {
+      generator = "motion_en_passant"
+      # actions   = ["capture_en_passant"]
+    }
   }
 }
 
@@ -151,18 +151,18 @@ composite_function "motion_forward_diagonal" {
 // Generates 2 motions (en passant): one square forwards and to either side, given that the
 // destination squares are free, and the last move was a "forward_straight_double"
 // by an opposing pawn placed the destination file.
-# composite_function "motion_en_passant" {
-#   params = [square, piece]
-#   result = {
-#     forward   = owner_of(piece).forward_direction
-#     forward_y = forward[1]
-#     dposes    = [[-1, forward_y], [1, forward_y]]
-#     dests     = [get_square_relative(square, dpos) for dpos in dposes]
-#     last_move = last_or_null(game.record)
-#     backward  = [-1 * dcoord for dcoord in owner_of(piece).forward_direction]
-#     return    = [dest for dest in dests if dest == null ? false : piece_at(dest) == null && last_move != null && last_move.piece.type == "pawn" && last_move.dest == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
-#   }
-# }
+composite_function "motion_en_passant" {
+  params = [square, piece]
+  result = {
+    forward   = owner_of(piece).forward_direction
+    forward_y = forward[1]
+    dposes    = [[-1, forward_y], [1, forward_y]]
+    dests     = [for dpos in dposes : get_square_relative(square, dpos)]
+    last_move = last_or_null(game.record)
+    backward  = [for dpos in owner_of(piece).forward_direction : -1 * dpos]
+    return    = [for dest in dests : dest if dest == null || last_move == null ? false : piece_at(dest) == null && last_move.piece.type == "pawn" && last_move.dst == get_square_relative(dest, backward) && last_move.src == get_square_relative(dest, forward)]
+  }
+}
 
 // Generates a maximum of 8 motions, meeting criteria:
 //   * first go 2 to any side,
@@ -322,6 +322,7 @@ initial_state {
     A1 = "rook"
     H1 = "rook"
     G1 = "knight"
+    B5 = "pawn"
   }
   pieces "black" {
     A8 = "rook"
