@@ -6,20 +6,21 @@ board {
 // ===== PIECE TYPES SPECIFICATION =============================
 // Each piece type should specify the motions it is able to perform.
 //
-// Motions are specified by giving a generator function name, which generates all possible destination
-// squares given:
+// Motions are specified by giving a generator function name, which generates
+// all possible destination squares given:
 //   * the current square of the piece,
 //   * the piece that is about to move.
 //
-// Motions can specify special actions that can alter the game state after the motion is taken via
-// attribute "actions", pointing to functions that receive:
+// Motions can specify special actions that can alter the game state after the
+// motion is taken via attribute "actions", pointing to functions that receive:
 //   * the piece that moved,
 //   * the starting square,
 //   * the destination square,
 //   * the current game state.
 //  Such an action can be for example pawn promotion.
 //
-// Both generator and action functions are specified below the piece types definition.
+// Both generator and action functions are specified below the piece types
+// definition.
 
 piece_types {
   piece_type "king" {
@@ -83,7 +84,8 @@ piece_types {
 // They receive 2 parameters:
 //  * square - the current square,
 //  * piece - the current piece,
-// and generate all the squares that the given piece can move to from the given square.
+// and generate all the squares that the given piece can move to from the given
+// square.
 
 // Generates motions to the straight neighbours (top, right, bottom, left)
 // of the current square, given that they are not occupied by the player
@@ -133,8 +135,9 @@ composite_function "motion_forward_straight" {
   }
 }
 
-// Generates a motion two square forwards, given that both the destination square and the transitional
-// square are not occupied by any piece and that the piece has not moved yet before.
+// Generates a motion two square forwards, given that both the destination
+// square and the transitional square are not occupied by any piece and that the
+// piece has not moved yet before.
 composite_function "motion_forward_straight_double" {
   params = [square, piece]
   result = {
@@ -166,9 +169,9 @@ composite_function "motion_forward_diagonal" {
   }
 }
 
-// Generates 2 motions (en passant): one square forwards and to either side, given that the
-// destination squares are free, and the last move was a "forward_straight_double"
-// by an opposing pawn placed the destination file.
+// Generates 2 motions (en passant): one square forwards and to either side,
+// given that the destination squares are free, and the last move was a
+// "forward_straight_double" by an opposing pawn placed the destination file.
 composite_function "motion_en_passant" {
   params = [square, piece]
   result = {
@@ -192,8 +195,10 @@ composite_function "motion_en_passant" {
 
 // Generates a maximum of 8 motions, meeting criteria:
 //   * first go 2 to any side,
-//   * then go 1 to any side, but the direction is perpendicular to the one of previous step.
-// If the destination square is occupied by the player owing the current piece, it is discarded.
+//   * then go 1 to any side, but the direction is perpendicular to the one of
+//     previous step.
+// If the destination square is occupied by the player owing the current piece,
+// it is discarded.
 composite_function "motion_hook" {
   params = [square, piece]
   result = {
@@ -209,10 +214,11 @@ composite_function "motion_hook" {
   }
 }
 
-// Generates motions from current position (param 'square') in the given direction (param 'dpos' in
-// form [dx, dy]) until end of board or a piece is encountered. If said piece belongs to the same
-// player as the one in param 'piece', the last square is excluded from the generated square, else
-// it is included.
+// Generates motions from current position (param 'square') in the given
+// direction (param 'dpos' in form [dx, dy]) until end of board or a piece is
+// encountered. If said piece belongs to the same player as the one in param
+// 'piece', the last square is excluded from the generated square, else it is
+// included.
 composite_function "motion_line" {
   params = [square, piece, dpos]
   result = {
@@ -248,28 +254,34 @@ composite_function "motion_line_straight" {
 // * the source square,
 // * the destination square.
 
-// Exchanges a piece for a new one of any type except pawn and king. Works only if moved to the last
-// rank.
-# composite_function "promote" {
-#   params = [piece, src, dst]
-#   result = {
-#     valid_piece_types = [type for type in piece_types if !contains(["king", "pawn"], type.name)]
-#     forward_y         = piece.owner.forward_direction[1]
-#     last_rank         = forward_y == 1 ? board.height : 1
-#     _                 = dest.rank == last_rank ? exchange_piece(piece, valid_piece_types) : null
-#     return            = null
-#   }
-# }
+// Exchanges a piece for a new one of any type except pawn and king. Works only
+// if moved to the last rank.
+composite_function "promote" {
+  params = [piece, src, dst]
+  result = {
+    valid_piece_types = [
+      for type in piece_types : type
+      if !contains(["king", "pawn"], type.name)
+    ]
+    forward_y = piece.owner.forward_direction[1]
+    last_rank = forward_y == 1 ? board.height : 1
+    _ = (
+      dest.rank != last_rank ? null
+      : exchange_piece(piece, valid_piece_types)
+    )
+    return = null
+  }
+}
 
 // Captures an opposing pawn after an en passant.
 composite_function "capture_en_passant" {
   params = [piece, src, dst]
   result = {
-    backward        = [for dpos in owner_of(piece).forward_direction : -1 * dpos]
-    attacked_square = get_square_relative(dst, backward)
-    attacked_piece  = piece_at(attacked_square)
-    _               = capture(attacked_piece)
-    return          = null
+    backward      = [for dpos in owner_of(piece).forward_direction : -1 * dpos]
+    target_square = get_square_relative(dst, backward)
+    target_piece  = piece_at(target_square)
+    _             = capture(target_piece)
+    return        = null
   }
 }
 
@@ -288,9 +300,11 @@ composite_function "displace_rook_after_castling" {
 }
 
 // ===== GAME STATE VALIDATORS ===================================
-// Validators are called just after a move is taken. If any validator returns false, then the move
-// is reversed - it cannot be completed.
-// Validators receive 1 parameter - the last move and return true if the state is valid or false otherwise.
+// Validators are called just after a move is taken. If any validator returns
+// false, then the move is reversed - it cannot be completed.
+//
+// Validators receive 1 parameter - the last move and return true if the state
+// is valid or false otherwise.
 
 state_validators {
   // Checks if the current player's king is not standing on an attacked square
@@ -303,7 +317,8 @@ state_validators {
     ]...)
   }
 
-  // If the move was performed by a king, checks if all squares on his path were safe
+  // If the move was performed by a king, checks if all squares on his path were
+  // safe (necessary solely for castling motion).
   function "is_kings_path_save" {
     params = [move]
     result = move.piece.type != "king" ? true : all([
@@ -367,7 +382,8 @@ function "opponent" {
   ][0]
 }
 
-// Returns the color belonging to the opponent of the player having the given color.
+// Returns the color belonging to the opponent of the player having the given
+// color.
 function "opponent_color" {
   params = [color]
   result = [
@@ -409,9 +425,9 @@ initial_state {
 // Namely the function "pick_winner" and its helpers
 
 // This function is called at the start of every turn.
-// Returns a tuple in form [is_finished, winner_color]. If is_finished == true and
-// winner_color == null then draw is concluded. Stalemate is "hardcoded" into the game - the rules
-// don't have to specify it explicitly.
+// Returns a tuple in form [is_finished, winner_color]. If is_finished == true
+// and winner_color == null then draw is concluded. Stalemate is "hardcoded"
+// into the game - the rules don't have to specify it explicitly.
 composite_function "pick_winner" {
   params = [game]
   result = {
