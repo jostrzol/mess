@@ -11,8 +11,8 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func chooseMove(state *mess.State) *mess.Move {
-	validMoves := state.ValidMoves()
+func chooseMove(game *mess.Game) *mess.Move {
+	validMoves := game.ValidMoves()
 	for {
 		var srcStr string
 		// srcStr = "A3"
@@ -25,17 +25,17 @@ func chooseMove(state *mess.State) *mess.Move {
 			fmt.Printf("%v\n", err)
 			println("Try again")
 			continue
-		} else if !state.Board().Contains(src) {
+		} else if !game.Board().Contains(src) {
 			println("Square not on board")
 			println("Try again")
 			continue
 		}
 
-		piece, _ := state.Board().At(src)
+		piece, _ := game.Board().At(src)
 		if piece == nil {
 			println("That square is empty!")
 			continue
-		} else if piece.Owner() != state.CurrentPlayer() {
+		} else if piece.Owner() != game.CurrentPlayer() {
 			println("That belongs to your opponent!")
 			continue
 		}
@@ -83,7 +83,7 @@ func main() {
 	var configFilename = flag.String("rules", "./rules.hcl", "path to a rules config file")
 	flag.Parse()
 
-	state, controller, err := config.DecodeConfig(*configFilename)
+	game, err := config.DecodeConfig(*configFilename)
 	if err != nil {
 		log.Fatalf("loading game rules: %s", err)
 	}
@@ -93,20 +93,20 @@ func main() {
 	for !isFinished {
 		// generate moves first so that debug logs print before the board does
 		// (the moves are cached anyway, so this computation won't get wasted)
-		state.ValidMoves()
+		game.ValidMoves()
 
 		println("Board: (uppercase - white, lowercase - black)")
-		println(state.PrettyString())
+		println(game.PrettyString())
 
-		move := chooseMove(state)
+		move := chooseMove(game)
 
 		err = move.Perform()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		state.EndTurn()
-		isFinished, winner = controller.PickWinner(state)
+		game.EndTurn()
+		isFinished, winner = game.PickWinner()
 	}
 
 	if winner == nil {

@@ -7,6 +7,6 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	_, _, err := DecodeConfig("../rules.hcl")
+	_, err := DecodeConfig("../rules.hcl")
 	assert.NoError(t, err)
 }

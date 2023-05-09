@@ -6,18 +6,19 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func DecodeConfig(filename string) (*mess.State, mess.Controller, error) {
+func DecodeConfig(filename string) (*mess.Game, error) {
 	config, err := decodeConfig(filename)
 	if err != nil {
-		return nil, nil, fmt.Errorf("decoding config: %w", err)
+		return nil, fmt.Errorf("decoding config: %w", err)
 	}
 
 	err = config.toGameState()
 	if err != nil {
-		return nil, nil, fmt.Errorf("initializing game state: %w", err)
+		return nil, fmt.Errorf("initializing game state: %w", err)
 	}
 
 	controller := config.toController()
 
-	return config.State, controller, nil
+	game := mess.NewGame(config.State, controller)
+	return game, nil
 }

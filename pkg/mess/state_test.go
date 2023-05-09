@@ -10,43 +10,43 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type GameSuite struct {
+type StateSuite struct {
 	suite.Suite
-	game *State
+	state *State
 }
 
-func (s *GameSuite) SetupTest() {
+func (s *StateSuite) SetupTest() {
 	board, err := NewPieceBoard(8, 8)
 	s.NoError(err)
-	s.game = NewState(board)
+	s.state = NewState(board)
 }
 
-func (s *GameSuite) TestGetPlayer() {
+func (s *StateSuite) TestGetPlayer() {
 	for _, color := range color.ColorValues() {
 		s.Run(color.String(), func() {
-			player := s.game.Player(color)
+			player := s.state.Player(color)
 			s.Equal(player.Color(), color)
 		})
 	}
 }
 
-func (s *GameSuite) TestGetPlayerNotFound() {
+func (s *StateSuite) TestGetPlayerNotFound() {
 	s.Panics(func() {
-		s.game.Player(color.Color(-1))
+		s.state.Player(color.Color(-1))
 	})
 }
 
-func (s *GameSuite) TestEndTurn() {
-	firstTurnPlayer := s.game.CurrentPlayer()
-	s.Equal(s.game.Player(color.White), firstTurnPlayer)
+func (s *StateSuite) TestEndTurn() {
+	firstTurnPlayer := s.state.CurrentPlayer()
+	s.Equal(s.state.Player(color.White), firstTurnPlayer)
 
-	s.game.EndTurn()
+	s.state.EndTurn()
 
-	secondTurnPlayer := s.game.CurrentPlayer()
-	s.Equal(s.game.Player(color.Black), secondTurnPlayer)
+	secondTurnPlayer := s.state.CurrentPlayer()
+	s.Equal(s.state.Player(color.Black), secondTurnPlayer)
 }
 
-func (s *GameSuite) TestRecordMove() {
+func (s *StateSuite) TestRecordMove() {
 	var rook, knight, king Piece
 	rookSquare := boardtest.NewSquare("A1")
 	knightSquare := boardtest.NewSquare("A2")
@@ -139,31 +139,31 @@ func (s *GameSuite) TestRecordMove() {
 	for _, tt := range tests {
 		s.SetupTest()
 		s.Run(tt.name, func() {
-			rook = *NewPiece(Rook(s.T()), s.game.currentPlayer)
-			rook.PlaceOn(s.game.board, rookSquare)
-			knight = *NewPiece(Knight(s.T()), s.game.currentPlayer)
-			knight.PlaceOn(s.game.board, knightSquare)
-			king = *NewPiece(Knight(s.T()), s.game.currentPlayer)
-			king.PlaceOn(s.game.board, kingSquare)
+			rook = *NewPiece(Rook(s.T()), s.state.currentPlayer)
+			rook.PlaceOn(s.state.board, rookSquare)
+			knight = *NewPiece(Knight(s.T()), s.state.currentPlayer)
+			knight.PlaceOn(s.state.board, knightSquare)
+			king = *NewPiece(Knight(s.T()), s.state.currentPlayer)
+			king.PlaceOn(s.state.board, kingSquare)
 
 			for _, move := range tt.moves {
 				err := move.Piece.MoveTo(move.Square)
 				s.NoError(err)
 			}
 
-			s.Equal(s.game.record, tt.expected)
+			s.Equal(s.state.record, tt.expected)
 		})
 	}
 }
 
-func (s *GameSuite) TestRecordTurnNumber() {
-	rook := *NewPiece(Rook(s.T()), s.game.currentPlayer)
-	rook.PlaceOn(s.game.board, boardtest.NewSquare("A1"))
+func (s *StateSuite) TestRecordTurnNumber() {
+	rook := *NewPiece(Rook(s.T()), s.state.currentPlayer)
+	rook.PlaceOn(s.state.board, boardtest.NewSquare("A1"))
 
 	err := rook.MoveTo(boardtest.NewSquare("A2"))
 	s.NoError(err)
 
-	s.game.EndTurn()
+	s.state.EndTurn()
 
 	err = rook.MoveTo(boardtest.NewSquare("A3"))
 	s.NoError(err)
@@ -171,118 +171,118 @@ func (s *GameSuite) TestRecordTurnNumber() {
 	err = rook.MoveTo(boardtest.NewSquare("B3"))
 	s.NoError(err)
 
-	s.game.EndTurn()
+	s.state.EndTurn()
 
 	err = rook.MoveTo(boardtest.NewSquare("A4"))
 	s.NoError(err)
 
-	s.Equal(s.game.record[0].TurnNumber, 1)
-	s.Equal(s.game.record[1].TurnNumber, 2)
-	s.Equal(s.game.record[2].TurnNumber, 2)
-	s.Equal(s.game.record[3].TurnNumber, 3)
+	s.Equal(s.state.record[0].TurnNumber, 1)
+	s.Equal(s.state.record[1].TurnNumber, 2)
+	s.Equal(s.state.record[2].TurnNumber, 2)
+	s.Equal(s.state.record[3].TurnNumber, 3)
 }
 
-func (s *GameSuite) TestUndoNothing() {
-	s.game.UndoTurn()
+func (s *StateSuite) TestUndoNothing() {
+	s.state.UndoTurn()
 }
 
-func (s *GameSuite) TestUndo() {
-	rook := NewPiece(Rook(s.T()), s.game.currentPlayer)
+func (s *StateSuite) TestUndo() {
+	rook := NewPiece(Rook(s.T()), s.state.currentPlayer)
 	a1 := boardtest.NewSquare("A1")
-	rook.PlaceOn(s.game.board, a1)
+	rook.PlaceOn(s.state.board, a1)
 
 	a2 := boardtest.NewSquare("A2")
 	err := rook.MoveTo(a2)
 	s.NoError(err)
 
-	s.game.UndoTurn()
+	s.state.UndoTurn()
 
-	pieceA1, err := s.game.Board().At(a1)
+	pieceA1, err := s.state.Board().At(a1)
 	s.NoError(err)
 	s.Equal(rook, pieceA1)
 
-	pieceA2, err := s.game.Board().At(a2)
+	pieceA2, err := s.state.Board().At(a2)
 	s.NoError(err)
 	s.Nil(pieceA2)
 }
 
-func (s *GameSuite) TestUndoDoubleMove() {
-	rook := NewPiece(Rook(s.T()), s.game.currentPlayer)
+func (s *StateSuite) TestUndoDoubleMove() {
+	rook := NewPiece(Rook(s.T()), s.state.currentPlayer)
 	a1 := boardtest.NewSquare("A1")
-	rook.PlaceOn(s.game.board, a1)
+	rook.PlaceOn(s.state.board, a1)
 
 	a2 := boardtest.NewSquare("A2")
 	err := rook.MoveTo(a2)
 	s.NoError(err)
 
-	s.game.EndTurn()
+	s.state.EndTurn()
 
 	a3 := boardtest.NewSquare("A3")
 	err = rook.MoveTo(a3)
 	s.NoError(err)
 
-	s.game.UndoTurn()
+	s.state.UndoTurn()
 
-	pieceA1, err := s.game.Board().At(a1)
+	pieceA1, err := s.state.Board().At(a1)
 	s.NoError(err)
 	s.Nil(pieceA1)
 
-	pieceA2, err := s.game.Board().At(a2)
+	pieceA2, err := s.state.Board().At(a2)
 	s.NoError(err)
 	s.Equal(rook, pieceA2)
 
-	pieceA3, err := s.game.Board().At(a3)
+	pieceA3, err := s.state.Board().At(a3)
 	s.NoError(err)
 	s.Nil(pieceA3)
 }
 
-func (s *GameSuite) TestUndoCapture() {
-	rook := NewPiece(Rook(s.T()), s.game.currentPlayer)
+func (s *StateSuite) TestUndoCapture() {
+	rook := NewPiece(Rook(s.T()), s.state.currentPlayer)
 	a1 := boardtest.NewSquare("A1")
-	rook.PlaceOn(s.game.board, a1)
+	rook.PlaceOn(s.state.board, a1)
 
-	knight := NewPiece(Knight(s.T()), s.game.currentPlayer)
+	knight := NewPiece(Knight(s.T()), s.state.currentPlayer)
 	a2 := boardtest.NewSquare("A2")
-	knight.PlaceOn(s.game.board, a2)
+	knight.PlaceOn(s.state.board, a2)
 
 	err := rook.MoveTo(a2)
 	s.NoError(err)
 
-	s.game.UndoTurn()
+	s.state.UndoTurn()
 
-	pieceA1, err := s.game.Board().At(a1)
+	pieceA1, err := s.state.Board().At(a1)
 	s.NoError(err)
 	s.Equal(rook, pieceA1)
 
-	pieceA2, err := s.game.Board().At(a2)
+	pieceA2, err := s.state.Board().At(a2)
 	s.NoError(err)
 	s.Equal(knight, pieceA2)
 }
 
-func (s *GameSuite) TestValidMoves() {
-	king := NewPiece(King(s.T()), s.game.CurrentPlayer())
-	king.PlaceOn(s.game.Board(), boardtest.NewSquare("A1"))
+func (s *StateSuite) TestValidMoves() {
+	king := NewPiece(King(s.T()), s.state.CurrentPlayer())
+	king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
 
-	moves := s.game.ValidMoves()
+	moves := s.state.ValidMoves()
 
 	movesMatch(s.T(), moves, movesMatcher(king, "A2", "B1"))
 }
 
-func (s *GameSuite) TestValidMovesWithValidator() {
-	king := NewPiece(King(s.T()), s.game.CurrentPlayer())
-	king.PlaceOn(s.game.Board(), boardtest.NewSquare("A1"))
+func (s *StateSuite) TestValidMovesWithValidator() {
+	king := NewPiece(King(s.T()), s.state.CurrentPlayer())
+	king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
 
-	s.game.AddStateValidator(func(s *State, m *Move) bool {
+	s.state.AddStateValidator(func(s *State, m *Move) bool {
 		return m.To != boardtest.NewSquare("A2")
 	})
 
-	moves := s.game.ValidMoves()
+	moves := s.state.ValidMoves()
 
 	movesMatch(s.T(), moves, movesMatcher(king, "B1"))
 }
 
-func TestGameSuite(t *testing.T) {
-	suite.Run(t, new(GameSuite))
+func TestStateSuite(t *testing.T) {
+	suite.Run(t, new(StateSuite))
 }
 
 func trueStateValidator(*State, *Move) bool  { return true }

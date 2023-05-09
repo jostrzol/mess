@@ -15,22 +15,22 @@ func FuzzGameMax10Steps(f *testing.F) {
 
 	f.Add(int64(12345))
 	f.Fuzz(func(t *testing.T, seed int64) {
-		state, controller, err := config.DecodeConfig("../rules.hcl")
+		game, err := config.DecodeConfig("../rules.hcl")
 		assert.NoError(t, err)
 
 		src := rand.NewSource(seed)
 		src.Int63()
 
-		isFinished, _ := controller.PickWinner(state)
+		isFinished, _ := game.PickWinner()
 		for i := 0; !isFinished && i < 10; i++ {
-			moves := state.ValidMoves()
+			moves := game.ValidMoves()
 			assert.NotEmpty(t, moves)
 
 			chosen := int(src.Int63()) % len(moves)
 			err := moves[chosen].Perform()
 			assert.NoError(t, err)
 
-			isFinished, _ = controller.PickWinner(state)
+			isFinished, _ = game.PickWinner()
 		}
 	})
 }
