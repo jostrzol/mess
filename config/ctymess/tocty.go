@@ -6,7 +6,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-func GameStateToCty(state *mess.State) cty.Value {
+func StateToCty(state *mess.State) cty.Value {
 	players := make(map[string]cty.Value, len(state.Players()))
 	for player := range state.Players() {
 		players[player.Color().String()] = PlayerToCty(player)

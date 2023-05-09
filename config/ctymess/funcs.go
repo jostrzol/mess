@@ -197,6 +197,15 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 	})
 }
 
+var StateMissingFunc = function.New(&function.Spec{
+	Description: "Placeholder - the game state is not built yet",
+	Params:      []function.Parameter{},
+	Type:        function.StaticReturnType(cty.NilType),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		panic("state not built yet")
+	},
+})
+
 func PieceAtFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: joinText(

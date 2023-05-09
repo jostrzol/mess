@@ -7,18 +7,17 @@ import (
 )
 
 func DecodeConfig(filename string) (*mess.Game, error) {
-	config, err := decodeConfig(filename)
+	ctx := InitialEvalContext
+
+	config, err := decodeConfig(filename, ctx)
 	if err != nil {
 		return nil, fmt.Errorf("decoding config: %w", err)
 	}
 
-	err = config.toGameState()
+	game, err := config.toGameState(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("initializing game state: %w", err)
+		return nil, fmt.Errorf("initializing game from config: %w", err)
 	}
 
-	controller := config.toController()
-
-	game := mess.NewGame(config.State, controller)
 	return game, nil
 }

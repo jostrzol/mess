@@ -10,22 +10,17 @@ import (
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
-	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
 
-type callbackFunctionsConfig struct {
-	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
-	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
-	StateValidators map[string]function.Function
-	EvalContext     *hcl.EvalContext
-	State           *mess.State
+type controller struct {
+	ctx    *hcl.EvalContext
+	config *callbackFunctionsConfig
 }
 
-func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Player) {
-	ctyState := ctymess.GameStateToCty(state)
-	c.refreshGameStateInContext()
-	resultCty, err := c.PickWinnerFunc.Call([]cty.Value{ctyState})
+func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
+	ctyState := c.refreshGameStateInContext(state)
+	resultCty, err := c.config.PickWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
 		log.Printf("calling pick_winner user-defined function: %v", err)
 		return false, nil
@@ -42,7 +37,7 @@ func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Pla
 
 	if !result.IsFinished || result.WinnerColorCty.IsNull() {
 		// check if the current player can move - if not it's a stalemate
-		if len(c.State.ValidMoves()) == 0 {
+		if len(state.ValidMoves()) == 0 {
 			result.IsFinished = true
 		}
 		return result.IsFinished, nil
@@ -63,8 +58,11 @@ func (c *callbackFunctionsConfig) PickWinner(state *mess.State) (bool, *mess.Pla
 	return true, state.Player(color)
 }
 
-func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []board.Square, error) {
-	funcCty, ok := c.CustomFuncs[name]
+func (c *controller) GetCustomFuncAsGenerator(
+	name string,
+	state *mess.State,
+) (func(*mess.Piece) []board.Square, error) {
+	funcCty, ok := c.config.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -72,7 +70,7 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (func(*m
 	return func(piece *mess.Piece) []board.Square {
 		pieceCty := ctymess.PieceToCty(piece)
 		squareCty := ctymess.SquareToCty(piece.Square())
-		c.refreshGameStateInContext()
+		c.refreshGameStateInContext(state)
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
 			log.Printf("calling motion generator %q for %v at %v: %v", name, piece, piece.Square(), err)
@@ -81,14 +79,14 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsGenerator(name string) (func(*m
 
 		squares, err := ctymess.SquaresFromCty(result)
 		if err != nil {
-			log.Printf("parsing motion generator result: %v", err)
+			log.Printf("parsing motion generator %q result: %v", name, err)
 		}
 		return squares
 	}, nil
 }
 
-func (c *callbackFunctionsConfig) GetCustomFuncAsAction(name string) (mess.MoveAction, error) {
-	funcCty, ok := c.CustomFuncs[name]
+func (c *controller) GetCustomFuncAsAction(name string, state *mess.State) (mess.MoveAction, error) {
+	funcCty, ok := c.config.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -97,7 +95,7 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsAction(name string) (mess.MoveA
 		pieceCty := ctymess.PieceToCty(piece)
 		fromCty := ctymess.SquareToCty(from)
 		toCty := ctymess.SquareToCty(to)
-		c.refreshGameStateInContext()
+		c.refreshGameStateInContext(state)
 		_, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
 		if err != nil {
 			log.Printf("calling motion action %q for %v %v->%v: %v", name, piece, from, to, err)
@@ -106,10 +104,10 @@ func (c *callbackFunctionsConfig) GetCustomFuncAsAction(name string) (mess.MoveA
 	}, nil
 }
 
-func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, error) {
-	validators := make([]mess.StateValidator, 0, len(c.StateValidators))
+func (c *controller) GetStateValidators(state *mess.State) ([]mess.StateValidator, error) {
+	validators := make([]mess.StateValidator, 0, len(c.config.StateValidators))
 
-	for validatorName, validatorCty := range c.StateValidators {
+	for validatorName, validatorCty := range c.config.StateValidators {
 		// copy is required, because else the validator closure
 		// would always take validator and name from the last c.StateValidators
 		// entry (the iterator reference changes as the loop iterates)
@@ -117,7 +115,7 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, e
 		valCopy := validatorCty
 		validator := func(state *mess.State, move *mess.Move) bool {
 			moveCty := ctymess.MoveToCty(move)
-			c.refreshGameStateInContext()
+			c.refreshGameStateInContext(state)
 			resultCty, err := valCopy.Call([]cty.Value{moveCty})
 			if err != nil {
 				log.Printf("calling state validator %q for move %v: %v", valNameCopy, move, err)
@@ -126,7 +124,7 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, e
 			var result bool
 			err = gocty.FromCtyValue(resultCty, &result)
 			if err != nil {
-				log.Printf("parsing state validator result: %v", err)
+				log.Printf("parsing state validator %q result: %v", valNameCopy, err)
 			}
 			return result
 		}
@@ -135,7 +133,8 @@ func (c *callbackFunctionsConfig) GetStateValidators() ([]mess.StateValidator, e
 	return validators, nil
 }
 
-func (c *callbackFunctionsConfig) refreshGameStateInContext() {
-	newGame := ctymess.GameStateToCty(c.State)
-	c.EvalContext.Variables["game"] = newGame
+func (c *controller) refreshGameStateInContext(state *mess.State) cty.Value {
+	newState := ctymess.StateToCty(state)
+	c.ctx.Variables["game"] = newState
+	return newState
 }

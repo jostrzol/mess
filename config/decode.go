@@ -9,67 +9,22 @@ import (
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jostrzol/mess/config/composeuserfunc"
-	"github.com/jostrzol/mess/config/ctymess"
-	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
-	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
 
-func newEvalContext(state *mess.State) *hcl.EvalContext {
-	return &hcl.EvalContext{
-		Functions: map[string]function.Function{
-			"upper":               stdlib.UpperFunc,
-			"lower":               stdlib.LowerFunc,
-			"min":                 stdlib.MinFunc,
-			"max":                 stdlib.MaxFunc,
-			"strlen":              stdlib.StrlenFunc,
-			"substr":              stdlib.SubstrFunc,
-			"lookup":              stdlib.LookupFunc,
-			"keys":                stdlib.KeysFunc,
-			"values":              stdlib.ValuesFunc,
-			"element":             stdlib.ElementFunc,
-			"length":              stdlib.LengthFunc,
-			"range":               stdlib.RangeFunc,
-			"slice":               stdlib.SliceFunc,
-			"abs":                 stdlib.AbsoluteFunc,
-			"sum":                 ctymess.SumFunc,
-			"concat":              ctymess.ConcatFunc,
-			"all":                 ctymess.AllFunc,
-			"square_to_coords":    ctymess.SquareToCoordsFunc,
-			"coords_to_square":    ctymess.CoordsToSquareFunc,
-			"get_square_relative": ctymess.GetSquareRelativeFunc(state),
-			"piece_at":            ctymess.PieceAtFunc(state),
-			"owner_of":            ctymess.OwnerOfFunc(state),
-			"is_attacked_by":      ctymess.IsAttackedByFunc(state),
-			"valid_moves_for":     ctymess.ValidMovesForFunc(state),
-			"move":                ctymess.MoveFunc(state),
-			"capture":             ctymess.CaptureFunc(state),
-		},
-		Variables: map[string]cty.Value{
-			"game":  cty.DynamicVal,
-			"board": ctymess.BoardToCty(state.Board()),
-		},
-	}
-}
-
-type minimalConfig struct {
-	Board  boardConfig `hcl:"board,block"`
-	Remain hcl.Body    `hcl:",remain"`
+type config struct {
+	Board           boardConfig          `hcl:"board,block"`
+	PieceTypes      pieceTypesConfig     `hcl:"piece_types,block"`
+	InitialState    initialStateConfig   `hcl:"initial_state,block"`
+	StateValidators stateValidatorConfig `hcl:"state_validators,block"`
+	Functions       callbackFunctionsConfig
 }
 
 type boardConfig struct {
 	Height uint `hcl:"height"`
 	Width  uint `hcl:"width"`
-}
-
-type config struct {
-	State           *mess.State
-	PieceTypes      pieceTypesConfig     `hcl:"piece_types,block"`
-	InitialState    initialStateConfig   `hcl:"initial_state,block"`
-	StateValidators stateValidatorConfig `hcl:"state_validators,block"`
-	Functions       callbackFunctionsConfig
 }
 
 type pieceTypesConfig struct {
@@ -109,7 +64,13 @@ type stateValidatorConfig struct {
 	Body hcl.Body `hcl:",remain"`
 }
 
-func decodeConfig(filename string) (*config, error) {
+type callbackFunctionsConfig struct {
+	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
+	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
+	StateValidators map[string]function.Function
+}
+
+func decodeConfig(filename string, ctx *hcl.EvalContext) (*config, error) {
 	diags := make(hcl.Diagnostics, 0)
 
 	src, err := os.ReadFile(filename)
@@ -123,18 +84,7 @@ func decodeConfig(filename string) (*config, error) {
 		return nil, diags
 	}
 
-	minConfig := &minimalConfig{}
-	tmpDiags := gohcl.DecodeBody(file.Body, nil, minConfig)
-	diags.Extend(tmpDiags)
-
-	board, err := mess.NewPieceBoard(int(minConfig.Board.Width), int(minConfig.Board.Height))
-	if err != nil {
-		return nil, fmt.Errorf("creating new board: %w", err)
-	}
-	state := mess.NewState(board)
-	ctx := newEvalContext(state)
-
-	userFuncs, body, tmpDiags := decodeUserFunctions(minConfig.Remain, ctx)
+	userFuncs, body, tmpDiags := decodeUserFunctions(file.Body, ctx)
 	diags.Extend(tmpDiags)
 	mergeWithStd(ctx.Functions, userFuncs, "function")
 
@@ -142,7 +92,7 @@ func decodeConfig(filename string) (*config, error) {
 	diags.Extend(tmpDiags)
 	mergeWithStd(ctx.Variables, userVariables, "variable")
 
-	config := &config{State: state}
+	config := &config{}
 	tmpDiags = gohcl.DecodeBody(body, ctx, config)
 	diags.Extend(tmpDiags)
 
@@ -157,9 +107,6 @@ func decodeConfig(filename string) (*config, error) {
 	stateValidators, _, tmpDiags := decodeUserFunctions(config.StateValidators.Body, ctx)
 	diags.Extend(tmpDiags)
 	config.Functions.StateValidators = stateValidators
-
-	config.Functions.State = state
-	config.Functions.EvalContext = ctx
 
 	return config, nil
 }
