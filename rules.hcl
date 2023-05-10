@@ -29,7 +29,7 @@ piece_types {
       actions   = ["displace_rook_after_castling"]
     }
     motion {
-      generator = "motion_neighbours_straight"
+      generator = "motion_neighbours"
     }
   }
 
@@ -87,13 +87,15 @@ piece_types {
 // and generate all the squares that the given piece can move to from the given
 // square.
 
-// Generates motions to the straight neighbours (top, right, bottom, left)
-// of the current square, given that they are not occupied by the player
-// owning the current piece.
-composite_function "motion_neighbours_straight" {
+// Generates motions to all the 8 neighbours of the current square,
+// given that they are not occupied by the player owning the current piece.
+composite_function "motion_neighbours" {
   params = [square, piece]
   result = {
-    dposes = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+    dposes = [
+      [0, 1], [1, 0], [0, -1], [-1, 0],
+      [1, 1], [1, -1], [-1, 1], [-1, -1]
+    ]
     dests  = [for dpos in dposes : get_square_relative(square, dpos)]
     return = [
       for dest in dests : dest
