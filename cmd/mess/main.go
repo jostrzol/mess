@@ -11,11 +11,32 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
+type terminalInteractor struct{}
+
+func (i terminalInteractor) Choose(options []string) int {
+	println("Choose option:")
+	for i, option := range options {
+		fmt.Printf("%d. %s\n", i+1, option)
+	}
+	var choice int
+	for {
+		_, err := fmt.Scanf("%d", &choice)
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			println("Try again")
+		} else if choice > len(options) || choice == 0 {
+			fmt.Printf("incorect choice\n")
+			println("Try again")
+		} else {
+			return choice - 1
+		}
+	}
+}
+
 func chooseMove(game *mess.Game) *mess.Move {
 	validMoves := game.ValidMoves()
 	for {
 		var srcStr string
-		// srcStr = "A3"
 		println("Choose a square with your piece")
 		print("> ")
 		fmt.Scanf("%s", &srcStr)
@@ -58,7 +79,6 @@ func chooseMove(game *mess.Game) *mess.Move {
 		}
 
 		var dstStr string
-		// dstStr = "A2"
 		println("Choose a destination square")
 		print("> ")
 		fmt.Scanf("%s", &dstStr)
@@ -83,7 +103,7 @@ func main() {
 	var configFilename = flag.String("rules", "./rules.hcl", "path to a rules config file")
 	flag.Parse()
 
-	game, err := config.DecodeConfig(*configFilename)
+	game, err := config.DecodeConfig(*configFilename, terminalInteractor{})
 	if err != nil {
 		log.Fatalf("loading game rules: %s", err)
 	}

@@ -45,3 +45,7 @@ var Board = cty.Object(map[string]cty.Type{
 	"width":  cty.Number,
 	"height": cty.Number,
 })
+
+var PieceType = cty.Object(map[string]cty.Type{
+	"name": cty.String,
+})

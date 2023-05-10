@@ -10,14 +10,16 @@ import (
 )
 
 type State struct {
-	board         *PieceBoard
-	players       map[color.Color]*Player
-	currentPlayer *Player
-	record        []RecordedMove
-	isRecording   bool
-	validators    chainStateValidators
-	validMoves    []Move
-	turnNumber    int
+	board             *PieceBoard
+	players           map[color.Color]*Player
+	currentPlayer     *Player
+	record            []RecordedMove
+	isRecording       bool
+	validators        chainStateValidators
+	validMoves        []Move
+	turnNumber        int
+	isGeneratingMoves bool
+	pieceTypes        []*PieceType
 }
 
 func NewState(board *PieceBoard) *State {
@@ -34,39 +36,39 @@ func NewState(board *PieceBoard) *State {
 	return state
 }
 
-func (g *State) String() string {
-	return fmt.Sprintf("Board:\n%v\nCurrent player: %v\n", g.board, g.currentPlayer)
+func (s *State) String() string {
+	return fmt.Sprintf("Board:\n%v\nCurrent player: %v\n", s.board, s.currentPlayer)
 }
 
-func (g *State) PrettyString() string {
-	return fmt.Sprintf("%v\nCurrent player: %v", g.board.PrettyString(), g.currentPlayer)
+func (s *State) PrettyString() string {
+	return fmt.Sprintf("%v\nCurrent player: %v", s.board.PrettyString(), s.currentPlayer)
 }
 
-func (g *State) Board() *PieceBoard {
-	return g.board
+func (s *State) Board() *PieceBoard {
+	return s.board
 }
 
-func (g *State) Players() <-chan *Player {
-	return iter.FromValues(g.players)
+func (s *State) Players() <-chan *Player {
+	return iter.FromValues(s.players)
 }
 
-func (g *State) Player(color color.Color) *Player {
-	player, ok := g.players[color]
+func (s *State) Player(color color.Color) *Player {
+	player, ok := s.players[color]
 	if !ok {
 		panic(fmt.Errorf("player of color %s not found", color))
 	}
 	return player
 }
 
-func (g *State) CurrentPlayer() *Player {
-	return g.currentPlayer
+func (s *State) CurrentPlayer() *Player {
+	return s.currentPlayer
 }
 
-func (g *State) CurrentOpponent() *Player {
-	return g.OpponentTo(g.currentPlayer)
+func (s *State) CurrentOpponent() *Player {
+	return s.OpponentTo(s.currentPlayer)
 }
 
-func (g *State) OpponentTo(player *Player) *Player {
+func (s *State) OpponentTo(player *Player) *Player {
 	var opponentsColor color.Color
 	switch player.Color() {
 	case color.White:
@@ -74,12 +76,12 @@ func (g *State) OpponentTo(player *Player) *Player {
 	case color.Black:
 		opponentsColor = color.White
 	}
-	return g.Player(opponentsColor)
+	return s.Player(opponentsColor)
 }
 
-func (g *State) EndTurn() {
-	g.currentPlayer = g.CurrentOpponent()
-	g.turnNumber++
+func (s *State) EndTurn() {
+	s.currentPlayer = s.CurrentOpponent()
+	s.turnNumber++
 }
 
 type StateValidator func(*State, *Move) bool
@@ -94,20 +96,23 @@ func (validators chainStateValidators) Validate(state *State, move *Move) bool {
 	return true
 }
 
-func (g *State) AddStateValidator(validator StateValidator) {
-	g.validators = append(g.validators, validator)
+func (s *State) AddStateValidator(validator StateValidator) {
+	s.validators = append(s.validators, validator)
 }
 
-func (g *State) ValidMoves() []Move {
-	if g.validMoves == nil {
-		g.generateValidMoves()
+func (s *State) ValidMoves() []Move {
+	if s.validMoves == nil {
+		s.generateValidMoves()
 	}
-	return g.validMoves
+	return s.validMoves
 }
 
-func (g *State) generateValidMoves() {
+func (s *State) generateValidMoves() {
 	result := make([]Move, 0)
-	moves := g.currentPlayer.moves()
+	s.isGeneratingMoves = true
+	defer func() { s.isGeneratingMoves = false }()
+
+	moves := s.currentPlayer.moves()
 	for _, move := range moves {
 		err := move.PerformWithoutAction()
 
@@ -115,61 +120,61 @@ func (g *State) generateValidMoves() {
 		if err != nil {
 			fmt.Printf("error performing move for validation: %v", err)
 		} else {
-			isValid = g.validators.Validate(g, &move)
+			isValid = s.validators.Validate(s, &move)
 		}
-		g.UndoTurn()
+		s.UndoTurn()
 
 		if isValid {
 			result = append(result, move)
 			fmt.Printf("DEBUG: generated move: %v\n", &move)
 		}
 	}
-	g.validMoves = result
+	s.validMoves = result
 }
 
-func (g *State) Handle(event event.Event) {
-	if !g.isRecording {
+func (s *State) Handle(event event.Event) {
+	if !s.isRecording {
 		return
 	}
 
 	switch e := event.(type) {
 	case PieceMoved:
-		g.record = append(g.record, RecordedMove{
+		s.record = append(s.record, RecordedMove{
 			Piece:      e.Piece,
 			From:       e.From,
 			To:         e.To,
-			TurnNumber: g.turnNumber,
+			TurnNumber: s.turnNumber,
 			Captures:   map[*Piece]struct{}{},
 		})
 	case PieceCaptured:
-		g.recordCapture(&e)
+		s.recordCapture(&e)
 	}
 
-	g.validMoves = nil
+	s.validMoves = nil
 }
 
-func (g *State) recordCapture(event *PieceCaptured) {
-	if len(g.record) == 0 {
+func (s *State) recordCapture(event *PieceCaptured) {
+	if len(s.record) == 0 {
 		panic(fmt.Errorf("tried to record a capture, but no moved was recorded ealier"))
 	}
-	lastMove := g.record[len(g.record)-1]
+	lastMove := s.record[len(s.record)-1]
 	lastMove.Captures[event.Piece] = struct{}{}
 }
 
-func (g *State) UndoTurn() {
-	for len(g.record) > 0 && g.record[len(g.record)-1].TurnNumber == g.turnNumber {
-		g.undoOne()
+func (s *State) UndoTurn() {
+	for len(s.record) > 0 && s.record[len(s.record)-1].TurnNumber == s.turnNumber {
+		s.undoOne()
 	}
 }
 
-func (g *State) undoOne() {
-	if len(g.record) == 0 {
+func (s *State) undoOne() {
+	if len(s.record) == 0 {
 		return
 	}
-	lastMove := g.record[len(g.record)-1]
+	lastMove := s.record[len(s.record)-1]
 
-	g.isRecording = false
-	defer func() { g.isRecording = true }()
+	s.isRecording = false
+	defer func() { s.isRecording = true }()
 
 	err := lastMove.Piece.MoveTo(lastMove.From)
 	if err != nil {
@@ -177,16 +182,16 @@ func (g *State) undoOne() {
 	}
 
 	for c := range lastMove.Captures {
-		err := g.board.Place(c, c.Square())
+		err := s.board.Place(c, c.Square())
 		if err != nil {
 			panic(err)
 		}
 	}
-	g.record = g.record[:len(g.record)-1]
+	s.record = s.record[:len(s.record)-1]
 }
 
-func (g *State) Record() []RecordedMove {
-	return g.record
+func (s *State) Record() []RecordedMove {
+	return s.record
 }
 
 type RecordedMove struct {
@@ -195,4 +200,21 @@ type RecordedMove struct {
 	To         board.Square
 	TurnNumber int
 	Captures   map[*Piece]struct{}
+}
+
+func (s *State) IsGeneratingMoves() bool {
+	return s.isGeneratingMoves
+}
+
+func (s *State) AddPieceType(pieceType *PieceType) {
+	for _, pt := range s.pieceTypes {
+		if pt == pieceType {
+			return
+		}
+	}
+	s.pieceTypes = append(s.pieceTypes, pieceType)
+}
+
+func (s *State) PieceTypes() []*PieceType {
+	return s.pieceTypes
 }

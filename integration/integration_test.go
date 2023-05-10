@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jostrzol/mess/config"
+	"github.com/jostrzol/mess/config/configtest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +16,7 @@ func FuzzGameMax10Steps(f *testing.F) {
 
 	f.Add(int64(12345))
 	f.Fuzz(func(t *testing.T, seed int64) {
-		game, err := config.DecodeConfig("../rules.hcl")
+		game, err := config.DecodeConfig("../rules.hcl", configtest.RandomInteractor{})
 		assert.NoError(t, err)
 
 		src := rand.NewSource(seed)

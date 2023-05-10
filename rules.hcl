@@ -63,14 +63,14 @@ piece_types {
   piece_type "pawn" {
     motion {
       generator = "motion_forward_straight"
-      # actions   = ["promote"]
+      actions   = ["promote"]
     }
     motion {
       generator = "motion_forward_straight_double"
     }
     motion {
       generator = "motion_forward_diagonal"
-      # actions   = ["promote"]
+      actions   = ["promote"]
     }
     motion {
       generator = "motion_en_passant"
@@ -263,14 +263,23 @@ composite_function "promote" {
       for type in piece_types : type
       if !contains(["king", "pawn"], type.name)
     ]
-    forward_y = piece.owner.forward_direction[1]
-    last_rank = forward_y == 1 ? board.height : 1
-    _ = (
-      dest.rank != last_rank ? null
-      : exchange_piece(piece, valid_piece_types)
-    )
-    return = null
-  }
+    choice = choose([
+      for type in valid_piece_types : format("promote to %s", type.name)
+    ])
+    owner     = owner_of(piece)
+    forward_y = owner.forward_direction[1]
+    last_y    = forward_y == 1 ? board.height : 1
+    pos       = square_to_coords(dst)
+    return = (
+      choice == null
+      ? null
+      : place_new_piece(
+        valid_piece_types[choice].name,
+        dst,
+        owner.color
+      )
+
+  ) }
 }
 
 // Captures an opposing pawn after an en passant.
@@ -418,6 +427,8 @@ initial_state {
     F7 = "pawn"
     G7 = "pawn"
     H7 = "pawn"
+
+    B2 = "pawn"
   }
 }
 

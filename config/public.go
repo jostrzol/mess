@@ -6,7 +6,11 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func DecodeConfig(filename string) (*mess.Game, error) {
+type Interactor interface {
+	Choose(options []string) int
+}
+
+func DecodeConfig(filename string, interactor Interactor) (*mess.Game, error) {
 	ctx := InitialEvalContext
 
 	config, err := decodeConfig(filename, ctx)
@@ -14,7 +18,7 @@ func DecodeConfig(filename string) (*mess.Game, error) {
 		return nil, fmt.Errorf("decoding config: %w", err)
 	}
 
-	game, err := config.toGameState(ctx)
+	game, err := config.toGameState(ctx, interactor)
 	if err != nil {
 		return nil, fmt.Errorf("initializing game from config: %w", err)
 	}

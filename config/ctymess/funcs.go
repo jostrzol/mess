@@ -413,3 +413,84 @@ func CaptureFunc(state *mess.State) function.Function {
 		},
 	})
 }
+
+func ChooseFunc(game *mess.Game) function.Function {
+	return function.New(&function.Spec{
+		Description: "Makes the player choose one of the provided options",
+		Params: []function.Parameter{
+			{
+				Name:             "options",
+				Type:             cty.List(cty.String),
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(cty.Number),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var options []string
+
+			err := gocty.FromCtyValue(args[0], &options)
+			if err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'options': %w", err)
+			}
+
+			if len(options) == 0 {
+				return cty.NullVal(cty.String), nil
+			}
+
+			if game.IsGeneratingMoves() {
+				return cty.StringVal(options[0]), nil
+			}
+
+			chosen := game.Choose(options)
+
+			return cty.NumberIntVal(int64(chosen)), nil
+		},
+	})
+}
+
+func PlaceNewPieceFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Place a new piece at the given destination. Replace if occupied.",
+		Params: []function.Parameter{
+			{
+				Name:             "piece_type_name",
+				Type:             cty.String,
+				AllowDynamicType: true,
+			},
+			{
+				Name:             "square",
+				Type:             cty.String,
+				AllowDynamicType: true,
+			},
+			{
+				Name:             "color",
+				Type:             cty.String,
+				AllowDynamicType: true,
+			},
+		},
+		Type: function.StaticReturnType(cty.DynamicPseudoType),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var pieceType *mess.PieceType
+			var square board.Square
+			var color *color.Color
+			var err error
+
+			if pieceType, err = PieceTypeFromCty(state, args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'pieceType': %w", err)
+			}
+			if square, err = SquareFromCty(args[1]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
+			}
+			if color, err = ColorFromCty(args[2]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
+			}
+
+			piece := mess.NewPiece(pieceType, state.Player(*color))
+			if err = state.Board().Replace(piece, square); err != nil {
+				return cty.DynamicVal, fmt.Errorf("placing new piece: %w", err)
+			}
+
+			return cty.DynamicVal, nil
+		},
+	})
+}

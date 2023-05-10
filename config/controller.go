@@ -14,12 +14,23 @@ import (
 )
 
 type controller struct {
-	ctx    *hcl.EvalContext
-	config *callbackFunctionsConfig
+	state      *mess.State
+	ctx        *hcl.EvalContext
+	config     *callbackFunctionsConfig
+	interactor Interactor
+}
+
+func newController(state *mess.State, ctx *hcl.EvalContext, config *config, interactor Interactor) *controller {
+	return &controller{
+		state:      state,
+		ctx:        ctx,
+		config:     &config.Functions,
+		interactor: interactor,
+	}
 }
 
 func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
-	ctyState := c.refreshGameStateInContext(state)
+	ctyState := c.refreshGameStateInContext()
 	resultCty, err := c.config.PickWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
 		log.Printf("calling pick_winner user-defined function: %v", err)
@@ -58,10 +69,11 @@ func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
 	return true, state.Player(color)
 }
 
-func (c *controller) GetCustomFuncAsGenerator(
-	name string,
-	state *mess.State,
-) (func(*mess.Piece) []board.Square, error) {
+func (c *controller) Choose(options []string) int {
+	return c.interactor.Choose(options)
+}
+
+func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []board.Square, error) {
 	funcCty, ok := c.config.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
@@ -70,7 +82,7 @@ func (c *controller) GetCustomFuncAsGenerator(
 	return func(piece *mess.Piece) []board.Square {
 		pieceCty := ctymess.PieceToCty(piece)
 		squareCty := ctymess.SquareToCty(piece.Square())
-		c.refreshGameStateInContext(state)
+		c.refreshGameStateInContext()
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
 			log.Printf("calling motion generator %q for %v at %v: %v", name, piece, piece.Square(), err)
@@ -85,7 +97,7 @@ func (c *controller) GetCustomFuncAsGenerator(
 	}, nil
 }
 
-func (c *controller) GetCustomFuncAsAction(name string, state *mess.State) (mess.MoveAction, error) {
+func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveAction, error) {
 	funcCty, ok := c.config.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
@@ -95,7 +107,7 @@ func (c *controller) GetCustomFuncAsAction(name string, state *mess.State) (mess
 		pieceCty := ctymess.PieceToCty(piece)
 		fromCty := ctymess.SquareToCty(from)
 		toCty := ctymess.SquareToCty(to)
-		c.refreshGameStateInContext(state)
+		c.refreshGameStateInContext()
 		_, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
 		if err != nil {
 			log.Printf("calling motion action %q for %v %v->%v: %v", name, piece, from, to, err)
@@ -104,7 +116,7 @@ func (c *controller) GetCustomFuncAsAction(name string, state *mess.State) (mess
 	}, nil
 }
 
-func (c *controller) GetStateValidators(state *mess.State) ([]mess.StateValidator, error) {
+func (c *controller) GetStateValidators() ([]mess.StateValidator, error) {
 	validators := make([]mess.StateValidator, 0, len(c.config.StateValidators))
 
 	for validatorName, validatorCty := range c.config.StateValidators {
@@ -115,7 +127,7 @@ func (c *controller) GetStateValidators(state *mess.State) ([]mess.StateValidato
 		valCopy := validatorCty
 		validator := func(state *mess.State, move *mess.Move) bool {
 			moveCty := ctymess.MoveToCty(move)
-			c.refreshGameStateInContext(state)
+			c.refreshGameStateInContext()
 			resultCty, err := valCopy.Call([]cty.Value{moveCty})
 			if err != nil {
 				log.Printf("calling state validator %q for move %v: %v", valNameCopy, move, err)
@@ -133,8 +145,8 @@ func (c *controller) GetStateValidators(state *mess.State) ([]mess.StateValidato
 	return validators, nil
 }
 
-func (c *controller) refreshGameStateInContext(state *mess.State) cty.Value {
-	newState := ctymess.StateToCty(state)
+func (c *controller) refreshGameStateInContext() cty.Value {
+	newState := ctymess.StateToCty(c.state)
 	c.ctx.Variables["game"] = newState
 	return newState
 }

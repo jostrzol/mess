@@ -99,3 +99,29 @@ func PieceFromCty(state *mess.State, value cty.Value) (*mess.Piece, error) {
 	}
 	return piece, nil
 }
+
+func PieceTypeFromCty(state *mess.State, value cty.Value) (*mess.PieceType, error) {
+	var err error
+	defer func() {
+		var ok bool
+		value := recover()
+		if value == nil {
+			return
+		}
+		err, ok = value.(error)
+		if !ok {
+			panic(value)
+		}
+	}()
+
+	pieceTypeName := value.AsString()
+	if err != nil {
+		return nil, fmt.Errorf("parsing piece type name: %w", err)
+	}
+	for _, pt := range state.PieceTypes() {
+		if pt.Name() == pieceTypeName {
+			return pt, nil
+		}
+	}
+	return nil, fmt.Errorf("piece type of name %q not found", pieceTypeName)
+}

@@ -25,6 +25,8 @@ var InitialEvalContext = &hcl.EvalContext{
 		"range":               stdlib.RangeFunc,
 		"slice":               stdlib.SliceFunc,
 		"abs":                 stdlib.AbsoluteFunc,
+		"contains":            stdlib.ContainsFunc,
+		"format":              stdlib.FormatFunc,
 		"sum":                 ctymess.SumFunc,
 		"concat":              ctymess.ConcatFunc,
 		"all":                 ctymess.AllFunc,
@@ -37,22 +39,28 @@ var InitialEvalContext = &hcl.EvalContext{
 		"valid_moves_for":     ctymess.StateMissingFunc,
 		"move":                ctymess.StateMissingFunc,
 		"capture":             ctymess.StateMissingFunc,
+		"choose":              ctymess.StateMissingFunc,
+		"place_new_piece":     ctymess.StateMissingFunc,
 	},
 	Variables: map[string]cty.Value{
-		"game":  cty.DynamicVal,
-		"board": cty.DynamicVal,
+		"game":        cty.DynamicVal,
+		"piece_types": cty.DynamicVal,
+		"board":       cty.DynamicVal,
 	},
 }
 
-func populateContextWithState(ctx *hcl.EvalContext, state *mess.State) {
-	ctx.Functions["get_square_relative"] = ctymess.GetSquareRelativeFunc(state)
-	ctx.Functions["piece_at"] = ctymess.PieceAtFunc(state)
-	ctx.Functions["owner_of"] = ctymess.OwnerOfFunc(state)
-	ctx.Functions["is_attacked_by"] = ctymess.IsAttackedByFunc(state)
-	ctx.Functions["valid_moves_for"] = ctymess.ValidMovesForFunc(state)
-	ctx.Functions["move"] = ctymess.MoveFunc(state)
-	ctx.Functions["capture"] = ctymess.CaptureFunc(state)
+func initializeContext(ctx *hcl.EvalContext, game *mess.Game) {
+	ctx.Functions["get_square_relative"] = ctymess.GetSquareRelativeFunc(game.State)
+	ctx.Functions["piece_at"] = ctymess.PieceAtFunc(game.State)
+	ctx.Functions["owner_of"] = ctymess.OwnerOfFunc(game.State)
+	ctx.Functions["is_attacked_by"] = ctymess.IsAttackedByFunc(game.State)
+	ctx.Functions["valid_moves_for"] = ctymess.ValidMovesForFunc(game.State)
+	ctx.Functions["move"] = ctymess.MoveFunc(game.State)
+	ctx.Functions["capture"] = ctymess.CaptureFunc(game.State)
+	ctx.Functions["choose"] = ctymess.ChooseFunc(game)
+	ctx.Functions["place_new_piece"] = ctymess.PlaceNewPieceFunc(game.State)
 
-	ctx.Variables["state"] = ctymess.StateToCty(state)
-	ctx.Variables["board"] = ctymess.BoardToCty(state.Board())
+	ctx.Variables["game"] = ctymess.StateToCty(game.State)
+	ctx.Variables["piece_types"] = ctymess.PieceTypesToCty(game.PieceTypes())
+	ctx.Variables["board"] = ctymess.BoardToCty(game.State.Board())
 }

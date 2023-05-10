@@ -91,3 +91,14 @@ func BoardToCty(board *mess.PieceBoard) cty.Value {
 		"height": cty.NumberIntVal(int64(height)),
 	})
 }
+
+func PieceTypesToCty(pieceTypes []*mess.PieceType) cty.Value {
+	ctyPieceTypes := make([]cty.Value, 0, len(pieceTypes))
+	for _, pt := range pieceTypes {
+		ctyPt := cty.ObjectVal(map[string]cty.Value{
+			"name": cty.StringVal(pt.Name()),
+		})
+		ctyPieceTypes = append(ctyPieceTypes, ctyPt)
+	}
+	return cty.ListVal(ctyPieceTypes)
+}

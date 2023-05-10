@@ -92,6 +92,30 @@ func (b *PieceBoard) Place(piece *Piece, square board.Square) error {
 	return nil
 }
 
+func (b *PieceBoard) Replace(piece *Piece, square board.Square) error {
+	if piece.IsOnBoard() {
+		return fmt.Errorf("piece already on a board")
+	}
+
+	old, err := b.wrapped.Place(piece, square)
+	if err != nil {
+		return err
+	}
+	if old != nil {
+		b.Notify(PieceRemoved{
+			Piece:  old,
+			Square: square,
+		})
+	}
+	b.Observe(piece)
+	b.Notify(PiecePlaced{
+		Piece:  piece,
+		Board:  b,
+		Square: square,
+	})
+	return nil
+}
+
 type PiecePlaced struct {
 	Piece  *Piece
 	Board  *PieceBoard
