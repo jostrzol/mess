@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func place(t *testing.T, game *mess.Game, color color.Color, pieceName string, square string) {
+func place(t *testing.T, game *mess.Game, color color.Color, typeName string, square string) {
 	t.Helper()
-	pieceType, err := game.GetPieceType(pieceName)
+	pieceType, err := game.GetPieceType(typeName)
 	assert.NoError(t, err)
 	owner := game.Player(color)
 	piece := mess.NewPiece(pieceType, owner)
@@ -260,7 +260,8 @@ func TestMoves(t *testing.T) {
 
 				for _, validMove := range validMoves {
 					if validMove.From.String() == move.from && validMove.To.String() == move.to {
-						validMove.Perform()
+						err := validMove.Perform()
+						assert.NoError(t, err)
 						moveMade = true
 						break
 					}
@@ -308,4 +309,78 @@ func TestMoves(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPromotion(t *testing.T) {
+	tests := []struct {
+		color color.Color
+		src   string
+		dst   string
+	}{
+		{color.White, "A7", "A8"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.color.String(), func(t *testing.T) {
+			interactor := configtest.ConstInteractor{Option: "promote to queen"}
+			game, err := config.DecodeConfig(RulesFile, interactor, false)
+			assert.NoError(t, err)
+
+			place(t, game, tt.color, "pawn", tt.src)
+			place(t, game, tt.color, "queen", "D1")
+
+			moves := game.ValidMoves()
+			performed := false
+			for _, move := range moves {
+				if move.Piece.Type().Name() == "pawn" {
+					err = move.Perform()
+					assert.NoError(t, err)
+					performed = true
+					break
+				}
+			}
+			assert.True(t, performed)
+
+			piece, err := game.Board().At(boardtest.NewSquare(tt.dst))
+			assert.NoError(t, err)
+
+			assert.Equal(t, piece.Type().Name(), "queen")
+		})
+	}
+}
+
+func TestPromotionCheckMate(t *testing.T) {
+	interactor := configtest.ConstInteractor{Option: "promote to knight"}
+	game, err := config.DecodeConfig(RulesFile, interactor, false)
+	assert.NoError(t, err)
+
+	place(t, game, color.White, "pawn", "A7")
+
+	place(t, game, color.Black, "king", "C7")
+	place(t, game, color.Black, "pawn", "B8")
+	place(t, game, color.Black, "pawn", "C8")
+	place(t, game, color.Black, "pawn", "D8")
+	place(t, game, color.Black, "pawn", "B6")
+	place(t, game, color.Black, "pawn", "C6")
+	place(t, game, color.Black, "pawn", "D6")
+	place(t, game, color.Black, "pawn", "B7")
+	place(t, game, color.Black, "pawn", "D7")
+
+	moves := game.ValidMoves()
+	performed := false
+	for _, move := range moves {
+		if move.Piece.Type().Name() == "pawn" {
+			err = move.Perform()
+			assert.NoError(t, err)
+			performed = true
+			break
+		}
+	}
+	assert.True(t, performed)
+
+	game.EndTurn()
+
+	isFinished, winner := game.PickWinner()
+	assert.True(t, isFinished)
+	assert.Equal(t, winner, game.Player(color.White))
 }
