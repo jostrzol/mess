@@ -27,6 +27,7 @@ func TestMoves(t *testing.T) {
 		name   string
 		square string
 	}
+	// blank to end turn
 	type move struct {
 		from string
 		to   string
@@ -176,10 +177,45 @@ func TestMoves(t *testing.T) {
 				"E1": {"C1", "D1", "F1", "D2", "E2", "F2"},
 			},
 		},
+		{
+			name: "en_passant_left",
+			initState: []piece{
+				{color.White, "pawn", "A4"},
+				{color.Black, "pawn", "B7"},
+			},
+			whenMoves: []move{{"A4", "A5"}, {"B7", "B5"}},
+			expectMoves: map[string][]string{
+				"A5": {"A6", "B6"},
+			},
+		},
+		{
+			name: "en_passant_right",
+			initState: []piece{
+				{color.White, "pawn", "C4"},
+				{color.Black, "pawn", "B7"},
+			},
+			whenMoves: []move{{"C4", "C5"}, {"B7", "B5"}},
+			expectMoves: map[string][]string{
+				"C5": {"C6", "B6"},
+			},
+		},
+		{
+			name: "en_passant_blocked_if_not_performed_asap",
+			initState: []piece{
+				{color.White, "pawn", "A4"},
+				{color.Black, "pawn", "B7"},
+				{color.White, "pawn", "G2"},
+				{color.Black, "pawn", "G7"},
+			},
+			whenMoves: []move{{"A4", "A5"}, {"B7", "B5"}, {"G2", "G3"}, {"G7", "G6"}},
+			expectMoves: map[string][]string{
+				"A5": {"A6"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			game, err := config.DecodeConfig(RulesFile, configtest.RandomInteractor{}, false)
+			game, err := config.DecodeConfig(RulesFile, configtest.PanicInteractor{}, false)
 			assert.NoError(t, err)
 
 			for _, piece := range tt.initState {
@@ -187,8 +223,15 @@ func TestMoves(t *testing.T) {
 			}
 
 			for _, move := range tt.whenMoves {
+				piece, err := game.Board().At(boardtest.NewSquare(move.from))
+				assert.NoError(t, err)
+				if piece.Owner() != game.CurrentPlayer() {
+					game.EndTurn()
+				}
+
 				moveMade := false
 				validMoves := game.ValidMoves()
+
 				for _, validMove := range validMoves {
 					if validMove.From.String() == move.from && validMove.To.String() == move.to {
 						validMove.Perform()
@@ -196,6 +239,8 @@ func TestMoves(t *testing.T) {
 						break
 					}
 				}
+				println(game.PrettyString())
+
 				if !moveMade {
 					t.Errorf("precondition move not valid: %v -> %v", move.from, move.to)
 				}
@@ -213,6 +258,12 @@ func TestMoves(t *testing.T) {
 				}
 				matcher.Destinations = append(matcher.Destinations, to...)
 				matchers[from] = matcher
+
+				piece, _ := game.Board().At(boardtest.NewSquare(from))
+				if piece != nil && piece.Owner() != game.CurrentPlayer() {
+					game.EndTurn()
+				}
+				println(game.CurrentPlayer().Color().String())
 			}
 
 			validMoves := game.ValidMoves()
