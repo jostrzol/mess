@@ -211,8 +211,12 @@ func (s *State) AddPieceType(pieceType *PieceType) {
 	s.pieceTypes[pieceType.Name()] = pieceType
 }
 
-func (s *State) GetPieceType(name string) *PieceType {
-	return s.pieceTypes[name]
+func (s *State) GetPieceType(name string) (*PieceType, error) {
+	pieceType, ok := s.pieceTypes[name]
+	if !ok {
+		return nil, fmt.Errorf("piece type %q not defined", name)
+	}
+	return pieceType, nil
 }
 
 func (s *State) PieceTypes() []*PieceType {

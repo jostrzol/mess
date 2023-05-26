@@ -81,9 +81,9 @@ func (c *config) placePieces(state *mess.State) error {
 			if diags.HasErrors() {
 				return fmt.Errorf("parsing piece type: %w", diags)
 			}
-			pieceType := state.GetPieceType(pieceTypeName.AsString())
-			if pieceType == nil {
-				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
+			pieceType, err := state.GetPieceType(pieceTypeName.AsString())
+			if err != nil {
+				return fmt.Errorf("getting piece type: %w", err)
 			}
 
 			piece := mess.NewPiece(pieceType, player)
