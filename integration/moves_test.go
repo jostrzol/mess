@@ -212,6 +212,32 @@ func TestMoves(t *testing.T) {
 				"A5": {"A6"},
 			},
 		},
+		{
+			name: "en_passant_second_if_first_not_performed_asap",
+			initState: []piece{
+				{color.White, "pawn", "B4"},
+				{color.Black, "pawn", "C7"},
+				{color.Black, "pawn", "A7"},
+				{color.White, "pawn", "G2"},
+			},
+			whenMoves: []move{{"B4", "B5"}, {"C7", "C5"}, {"G2", "G3"}, {"A7", "A5"}},
+			expectMoves: map[string][]string{
+				"B5": {"A6", "B6"},
+			},
+		},
+		{
+			name: "en_passant_blocked_if_king_will_be_revealed",
+			initState: []piece{
+				{color.White, "pawn", "B4"},
+				{color.White, "king", "E5"},
+				{color.Black, "pawn", "C7"},
+				{color.Black, "rook", "A8"},
+			},
+			whenMoves: []move{{"B4", "B5"}, {"A8", "A5"}, {"E5", "F5"}, {"C7", "C5"}},
+			expectMoves: map[string][]string{
+				"B5": {"B6"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -245,6 +271,7 @@ func TestMoves(t *testing.T) {
 				}
 			}
 
+			var lastFrom *string
 			matchers := make(map[string]messtest.MovesMatcherS, 0)
 			for from, to := range tt.expectMoves {
 				var matcher messtest.MovesMatcherS
@@ -257,12 +284,15 @@ func TestMoves(t *testing.T) {
 				}
 				matcher.Destinations = append(matcher.Destinations, to...)
 				matchers[from] = matcher
+				lastFrom = &from
+			}
 
-				piece, _ := game.Board().At(boardtest.NewSquare(from))
-				if piece != nil && piece.Owner() != game.CurrentPlayer() {
+			if lastFrom != nil {
+				piece, err := game.Board().At(boardtest.NewSquare(*lastFrom))
+				assert.NoError(t, err)
+				if piece.Owner() != game.CurrentPlayer() {
 					game.EndTurn()
 				}
-				println(game.CurrentPlayer().Color().String())
 			}
 
 			validMoves := game.ValidMoves()

@@ -39,7 +39,7 @@ func MovesMatch(t *testing.T, moves []mess.Move, matchers ...MovesMatcherS) {
 			if found != -1 {
 				moves[found] = moves[len(moves)-1]
 				moves = moves[:len(moves)-1]
-				msg.WriteString(fmt.Sprintf("FOUND:\t\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
+				msg.WriteString(fmt.Sprintf("FOUND:\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
 			} else {
 				anyNotFound = true
 				msg.WriteString(fmt.Sprintf("NOT FOUND:\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
