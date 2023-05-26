@@ -1,23 +1,22 @@
-package mess
+package mess_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/jostrzol/mess/pkg/board"
-	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event/eventtest"
-	"github.com/stretchr/testify/assert"
+	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/mess/messtest"
 	"github.com/stretchr/testify/suite"
 )
 
-func Rook(t *testing.T) *PieceType {
+func Rook(t *testing.T) *mess.PieceType {
 	t.Helper()
-	pieceType := NewPieceType("rook")
-	pieceType.AddMoveGenerator(func(piece *Piece) ([]board.Square, MoveAction) {
+	pieceType := mess.NewPieceType("rook")
+	pieceType.AddMoveGenerator(func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
 		result := make([]board.Square, 0)
 		for _, offset := range []board.Offset{
 			{X: 1, Y: 0},
@@ -36,10 +35,10 @@ func Rook(t *testing.T) *PieceType {
 	return pieceType
 }
 
-func Knight(t *testing.T) *PieceType {
+func Knight(t *testing.T) *mess.PieceType {
 	t.Helper()
-	pieceType := NewPieceType("knight")
-	pieceType.AddMoveGenerator(offsetMoveGenerator(t, []board.Offset{
+	pieceType := mess.NewPieceType("knight")
+	pieceType.AddMoveGenerator(messtest.OffsetMoveGenerator(t, []board.Offset{
 		{X: 1, Y: 2},
 		{X: 1, Y: -2},
 		{X: -1, Y: 2},
@@ -52,10 +51,10 @@ func Knight(t *testing.T) *PieceType {
 	return pieceType
 }
 
-func King(t *testing.T) *PieceType {
+func King(t *testing.T) *mess.PieceType {
 	t.Helper()
-	pieceType := NewPieceType("king")
-	pieceType.AddMoveGenerator(offsetMoveGenerator(t, []board.Offset{
+	pieceType := mess.NewPieceType("king")
+	pieceType.AddMoveGenerator(messtest.OffsetMoveGenerator(t, []board.Offset{
 		{X: 1, Y: 0},
 		{X: -1, Y: 0},
 		{X: 0, Y: 1},
@@ -64,18 +63,18 @@ func King(t *testing.T) *PieceType {
 	return pieceType
 }
 
-func Noones(pieceType *PieceType) *Piece {
-	return NewPiece(pieceType, nil)
+func Noones(pieceType *mess.PieceType) *mess.Piece {
+	return mess.NewPiece(pieceType, nil)
 }
 
 type PieceSuite struct {
 	suite.Suite
-	board    *PieceBoard
+	board    *mess.PieceBoard
 	observer *eventtest.MockObserver
 }
 
 func (s *PieceSuite) SetupTest() {
-	board, err := NewPieceBoard(4, 4)
+	board, err := mess.NewPieceBoard(4, 4)
 	s.NoError(err)
 
 	s.board = board
@@ -92,7 +91,7 @@ func (s *PieceSuite) TestPlaceOn() {
 
 	s.Equal(s.board, rook.Board())
 	s.Equal(square, rook.Square())
-	s.observer.ObservedMatch(PiecePlaced{
+	s.observer.ObservedMatch(mess.PiecePlaced{
 		Piece:  rook,
 		Board:  s.board,
 		Square: square,
@@ -125,7 +124,7 @@ func (s *PieceSuite) TestPlaceOnReplace() {
 
 func (s *PieceSuite) TestMoves() {
 	tests := []struct {
-		pieceType     *PieceType
+		pieceType     *mess.PieceType
 		square        string
 		expectedDests []string
 	}{
@@ -148,55 +147,8 @@ func (s *PieceSuite) TestMoves() {
 
 			moves := piece.Moves()
 
-			movesMatch(s.T(), moves, movesMatcher(piece, tt.expectedDests...))
+			messtest.MovesMatch(s.T(), moves, messtest.MovesMatcher(piece, tt.expectedDests...))
 		})
-	}
-}
-
-type MovesMatcher struct {
-	Piece        *Piece
-	Destinations []string
-}
-
-func movesMatcher(piece *Piece, destinations ...string) MovesMatcher {
-	return MovesMatcher{Piece: piece, Destinations: destinations}
-}
-
-func movesMatch(t *testing.T, moves []Move, matchers ...MovesMatcher) {
-	anyNotFound := false
-	var msg strings.Builder
-	msg.WriteString(fmt.Sprintf("matching moves (%v) to (%v):\n", moves, matchers))
-
-	for _, matcher := range matchers {
-		for _, destination := range matcher.Destinations {
-			dest := boardtest.NewSquare(destination)
-			src := matcher.Piece.Square()
-			found := -1
-			for i, move := range moves {
-				if move.Piece == matcher.Piece && move.From == src && move.To == dest {
-					found = i
-					break
-				}
-			}
-			if found != -1 {
-				moves[found] = moves[len(moves)-1]
-				moves = moves[:len(moves)-1]
-				msg.WriteString(fmt.Sprintf("FOUND:\t\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
-			} else {
-				anyNotFound = true
-				msg.WriteString(fmt.Sprintf("NOT FOUND:\t%v: %v->%v,\n", matcher.Piece, &src, &dest))
-			}
-		}
-	}
-
-	if len(moves) > 0 {
-		for _, move := range moves {
-			msg.WriteString(fmt.Sprintf("UNEXPECTED:\t%v,\n", &move))
-		}
-	}
-
-	if anyNotFound || len(moves) > 0 {
-		t.Errorf(msg.String())
 	}
 }
 
@@ -212,7 +164,7 @@ func (s *PieceSuite) TestMove() {
 	s.NoError(err)
 
 	s.Equal(endSquare, knight.Square())
-	s.observer.ObservedMatch(PieceMoved{
+	s.observer.ObservedMatch(mess.PieceMoved{
 		Piece: knight,
 		From:  startSquare,
 		To:    endSquare,
@@ -231,11 +183,11 @@ func (s *PieceSuite) TestMoveReplace() {
 	startSquare := boardtest.NewSquare("B2")
 	endSquare := boardtest.NewSquare("C4")
 
-	players := NewPlayers(s.board)
+	players := mess.NewPlayers(s.board)
 
-	knight := NewPiece(Knight(s.T()), players[color.White])
+	knight := mess.NewPiece(Knight(s.T()), players[color.White])
 	knight.PlaceOn(s.board, startSquare)
-	rook := NewPiece(Rook(s.T()), players[color.Black])
+	rook := mess.NewPiece(Rook(s.T()), players[color.Black])
 	rook.PlaceOn(s.board, endSquare)
 
 	s.observer.Reset()
@@ -244,15 +196,15 @@ func (s *PieceSuite) TestMoveReplace() {
 
 	s.Equal(endSquare, knight.Square())
 	s.False(rook.IsOnBoard())
-	s.observer.ObservedMatch(PieceMoved{
+	s.observer.ObservedMatch(mess.PieceMoved{
 		Piece: knight,
 		From:  startSquare,
 		To:    endSquare,
-	}, PieceCaptured{
+	}, mess.PieceCaptured{
 		Piece:        rook,
 		CapturedBy:   players[color.White],
 		CapturedFrom: players[color.Black],
-	}, PieceRemoved{
+	}, mess.PieceRemoved{
 		Piece:  rook,
 		Square: endSquare,
 	})
@@ -291,96 +243,4 @@ func (s *PieceSuite) TestIsNotOnBoard() {
 
 func TestPieceSuite(t *testing.T) {
 	suite.Run(t, new(PieceSuite))
-}
-
-func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
-	t.Helper()
-	return func(piece *Piece) ([]brd.Square, MoveAction) {
-		destinations := make([]brd.Square, 0, len(strings))
-		for _, squareStr := range strings {
-			square, err := brd.NewSquare(squareStr)
-			assert.NoError(t, err)
-			destinations = append(destinations, square)
-		}
-		return destinations, nil
-	}
-}
-
-func offsetMoveGenerator(t *testing.T, offsets ...board.Offset) MoveGenerator {
-	t.Helper()
-	return func(piece *Piece) ([]brd.Square, MoveAction) {
-		destinations := make([]brd.Square, 0, len(offsets))
-		for _, offset := range offsets {
-			square := piece.Square().Offset(offset)
-			if piece.Board().Contains(square) {
-				destinations = append(destinations, square)
-			}
-		}
-		return destinations, nil
-	}
-}
-
-func TestChainMoveGenerators(t *testing.T) {
-	tests := []struct {
-		name       string
-		generators []MoveGenerator
-		expected   []string
-	}{
-		{
-			name:       "Empty",
-			generators: []MoveGenerator{},
-			expected:   []string{},
-		},
-		{
-			name: "One",
-			generators: []MoveGenerator{
-				staticMoveGenerator(t, "A1"),
-			},
-			expected: []string{"A1"},
-		},
-		{
-			name: "Two",
-			generators: []MoveGenerator{
-				staticMoveGenerator(t, "A1"),
-				staticMoveGenerator(t, "B1"),
-			},
-			expected: []string{"A1", "B1"},
-		},
-		{
-			name: "TwoOverlapping",
-			generators: []MoveGenerator{
-				staticMoveGenerator(t, "A1"),
-				staticMoveGenerator(t, "A1"),
-			},
-			expected: []string{"A1"},
-		},
-		{
-			name: "TwoOverlapping",
-			generators: []MoveGenerator{
-				staticMoveGenerator(t, "A1", "B2"),
-				staticMoveGenerator(t, "C5"),
-				staticMoveGenerator(t, "B2", "D4", "C5"),
-			},
-			expected: []string{"A1", "B2", "C5", "D4"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			generators := chainMoveGenerators(tt.generators)
-			destinations := make([]board.Square, 0)
-			for _, generated := range generators.Generate(nil) {
-				destinations = append(destinations, generated.destination)
-			}
-			assertSquaresMatch(t, destinations, tt.expected...)
-		})
-	}
-}
-
-func assertSquaresMatch(t *testing.T, actual []brd.Square, expected ...string) {
-	assert.Len(t, actual, len(expected))
-	for _, str := range expected {
-		square, err := brd.NewSquare(str)
-		assert.NoError(t, err)
-		assert.Containsf(t, actual, square, "%v doesnt contain square %v", actual, square)
-	}
 }

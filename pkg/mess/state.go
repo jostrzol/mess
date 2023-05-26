@@ -113,7 +113,7 @@ func (s *State) generateValidMoves() {
 	s.isGeneratingMoves = true
 	defer func() { s.isGeneratingMoves = false }()
 
-	moves := s.currentPlayer.moves()
+	moves := s.currentPlayer.Moves()
 	for _, move := range moves {
 		err := move.PerformWithoutAction()
 

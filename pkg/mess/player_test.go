@@ -1,4 +1,4 @@
-package mess
+package mess_test
 
 import (
 	"testing"
@@ -7,6 +7,8 @@ import (
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
 	"github.com/jostrzol/mess/pkg/iterassert"
+	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/mess/messtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -14,7 +16,7 @@ import (
 func TestNewPlayers(t *testing.T) {
 	board := event.NewSubject()
 
-	players := NewPlayers(board)
+	players := mess.NewPlayers(board)
 	assert.Len(t, players, 2)
 
 	for _, color := range color.ColorValues() {
@@ -28,14 +30,14 @@ func TestNewPlayers(t *testing.T) {
 type PlayerSuiteMockedBoard struct {
 	suite.Suite
 	board   event.Subject
-	players map[color.Color]*Player
-	white   *Player
-	black   *Player
+	players map[color.Color]*mess.Player
+	white   *mess.Player
+	black   *mess.Player
 }
 
 func (s *PlayerSuiteMockedBoard) SetupTest() {
 	s.board = event.NewSubject()
-	s.players = NewPlayers(s.board)
+	s.players = mess.NewPlayers(s.board)
 	s.white = s.players[color.White]
 	s.black = s.players[color.Black]
 }
@@ -49,8 +51,8 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersEmpty() {
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
-	knight := NewPiece(Knight(s.T()), s.black)
-	s.board.Notify(PieceCaptured{
+	knight := mess.NewPiece(Knight(s.T()), s.black)
+	s.board.Notify(mess.PieceCaptured{
 		Piece:      knight,
 		CapturedBy: s.white,
 	})
@@ -62,13 +64,13 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersRelease() {
-	knight := NewPiece(Knight(s.T()), s.black)
-	s.board.Notify(PieceCaptured{
+	knight := mess.NewPiece(Knight(s.T()), s.black)
+	s.board.Notify(mess.PieceCaptured{
 		Piece:      knight,
 		CapturedBy: s.white,
 	})
 
-	s.board.Notify(PiecePlaced{
+	s.board.Notify(mess.PiecePlaced{
 		Piece: knight,
 	})
 
@@ -81,8 +83,8 @@ func (s *PlayerSuiteMockedBoard) TestPiecesEmpty() {
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecePlaced() {
-	knight := NewPiece(Knight(s.T()), s.white)
-	s.board.Notify(PiecePlaced{Piece: knight})
+	knight := mess.NewPiece(Knight(s.T()), s.white)
+	s.board.Notify(mess.PiecePlaced{Piece: knight})
 
 	iterassert.Len(s.T(), s.white.Pieces(), 1)
 	iterassert.Contains(s.T(), s.white.Pieces(), knight)
@@ -91,9 +93,9 @@ func (s *PlayerSuiteMockedBoard) TestPiecePlaced() {
 }
 
 func (s *PlayerSuiteMockedBoard) TestPieceRemoved() {
-	knight := NewPiece(Knight(s.T()), s.white)
-	s.board.Notify(PiecePlaced{Piece: knight})
-	s.board.Notify(PieceRemoved{Piece: knight})
+	knight := mess.NewPiece(Knight(s.T()), s.white)
+	s.board.Notify(mess.PiecePlaced{Piece: knight})
+	s.board.Notify(mess.PieceRemoved{Piece: knight})
 
 	iterassert.Empty(s.T(), s.white.Pieces())
 	iterassert.Empty(s.T(), s.black.Pieces())
@@ -105,54 +107,57 @@ func TestPlayerSourceMockedBoard(t *testing.T) {
 
 type PlayerSuiteRealBoard struct {
 	suite.Suite
-	board   *PieceBoard
-	players map[color.Color]*Player
-	white   *Player
-	black   *Player
+	board   *mess.PieceBoard
+	players map[color.Color]*mess.Player
+	white   *mess.Player
+	black   *mess.Player
 }
 
 func (s *PlayerSuiteRealBoard) SetupTest() {
-	board, err := NewPieceBoard(3, 3)
+	board, err := mess.NewPieceBoard(3, 3)
 	s.NoError(err)
 
 	s.board = board
-	s.players = NewPlayers(s.board)
+	s.players = mess.NewPlayers(s.board)
 	s.white = s.players[color.White]
 	s.black = s.players[color.Black]
 }
 
 func (s *PlayerSuiteRealBoard) TestMovesNone() {
-	s.Empty(s.white.moves())
+	s.Empty(s.white.Moves())
 }
 
 func (s *PlayerSuiteRealBoard) TestMovesOnePiece() {
-	king := NewPiece(King(s.T()), s.white)
+	king := mess.NewPiece(King(s.T()), s.white)
 	s.board.Place(king, boardtest.NewSquare("A1"))
 
-	moves := s.white.moves()
-	movesMatch(s.T(), moves, movesMatcher(king, "A2", "B1"))
+	moves := s.white.Moves()
+	messtest.MovesMatch(s.T(), moves, messtest.MovesMatcher(king, "A2", "B1"))
 }
 
 func (s *PlayerSuiteRealBoard) TestMovesOnePieceOneEnemy() {
-	kingW := NewPiece(King(s.T()), s.white)
+	kingW := mess.NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW, boardtest.NewSquare("A1"))
 
-	kingB := NewPiece(King(s.T()), s.black)
+	kingB := mess.NewPiece(King(s.T()), s.black)
 	s.board.Place(kingB, boardtest.NewSquare("A3"))
 
-	moves := s.white.moves()
-	movesMatch(s.T(), moves, movesMatcher(kingW, "A2", "B1"))
+	moves := s.white.Moves()
+	messtest.MovesMatch(s.T(), moves, messtest.MovesMatcher(kingW, "A2", "B1"))
 }
 
 func (s *PlayerSuiteRealBoard) TestMovesTwoPieces() {
-	kingW1 := NewPiece(King(s.T()), s.white)
+	kingW1 := mess.NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW1, boardtest.NewSquare("A1"))
 
-	kingW2 := NewPiece(King(s.T()), s.white)
+	kingW2 := mess.NewPiece(King(s.T()), s.white)
 	s.board.Place(kingW2, boardtest.NewSquare("A3"))
 
-	moves := s.white.moves()
-	movesMatch(s.T(), moves, movesMatcher(kingW1, "A2", "B1"), movesMatcher(kingW2, "A2", "B3"))
+	moves := s.white.Moves()
+	messtest.MovesMatch(s.T(), moves,
+		messtest.MovesMatcher(kingW1, "A2", "B1"),
+		messtest.MovesMatcher(kingW2, "A2", "B3"),
+	)
 }
 
 func TestPlayerSourceRealBoard(t *testing.T) {

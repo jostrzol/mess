@@ -142,18 +142,13 @@ func (t *PieceType) moves(piece *Piece) []Move {
 }
 
 type MoveAction = func(*Piece, board.Square, board.Square)
-type Interaction struct {
-	name   string
-	action MoveAction
-}
 
 type MoveGenerator func(*Piece) ([]board.Square, MoveAction)
 
 type chainMoveGenerators []MoveGenerator
 type moveGeneratorResult struct {
-	destination  board.Square
-	action       MoveAction
-	interactions []Interaction
+	destination board.Square
+	action      MoveAction
 }
 
 func (g chainMoveGenerators) Generate(piece *Piece) []moveGeneratorResult {
