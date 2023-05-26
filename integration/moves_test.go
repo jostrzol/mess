@@ -1,8 +1,6 @@
 package integration
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/jostrzol/mess/config"
@@ -10,6 +8,7 @@ import (
 	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/mess/messtest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,10 +45,15 @@ func TestMoves(t *testing.T) {
 				{color.White, "king", "E1"},
 				{color.White, "rook", "A1"},
 				{color.White, "rook", "H1"},
+				{color.White, "pawn", "D2"},
+				{color.White, "pawn", "E2"},
+				{color.White, "pawn", "F2"},
 			},
 			expectMoves: []move{
 				{"E1", "C1"},
 				{"E1", "G1"},
+				{"E1", "D1"},
+				{"E1", "F1"},
 			},
 		},
 	}
@@ -77,32 +81,30 @@ func TestMoves(t *testing.T) {
 				}
 			}
 
-			validMoves := game.ValidMoves()
-			notFound := make([]move, 0)
+			matchers := make(map[string]messtest.MovesMatcherS, 0)
 			for _, move := range tt.expectMoves {
-				found := false
-				for _, validMove := range validMoves {
-					if validMove.From.String() == move.from && validMove.To.String() == move.to {
-						found = true
-						break
-					}
+				var matcher messtest.MovesMatcherS
+				if oldMatcher, found := matchers[move.from]; found {
+					matcher = oldMatcher
+				} else {
+					piece, err := game.Board().At(boardtest.NewSquare(move.from))
+					assert.NoError(t, err)
+					matcher.Piece = piece
 				}
-				if !found {
-					notFound = append(notFound, move)
-				}
+				matcher.Destinations = append(matcher.Destinations, move.to)
+				matchers[move.from] = matcher
 			}
 
-			if len(notFound) > 0 {
-				var msg strings.Builder
-				msg.WriteString("expected moves not found: [")
-				for i, move := range notFound {
-					if i != 0 {
-						msg.WriteString(", ")
+			validMoves := game.ValidMoves()
+			for from, matcher := range matchers {
+				var foundMoves []mess.Move
+				for _, validMove := range validMoves {
+					if validMove.From.String() == from {
+						foundMoves = append(foundMoves, validMove)
 					}
-					msg.WriteString(fmt.Sprintf("%s -> %s", move.from, move.to))
 				}
-				msg.WriteString("]")
-				t.Fatal(msg.String())
+
+				messtest.MovesMatch(t, foundMoves, matcher)
 			}
 		})
 	}
