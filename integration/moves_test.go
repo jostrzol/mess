@@ -35,7 +35,7 @@ func TestMoves(t *testing.T) {
 		name        string
 		initState   []piece
 		whenMoves   []move
-		expectMoves []move
+		expectMoves map[string][]string
 	}
 
 	tests := []test{
@@ -45,15 +45,135 @@ func TestMoves(t *testing.T) {
 				{color.White, "king", "E1"},
 				{color.White, "rook", "A1"},
 				{color.White, "rook", "H1"},
-				{color.White, "pawn", "D2"},
-				{color.White, "pawn", "E2"},
-				{color.White, "pawn", "F2"},
 			},
-			expectMoves: []move{
-				{"E1", "C1"},
-				{"E1", "G1"},
-				{"E1", "D1"},
-				{"E1", "F1"},
+			expectMoves: map[string][]string{
+				"E1": {"C1", "G1", "D1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_enemy_3_and_further_from_king",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.Black, "rook", "A3"},
+				{color.Black, "rook", "B3"},
+				{color.Black, "rook", "H3"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"C1", "G1", "D1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_blocked_by_own_knights",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.White, "knight", "B1"},
+				{color.White, "knight", "G1"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"D1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_blocked_by_own_bishops",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.White, "bishop", "C1"},
+				{color.White, "bishop", "F1"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"D1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_long_blocked_by_own_queen",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.White, "queen", "D1"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"G1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_blocked_by_enemy_on_king",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.Black, "rook", "E3"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"D1", "F1", "D2", "F2"},
+			},
+		},
+		{
+			name: "castling_blocked_by_enemy_1_from_king",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.Black, "rook", "D3"},
+				{color.Black, "rook", "F3"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"E2"},
+			},
+		},
+		{
+			name: "castling_blocked_by_enemy_2_from_king",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+				{color.Black, "rook", "C3"},
+				{color.Black, "rook", "G3"},
+			},
+			expectMoves: map[string][]string{
+				"E1": {"D1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_blocked_after_king_move",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+			},
+			whenMoves: []move{{"E1", "E2"}, {"E2", "E1"}},
+			expectMoves: map[string][]string{
+				"E1": {"D1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_long_blocked_after_rook_move",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+			},
+			whenMoves: []move{{"A1", "A2"}, {"A2", "A1"}},
+			expectMoves: map[string][]string{
+				"E1": {"G1", "D1", "F1", "D2", "E2", "F2"},
+			},
+		},
+		{
+			name: "castling_short_blocked_after_rook_move",
+			initState: []piece{
+				{color.White, "king", "E1"},
+				{color.White, "rook", "A1"},
+				{color.White, "rook", "H1"},
+			},
+			whenMoves: []move{{"H1", "H2"}, {"H2", "H1"}},
+			expectMoves: map[string][]string{
+				"E1": {"C1", "D1", "F1", "D2", "E2", "F2"},
 			},
 		},
 	}
@@ -82,17 +202,17 @@ func TestMoves(t *testing.T) {
 			}
 
 			matchers := make(map[string]messtest.MovesMatcherS, 0)
-			for _, move := range tt.expectMoves {
+			for from, to := range tt.expectMoves {
 				var matcher messtest.MovesMatcherS
-				if oldMatcher, found := matchers[move.from]; found {
+				if oldMatcher, found := matchers[from]; found {
 					matcher = oldMatcher
 				} else {
-					piece, err := game.Board().At(boardtest.NewSquare(move.from))
+					piece, err := game.Board().At(boardtest.NewSquare(from))
 					assert.NoError(t, err)
 					matcher.Piece = piece
 				}
-				matcher.Destinations = append(matcher.Destinations, move.to)
-				matchers[move.from] = matcher
+				matcher.Destinations = append(matcher.Destinations, to...)
+				matchers[from] = matcher
 			}
 
 			validMoves := game.ValidMoves()
