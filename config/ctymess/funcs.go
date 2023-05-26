@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
@@ -158,6 +159,31 @@ var RangeFunc = function.New(&function.Spec{
 	},
 })
 
+var PrintlnFunc = function.New(&function.Spec{
+	Description: "Prints its argument",
+	Params: []function.Parameter{
+		{
+			Name:             "argument",
+			Type:             cty.DynamicPseudoType,
+			AllowDynamicType: true,
+		},
+	},
+	Type: function.StaticReturnType(cty.DynamicPseudoType),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		fmt.Printf("%#v\n", args[0])
+		return cty.DynamicVal, nil
+	},
+})
+
+var StateMissingFunc = function.New(&function.Spec{
+	Description: "Placeholder - the game state is not built yet",
+	Params:      []function.Parameter{},
+	Type:        function.StaticReturnType(cty.NilType),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		panic("state not built yet")
+	},
+})
+
 func GetSquareRelativeFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: joinText(
@@ -196,15 +222,6 @@ func GetSquareRelativeFunc(state *mess.State) function.Function {
 		},
 	})
 }
-
-var StateMissingFunc = function.New(&function.Spec{
-	Description: "Placeholder - the game state is not built yet",
-	Params:      []function.Parameter{},
-	Type:        function.StaticReturnType(cty.NilType),
-	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-		panic("state not built yet")
-	},
-})
 
 func PieceAtFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
@@ -491,6 +508,38 @@ func PlaceNewPieceFunc(state *mess.State) function.Function {
 			}
 
 			return cty.DynamicVal, nil
+		},
+	})
+}
+
+func CondCallFunc(ctx *hcl.EvalContext) function.Function {
+	return function.New(&function.Spec{
+		Description: "Calls the given function, if the condition is true, else returns null",
+		Params: []function.Parameter{
+			{
+				Name:             "condition",
+				Type:             cty.Bool,
+				AllowDynamicType: true,
+			},
+			{
+				Name:             "function_name",
+				Type:             cty.DynamicPseudoType,
+				AllowDynamicType: true,
+			},
+		},
+		VarParam: &function.Parameter{
+			Name:             "arguments",
+			Type:             cty.DynamicPseudoType,
+			AllowDynamicType: true,
+		},
+		Type: function.StaticReturnType(cty.DynamicPseudoType),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var err error
+			if args[0].True() {
+				function := ctx.Functions[args[1].AsString()]
+				_, err = function.Call(args[2:])
+			}
+			return cty.NullVal(cty.DynamicPseudoType), err
 		},
 	})
 }

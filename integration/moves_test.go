@@ -239,7 +239,6 @@ func TestMoves(t *testing.T) {
 						break
 					}
 				}
-				println(game.PrettyString())
 
 				if !moveMade {
 					t.Errorf("precondition move not valid: %v -> %v", move.from, move.to)

@@ -96,7 +96,7 @@ composite_function "motion_neighbours" {
       [0, 1], [1, 0], [0, -1], [-1, 0],
       [1, 1], [1, -1], [-1, 1], [-1, -1]
     ]
-    dests  = [for dpos in dposes : get_square_relative(square, dpos)]
+    dests = [for dpos in dposes : get_square_relative(square, dpos)]
     return = [
       for dest in dests : dest
       if dest == null ? false : !belongs_to(piece.color, dest)
@@ -261,6 +261,17 @@ composite_function "motion_line_straight" {
 composite_function "promote" {
   params = [piece, src, dst]
   result = {
+    owner     = owner_of(piece)
+    forward_y = owner.forward_direction[1]
+    last_y    = forward_y == 1 ? board.height - 1 : 0
+    pos       = square_to_coords(dst)
+    return    = cond_call(pos[1] == last_y, "do_promote", owner.color, dst)
+  }
+}
+
+composite_function "do_promote" {
+  params = [color, dst]
+  result = {
     valid_piece_types = [
       for type in piece_types : type
       if !contains(["king", "pawn"], type.name)
@@ -268,20 +279,14 @@ composite_function "promote" {
     choice = choose([
       for type in valid_piece_types : format("promote to %s", type.name)
     ])
-    owner     = owner_of(piece)
-    forward_y = owner.forward_direction[1]
-    last_y    = forward_y == 1 ? board.height : 1
-    pos       = square_to_coords(dst)
-    return = (
-      choice == null
-      ? null
-      : place_new_piece(
-        valid_piece_types[choice].name,
-        dst,
-        owner.color
-      )
-
-  ) }
+    _ = cond_call(choice != null,
+      "place_new_piece",
+      valid_piece_types[choice].name,
+      dst,
+      color
+    )
+    return = null
+  }
 }
 
 // Captures an opposing pawn after an en passant.
