@@ -103,7 +103,7 @@ func main() {
 	var configFilename = flag.String("rules", "./rules.hcl", "path to a rules config file")
 	flag.Parse()
 
-	game, err := config.DecodeConfig(*configFilename, terminalInteractor{})
+	game, err := config.DecodeConfig(*configFilename, terminalInteractor{}, true)
 	if err != nil {
 		log.Fatalf("loading game rules: %s", err)
 	}

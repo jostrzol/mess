@@ -8,6 +8,6 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	_, err := DecodeConfig("../rules.hcl", configtest.RandomInteractor{})
+	_, err := DecodeConfig("../rules.hcl", configtest.RandomInteractor{}, true)
 	assert.NoError(t, err)
 }

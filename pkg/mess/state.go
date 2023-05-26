@@ -19,7 +19,7 @@ type State struct {
 	validMoves        []Move
 	turnNumber        int
 	isGeneratingMoves bool
-	pieceTypes        []*PieceType
+	pieceTypes        map[string]*PieceType
 }
 
 func NewState(board *PieceBoard) *State {
@@ -31,6 +31,7 @@ func NewState(board *PieceBoard) *State {
 		record:        []RecordedMove{},
 		isRecording:   true,
 		turnNumber:    1,
+		pieceTypes:    make(map[string]*PieceType),
 	}
 	board.Observe(state)
 	return state
@@ -207,14 +208,17 @@ func (s *State) IsGeneratingMoves() bool {
 }
 
 func (s *State) AddPieceType(pieceType *PieceType) {
-	for _, pt := range s.pieceTypes {
-		if pt == pieceType {
-			return
-		}
-	}
-	s.pieceTypes = append(s.pieceTypes, pieceType)
+	s.pieceTypes[pieceType.Name()] = pieceType
+}
+
+func (s *State) GetPieceType(name string) *PieceType {
+	return s.pieceTypes[name]
 }
 
 func (s *State) PieceTypes() []*PieceType {
-	return s.pieceTypes
+	result := make([]*PieceType, 0, len(s.pieceTypes))
+	for _, pieceType := range s.pieceTypes {
+		result = append(result, pieceType)
+	}
+	return result
 }

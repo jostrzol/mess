@@ -9,7 +9,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func (c *config) toGameState(ctx *hcl.EvalContext, interactor Interactor) (*mess.Game, error) {
+func (c *config) toEmptyGameState(ctx *hcl.EvalContext, interactor Interactor) (*mess.Game, error) {
 	brd, err := mess.NewPieceBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating new board: %w", err)
@@ -28,7 +28,6 @@ func (c *config) toGameState(ctx *hcl.EvalContext, interactor Interactor) (*mess
 		state.AddStateValidator(validator)
 	}
 
-	pieceTypes := make(map[string]*mess.PieceType, len(c.PieceTypes.PieceTypes))
 	for _, pieceTypeConfig := range c.PieceTypes.PieceTypes {
 		pieceType := mess.NewPieceType(pieceTypeConfig.Name)
 		for _, motionConfig := range pieceTypeConfig.Motions {
@@ -56,21 +55,15 @@ func (c *config) toGameState(ctx *hcl.EvalContext, interactor Interactor) (*mess
 				return moveGenerator(piece), action
 			})
 		}
-		pieceTypes[pieceType.Name()] = pieceType
 		state.AddPieceType(pieceType)
-	}
-
-	err = placePieces(state, c.InitialState.Pieces, pieceTypes)
-	if err != nil {
-		return nil, fmt.Errorf("placing initial pieces: %w", err)
 	}
 
 	initializeContext(ctx, game)
 	return game, nil
 }
 
-func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string]*mess.PieceType) error {
-	for _, pieces := range pieces {
+func (c *config) placePieces(state *mess.State) error {
+	for _, pieces := range c.InitialState.Pieces {
 		color, err := color.ColorString(pieces.PlayerColor)
 		if err != nil {
 			return fmt.Errorf("parsing player color: %w", err)
@@ -88,7 +81,7 @@ func placePieces(state *mess.State, pieces []piecesConfig, pieceTypes map[string
 			if diags.HasErrors() {
 				return fmt.Errorf("parsing piece type: %w", diags)
 			}
-			pieceType := pieceTypes[pieceTypeName.AsString()]
+			pieceType := state.GetPieceType(pieceTypeName.AsString())
 			if pieceType == nil {
 				return fmt.Errorf("piece type %q not defined", pieceTypeName.AsString())
 			}
