@@ -33,6 +33,7 @@ var RecordedMove = cty.Object(map[string]cty.Type{
 })
 
 var Move = cty.Object(map[string]cty.Type{
+	"name":   cty.String,
 	"player": Player,
 	"piece":  Piece,
 	"src":    cty.String,

@@ -16,21 +16,24 @@ import (
 func Rook(t *testing.T) *mess.PieceType {
 	t.Helper()
 	pieceType := mess.NewPieceType("rook")
-	pieceType.AddMoveGenerator(func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
-		result := make([]board.Square, 0)
-		for _, offset := range []board.Offset{
-			{X: 1, Y: 0},
-			{X: -1, Y: 0},
-			{X: 0, Y: 1},
-			{X: 0, Y: -1},
-		} {
-			square := piece.Square().Offset(offset)
-			for piece.Board().Contains(square) {
-				result = append(result, square)
-				square = square.Offset(offset)
+	pieceType.AddMoveGenerator(mess.MoveGenerator{
+		Name: "rook_motion",
+		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
+			result := make([]board.Square, 0)
+			for _, offset := range []board.Offset{
+				{X: 1, Y: 0},
+				{X: -1, Y: 0},
+				{X: 0, Y: 1},
+				{X: 0, Y: -1},
+			} {
+				square := piece.Square().Offset(offset)
+				for piece.Board().Contains(square) {
+					result = append(result, square)
+					square = square.Offset(offset)
+				}
 			}
-		}
-		return result, nil
+			return result, nil
+		},
 	})
 	return pieceType
 }

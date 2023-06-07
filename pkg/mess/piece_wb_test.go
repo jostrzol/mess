@@ -10,14 +10,17 @@ import (
 
 func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
 	t.Helper()
-	return func(piece *Piece) ([]brd.Square, MoveAction) {
-		destinations := make([]brd.Square, 0, len(strings))
-		for _, squareStr := range strings {
-			square, err := brd.NewSquare(squareStr)
-			assert.NoError(t, err)
-			destinations = append(destinations, square)
-		}
-		return destinations, nil
+	return MoveGenerator{
+		Name: "test_generator",
+		Generate: func(piece *Piece) ([]brd.Square, MoveAction) {
+			destinations := make([]brd.Square, 0, len(strings))
+			for _, squareStr := range strings {
+				square, err := brd.NewSquare(squareStr)
+				assert.NoError(t, err)
+				destinations = append(destinations, square)
+			}
+			return destinations, nil
+		},
 	}
 }
 

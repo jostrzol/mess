@@ -51,9 +51,14 @@ func (c *config) toEmptyGameState(ctx *hcl.EvalContext, interactor Interactor) (
 					}
 				}
 			}
-			pieceType.AddMoveGenerator(func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
-				return moveGenerator(piece), action
-			})
+			pieceType.AddMoveGenerator(
+				mess.MoveGenerator{
+					Name: motionConfig.GeneratorName,
+					Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
+						return moveGenerator(piece), action
+					},
+				},
+			)
 		}
 		state.AddPieceType(pieceType)
 	}

@@ -70,6 +70,7 @@ func RecordToCty(record []mess.RecordedMove) cty.Value {
 
 func MoveToCty(move *mess.Move) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
+		"name":   cty.StringVal(move.Name),
 		"piece":  PieceToCty(move.Piece),
 		"player": PlayerToCty(move.Piece.Owner()),
 		"src":    cty.StringVal(move.From.String()),

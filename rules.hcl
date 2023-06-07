@@ -337,7 +337,7 @@ state_validators {
   // safe (necessary solely for castling motion).
   function "is_kings_path_save" {
     params = [move]
-    result = move.piece.type != "king" ? true : all([
+    result = move.name != "motion_castling" ? true : all([
       for s in square_range(move.src, move.dst)
       : !is_attacked_by(opponent_color(move.piece.color), s)
     ]...)

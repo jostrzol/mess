@@ -131,6 +131,7 @@ func (t *PieceType) moves(piece *Piece) []Move {
 	result := make([]Move, 0)
 	for _, generated := range t.moveGenerators.Generate(piece) {
 		move := Move{
+			Name:   generated.name,
 			Piece:  piece,
 			From:   piece.Square(),
 			To:     generated.destination,
@@ -143,45 +144,38 @@ func (t *PieceType) moves(piece *Piece) []Move {
 
 type MoveAction = func(*Piece, board.Square, board.Square)
 
-type MoveGenerator func(*Piece) ([]board.Square, MoveAction)
+type MoveGenerator struct {
+	Name     string
+	Generate func(*Piece) ([]board.Square, MoveAction)
+}
 
 type chainMoveGenerators []MoveGenerator
 type moveGeneratorResult struct {
+	name        string
 	destination board.Square
 	action      MoveAction
 }
 
 func (g chainMoveGenerators) Generate(piece *Piece) []moveGeneratorResult {
-	resultSet := make(map[brd.Square][]MoveAction, 0)
+	resultMap := make(map[brd.Square]moveGeneratorResult, 0)
 	for _, generator := range g {
-		destinations, action := generator(piece)
+		name := generator.Name
+		destinations, action := generator.Generate(piece)
+
 		for _, destination := range destinations {
-			if action != nil {
-				resultSet[destination] = append(resultSet[destination], action)
-			} else if _, present := resultSet[destination]; !present {
-				resultSet[destination] = make([]MoveAction, 0)
-			}
+			resultMap[destination] = moveGeneratorResult{name, destination, action}
 		}
 	}
-	result := make([]moveGeneratorResult, 0, len(resultSet))
-	for destination, actions := range resultSet {
-		// copy is required, because else the action closure
-		// would always take actions from the last resultSet entry
-		// (the 'action' reference changes as the loop iterates)
-		actionsCopy := actions
-		result = append(result, moveGeneratorResult{
-			destination: destination,
-			action: func(p *Piece, from, to brd.Square) {
-				for _, action := range actionsCopy {
-					action(piece, from, to)
-				}
-			},
-		})
+
+	resultSlice := make([]moveGeneratorResult, 0, len(resultMap))
+	for _, result := range resultMap {
+		resultSlice = append(resultSlice, result)
 	}
-	return result
+	return resultSlice
 }
 
 type Move struct {
+	Name   string
 	Piece  *Piece
 	From   brd.Square
 	To     brd.Square
@@ -197,7 +191,9 @@ func (m *Move) Perform() error {
 	if err != nil {
 		return err
 	}
-	m.Action(m.Piece, m.From, m.To)
+	if m.Action != nil {
+		m.Action(m.Piece, m.From, m.To)
+	}
 	return nil
 }
 
