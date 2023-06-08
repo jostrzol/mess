@@ -455,7 +455,7 @@ func ChooseFunc(game *mess.Game) function.Function {
 			}
 
 			if game.IsGeneratingMoves() {
-				return cty.StringVal(options[0]), nil
+				return cty.NumberIntVal(0), nil
 			}
 
 			chosen := game.Choose(options)

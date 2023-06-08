@@ -49,23 +49,19 @@ func OffsetToCty(offset board.Offset) cty.Value {
 	})
 }
 
-func RecordToCty(record []mess.RecordedMove) cty.Value {
+func RecordToCty(record []mess.Turn) cty.Value {
 	result := make([]cty.Value, 0, len(record))
-	for _, move := range record {
-		captures := make([]cty.Value, 0, len(move.Captures))
-		for piece := range move.Captures {
-			captures = append(captures, PieceToCty(piece))
-		}
+	for _, turn := range record {
+		move := turn.FirstMove()
 		moveCty := cty.ObjectVal(map[string]cty.Value{
-			"piece":    PieceToCty(move.Piece),
-			"player":   PlayerToCty(move.Piece.Owner()),
-			"src":      cty.StringVal(move.From.String()),
-			"dst":      cty.StringVal(move.To.String()),
-			"captures": listOrEmpty(Piece, captures),
+			"piece":  PieceToCty(move.Piece),
+			"player": PlayerToCty(move.Piece.Owner()),
+			"src":    cty.StringVal(move.From.String()),
+			"dst":    cty.StringVal(move.To.String()),
 		})
 		result = append(result, moveCty)
 	}
-	return listOrEmpty(RecordedMove, result)
+	return listOrEmpty(Turn, result)
 }
 
 func MoveToCty(move *mess.Move) cty.Value {

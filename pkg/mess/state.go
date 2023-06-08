@@ -3,7 +3,6 @@ package mess
 import (
 	"fmt"
 
-	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
 	"github.com/jostrzol/mess/pkg/iter"
@@ -13,7 +12,7 @@ type State struct {
 	board             *PieceBoard
 	players           map[color.Color]*Player
 	currentPlayer     *Player
-	record            []RecordedMove
+	record            []Turn
 	isRecording       bool
 	validators        chainStateValidators
 	validMoves        []Move
@@ -28,9 +27,9 @@ func NewState(board *PieceBoard) *State {
 		board:         board,
 		players:       players,
 		currentPlayer: players[color.White],
-		record:        []RecordedMove{},
+		record:        []Turn{},
 		isRecording:   true,
-		turnNumber:    1,
+		turnNumber:    0,
 		pieceTypes:    make(map[string]*PieceType),
 	}
 	board.Observe(state)
@@ -115,7 +114,7 @@ func (s *State) generateValidMoves() {
 
 	moves := s.currentPlayer.Moves()
 	for _, move := range moves {
-		err := move.PerformWithoutAction()
+		err := move.Perform()
 
 		isValid := false
 		if err != nil {
@@ -138,69 +137,79 @@ func (s *State) Handle(event event.Event) {
 		return
 	}
 
-	switch e := event.(type) {
-	case PieceMoved:
-		s.record = append(s.record, RecordedMove{
-			Piece:      e.Piece,
-			From:       e.From,
-			To:         e.To,
-			TurnNumber: s.turnNumber,
-			Captures:   map[*Piece]struct{}{},
-		})
-	case PieceCaptured:
-		s.recordCapture(&e)
+	_, isPiecePlaced := event.(PiecePlaced)
+	if s.turnNumber == 0 && len(s.record) == 0 && isPiecePlaced {
+		// don't record initial setup
+		return
+	}
+
+	var turn Turn
+	if len(s.record) != s.turnNumber {
+		// not the first move in the round -> load it
+		turn = s.record[s.turnNumber]
+	}
+
+	turn = append(turn, event)
+
+	if len(s.record) == s.turnNumber {
+		// the first move in the round -> append it
+		s.record = append(s.record, turn)
+	} else {
+		// not the first move in the round -> modify it
+		s.record[s.turnNumber] = turn
 	}
 
 	s.validMoves = nil
 }
 
-func (s *State) recordCapture(event *PieceCaptured) {
-	if len(s.record) == 0 {
-		panic(fmt.Errorf("tried to record a capture, but no moved was recorded ealier"))
-	}
-	lastMove := s.record[len(s.record)-1]
-	lastMove.Captures[event.Piece] = struct{}{}
-}
-
 func (s *State) UndoTurn() {
-	for len(s.record) > 0 && s.record[len(s.record)-1].TurnNumber == s.turnNumber {
-		s.undoOne()
-	}
-}
-
-func (s *State) undoOne() {
 	if len(s.record) == 0 {
 		return
 	}
-	lastMove := s.record[len(s.record)-1]
+
+	turn := s.record[s.turnNumber]
+	s.record = s.record[:s.turnNumber]
 
 	s.isRecording = false
 	defer func() { s.isRecording = true }()
 
-	err := lastMove.Piece.MoveTo(lastMove.From)
-	if err != nil {
-		panic(err)
-	}
+	for i := range turn {
+		iRev := len(turn) - i - 1
+		event := turn[iRev]
 
-	for c := range lastMove.Captures {
-		err := s.board.Place(c, c.Square())
-		if err != nil {
-			panic(err)
+		switch e := event.(type) {
+		case PieceMoved:
+			err := e.Piece.MoveTo(e.From)
+			if err != nil {
+				panic(err)
+			}
+		case PiecePlaced:
+			err := e.Piece.Remove()
+			if err != nil {
+				panic(err)
+			}
+		case PieceRemoved:
+			err := e.Piece.PlaceOn(s.board, e.Square)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
-	s.record = s.record[:len(s.record)-1]
 }
 
-func (s *State) Record() []RecordedMove {
+func (s *State) Record() []Turn {
 	return s.record
 }
 
-type RecordedMove struct {
-	Piece      *Piece
-	From       board.Square
-	To         board.Square
-	TurnNumber int
-	Captures   map[*Piece]struct{}
+type Turn []event.Event
+
+func (t Turn) FirstMove() PieceMoved {
+	for _, event := range t {
+		if e, ok := event.(PieceMoved); ok {
+			return e
+		}
+	}
+	panic("corrupted turn: no PieceMoved event")
 }
 
 func (s *State) IsGeneratingMoves() bool {

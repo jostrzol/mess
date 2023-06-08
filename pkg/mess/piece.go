@@ -62,6 +62,10 @@ func (p *Piece) PlaceOn(board *PieceBoard, square brd.Square) error {
 	return board.Place(p, square)
 }
 
+func (p *Piece) Remove() error {
+	return p.board.RemoveAt(p.square)
+}
+
 func (p *Piece) MoveTo(square brd.Square) error {
 	return p.board.Move(p, square)
 }
@@ -180,10 +184,6 @@ type Move struct {
 	From   brd.Square
 	To     brd.Square
 	Action MoveAction
-}
-
-func (m *Move) PerformWithoutAction() error {
-	return m.Piece.MoveTo(m.To)
 }
 
 func (m *Move) Perform() error {

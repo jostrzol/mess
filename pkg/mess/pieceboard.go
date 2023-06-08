@@ -92,6 +92,27 @@ func (b *PieceBoard) Place(piece *Piece, square board.Square) error {
 	return nil
 }
 
+func (b *PieceBoard) RemoveAt(square board.Square) error {
+	piece, err := b.wrapped.At(square)
+	if err != nil {
+		return fmt.Errorf("getting piece at %v: %w", square, err)
+	}
+	if piece == nil {
+		return fmt.Errorf("removing piece at %v: already empty", square)
+	}
+
+	_, err = b.wrapped.Place(nil, square)
+	if err != nil {
+		return err
+	}
+	b.Unobserve(piece)
+	b.Notify(PieceRemoved{
+		Piece:  piece,
+		Square: square,
+	})
+	return nil
+}
+
 func (b *PieceBoard) Replace(piece *Piece, square board.Square) error {
 	if piece.IsOnBoard() {
 		return fmt.Errorf("piece already on a board")
@@ -172,15 +193,15 @@ func (b *PieceBoard) Move(piece *Piece, square board.Square) error {
 		return err
 	}
 
+	if old != nil {
+		b.notifyRemovedAndCaptured(old, piece.Owner())
+	}
+
 	b.Notify(PieceMoved{
 		Piece: piece,
 		From:  piece.Square(),
 		To:    square,
 	})
-
-	if old != nil {
-		b.notifyRemovedAndCaptured(old, piece.Owner())
-	}
 	return nil
 }
 
