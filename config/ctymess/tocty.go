@@ -8,7 +8,7 @@ import (
 
 func StateToCty(state *mess.State) cty.Value {
 	players := make(map[string]cty.Value, len(state.Players()))
-	for player := range state.Players() {
+	for _, player := range state.Players() {
 		players[player.Color().String()] = PlayerToCty(player)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
@@ -20,7 +20,7 @@ func StateToCty(state *mess.State) cty.Value {
 
 func PlayerToCty(player *mess.Player) cty.Value {
 	pieces := make([]cty.Value, 0, len(player.Pieces()))
-	for piece := range player.Pieces() {
+	for _, piece := range player.Pieces() {
 		pieces = append(pieces, PieceToCty(piece))
 	}
 	return cty.ObjectVal(map[string]cty.Value{

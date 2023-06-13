@@ -6,7 +6,6 @@ import (
 	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
-	"github.com/jostrzol/mess/pkg/iterassert"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/mess/messtest"
 	"github.com/stretchr/testify/assert"
@@ -47,7 +46,7 @@ func (s *PlayerSuiteMockedBoard) TestString() {
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersEmpty() {
-	iterassert.Empty(s.T(), s.white.Prisoners())
+	s.Empty(s.white.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
@@ -57,10 +56,10 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
 		CapturedBy: s.white,
 	})
 
-	iterassert.Len(s.T(), s.white.Prisoners(), 1)
-	iterassert.Contains(s.T(), s.white.Prisoners(), knight)
+	s.Len(s.white.Prisoners(), 1)
+	s.Contains(s.white.Prisoners(), knight)
 
-	iterassert.Empty(s.T(), s.black.Prisoners())
+	s.Empty(s.black.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPrisonersRelease() {
@@ -74,22 +73,22 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersRelease() {
 		Piece: knight,
 	})
 
-	iterassert.Empty(s.T(), s.white.Prisoners())
-	iterassert.Empty(s.T(), s.black.Prisoners())
+	s.Empty(s.white.Prisoners())
+	s.Empty(s.black.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecesEmpty() {
-	iterassert.Empty(s.T(), s.white.Prisoners())
+	s.Empty(s.white.Prisoners())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecePlaced() {
 	knight := mess.NewPiece(Knight(s.T()), s.white)
 	s.board.Notify(mess.PiecePlaced{Piece: knight})
 
-	iterassert.Len(s.T(), s.white.Pieces(), 1)
-	iterassert.Contains(s.T(), s.white.Pieces(), knight)
+	s.Len(s.white.Pieces(), 1)
+	s.Contains(s.white.Pieces(), knight)
 
-	iterassert.Empty(s.T(), s.black.Pieces())
+	s.Empty(s.black.Pieces())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPieceRemoved() {
@@ -97,8 +96,8 @@ func (s *PlayerSuiteMockedBoard) TestPieceRemoved() {
 	s.board.Notify(mess.PiecePlaced{Piece: knight})
 	s.board.Notify(mess.PieceRemoved{Piece: knight})
 
-	iterassert.Empty(s.T(), s.white.Pieces())
-	iterassert.Empty(s.T(), s.black.Pieces())
+	s.Empty(s.white.Pieces())
+	s.Empty(s.black.Pieces())
 }
 
 func TestPlayerSourceMockedBoard(t *testing.T) {
