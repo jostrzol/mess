@@ -537,7 +537,7 @@ func CondCallFunc(ctx *hcl.EvalContext) function.Function {
 			var err error
 			if args[0].True() {
 				function := ctx.Functions[args[1].AsString()]
-				_, err = function.Call(args[2:])
+				return function.Call(args[2:])
 			}
 			return cty.NullVal(cty.DynamicPseudoType), err
 		},

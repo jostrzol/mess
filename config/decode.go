@@ -42,22 +42,17 @@ type motionConfig struct {
 }
 
 type initialStateConfig struct {
-	Pieces []piecesConfig `hcl:"pieces,block"`
-}
-
-type piecesConfig struct {
-	PlayerColor string         `hcl:"player_name,label"`
-	Placements  hcl.Attributes `hcl:",remain"`
+	WhitePieces map[string]string `hcl:"white_pieces"`
+	BlackPieces map[string]string `hcl:"black_pieces"`
 }
 
 type variablesConfig struct {
-	Variables []variableConfig `hcl:"variable,block"`
-	Remain    hcl.Body         `hcl:",remain"`
+	VariablesBlock *variablesBlockConfig `hcl:"variables,block"`
+	Remain         hcl.Body              `hcl:",remain"`
 }
 
-type variableConfig struct {
-	Name       string         `hcl:"name,label"`
-	Expression hcl.Expression `hcl:"value"`
+type variablesBlockConfig struct {
+	Variables hcl.Attributes `hcl:",remain"`
 }
 
 type stateValidatorConfig struct {
@@ -104,9 +99,13 @@ func decodeConfig(filename string, ctx *hcl.EvalContext) (*config, error) {
 		})
 	}
 
-	stateValidators, _, tmpDiags := decodeUserFunctions(config.StateValidators.Body, ctx)
-	diags.Extend(tmpDiags)
-	config.Functions.StateValidators = stateValidators
+	if config.StateValidators.Body != nil {
+		stateValidators, _, tmpDiags := decodeUserFunctions(config.StateValidators.Body, ctx)
+		diags.Extend(tmpDiags)
+		config.Functions.StateValidators = stateValidators
+	} else {
+		config.Functions.StateValidators = make(map[string]function.Function)
+	}
 
 	return config, nil
 }
@@ -153,33 +152,34 @@ func decodeUserVariables(
 	body hcl.Body, ctx *hcl.EvalContext,
 ) (map[string]cty.Value, hcl.Body, hcl.Diagnostics) {
 	diags := make(hcl.Diagnostics, 0)
-	var variables variablesConfig
+	var variablesConfig variablesConfig
 
-	tmpDiags := gohcl.DecodeBody(body, ctx, &variables)
+	tmpDiags := gohcl.DecodeBody(body, ctx, &variablesConfig)
 	diags.Extend(tmpDiags)
 
-	if variables.Variables == nil {
-		variables.Variables = make([]variableConfig, 0)
+	userVariables := make(map[string]cty.Value)
+
+	if variablesConfig.VariablesBlock == nil {
+		return userVariables, variablesConfig.Remain, diags
 	}
 
-	userVariables := make(map[string]cty.Value)
-	for _, variable := range variables.Variables {
+	for _, variable := range variablesConfig.VariablesBlock.Variables {
 		if _, ok := userVariables[variable.Name]; ok {
 			diags.Append(&hcl.Diagnostic{
 				Severity:    hcl.DiagError,
-				Subject:     variable.Expression.Range().Ptr(),
-				Expression:  variable.Expression,
+				Subject:     variable.Expr.Range().Ptr(),
+				Expression:  variable.Expr,
 				EvalContext: ctx,
 				Detail:      fmt.Sprintf("variable named %q already defined", variable.Name),
 			})
 		} else {
-			value, evalDiags := variable.Expression.Value(ctx)
+			value, evalDiags := variable.Expr.Value(ctx)
 			diags.Extend(evalDiags)
 			userVariables[variable.Name] = value
 		}
 	}
 
-	return userVariables, variables.Remain, diags
+	return userVariables, variablesConfig.Remain, diags
 }
 
 func mergeWithStd[V any](stdMap map[string]V, userMap map[string]V, kind string) hcl.Diagnostics {

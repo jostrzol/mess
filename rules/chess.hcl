@@ -410,14 +410,14 @@ function "opponent_color" {
 
 // ===== INITIAL STATE =========================================
 initial_state {
-  pieces "white" {
+  white_pieces = {
     E1 = "king"
     A1 = "rook"
     H1 = "rook"
     G1 = "knight"
     B5 = "pawn"
   }
-  pieces "black" {
+  black_pieces = {
     A8 = "rook"
     B8 = "knight"
     C8 = "bishop"
