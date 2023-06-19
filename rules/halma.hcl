@@ -135,30 +135,43 @@ function "is_occupied" {
   result = piece_at(square) != null
 }
 
+// Returns the color belonging to the opponent of the player having the given
+// color.
+function "opponent_color" {
+  params = [color]
+  result = [
+    for _player in game.players : _player.color
+    if _player.color != color
+  ][0]
+}
+
 // ===== INITIAL STATE =========================================
 initial_state {
-  white_pieces = { for pos in white_starting_positions : pos => "piece" }
-  black_pieces = { for pos in black_starting_positions : pos => "piece" }
+  white_pieces = { for pos in starting_positions.white : pos => "piece" }
+  black_pieces = { for pos in starting_positions.black : pos => "piece" }
 }
 
 // ===== VARIABLES =============================================
 variables {
-  black_starting_positions = [
-    "A8", "B8", "C8", "D8",
-    "A7", "B7", "C7",
-    "A6", "B6",
-    "A5",
-  ]
-  white_starting_positions = [
-    /*             */ "H4",
-    /*       */ "G3", "H3",
-    /* */ "F2", "G2", "H2",
-    "E1", "F1", "G1", "H1",
-  ]
+  starting_positions = {
+    black = [
+      "A8", "B8", "C8", "D8",
+      "A7", "B7", "C7",
+      "A6", "B6",
+      "A5",
+    ]
+    white = [
+      /*             */ "H4",
+      /*       */ "G3", "H3",
+      /* */ "F2", "G2", "H2",
+      "E1", "F1", "G1", "H1",
+    ]
+  }
+  max_moves_to_leave_start = 30
 }
 
 // ===== GAME RESOLVING FUNCTIONS ==============================
-// Namely the function "pick_winner" and its helpers
+// Namely the function "pick_winner" and its helpers.
 
 // This function is called at the start of every turn.
 // Returns a tuple in form [is_finished, winner_color]. If is_finished == true
@@ -166,16 +179,31 @@ variables {
 function "pick_winner" {
   params = [game]
   result = (
-    is_all_occupied_by(white_starting_positions, "black")
+    did_win("black")
     ? [true, "black"]
-    : (is_all_occupied_by(black_starting_positions, "white")
-      ? [true, "white"]
-      : [false, null]
-    )
+    : did_win("white")
+    ? [true, "white"]
+    : [false, null]
   )
 }
 
-// Checks if the given player occupies all of the given squares
+// Checks if the given player meets the winning conditions.
+composite_function "did_win" {
+  params = [color]
+  result = {
+    opponent                = opponent_color(color)
+    opponent_starting_poses = starting_positions[opponent]
+    return = (
+      is_all_occupied_by(opponent_starting_poses, color)
+      || (
+        count_moves_by(opponent) > max_moves_to_leave_start
+        && is_any_occupied_by(opponent_starting_poses, opponent)
+      )
+    )
+  }
+}
+
+// Checks if the given player occupies all of the given squares.
 composite_function "is_all_occupied_by" {
   params = [squares, color]
   result = {
@@ -184,4 +212,21 @@ composite_function "is_all_occupied_by" {
       for piece in pieces : piece == null ? false : piece.color == color
     ]...)
   }
+}
+
+// Checks if the given player occupies any of the given squares.
+composite_function "is_any_occupied_by" {
+  params = [squares, color]
+  result = {
+    pieces = [for square in squares : piece_at(square)]
+    return = any([
+      for piece in pieces : piece == null ? false : piece.color == color
+    ]...)
+  }
+}
+
+// Returns number of moves done by the given player.
+function "count_moves_by" {
+  params = [color]
+  result = sum([for move in game.record : 1 if move.piece.color == color]...)
 }
