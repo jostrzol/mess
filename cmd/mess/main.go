@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/jostrzol/mess/config"
 	"github.com/jostrzol/mess/pkg/board"
@@ -99,13 +99,30 @@ func chooseMove(game *mess.Game) *mess.Move {
 	}
 }
 
+func cmdError(format string, a ...any) {
+	format = fmt.Sprintf("error: %s\n", format)
+	fmt.Printf(format, a...)
+	flag.Usage()
+	os.Exit(1)
+}
+
+func runError(format string, a ...any) {
+	format = fmt.Sprintf("error: %s\n", format)
+	fmt.Printf(format, a...)
+	os.Exit(2)
+}
+
 func main() {
-	var configFilename = flag.String("rules", "./rules.hcl", "path to a rules config file")
+	var configFilename = flag.String("rules", "", "path to a rules config file")
 	flag.Parse()
+
+	if *configFilename == "" {
+		cmdError("no rules file")
+	}
 
 	game, err := config.DecodeConfig(*configFilename, terminalInteractor{}, true)
 	if err != nil {
-		log.Fatalf("loading game rules: %s", err)
+		runError("loading game rules: %s", err)
 	}
 
 	var winner *mess.Player
@@ -122,7 +139,7 @@ func main() {
 
 		err = move.Perform()
 		if err != nil {
-			log.Fatal(err)
+			runError("performing move: %v", err)
 		}
 
 		game.EndTurn()

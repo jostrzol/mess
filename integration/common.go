@@ -1,3 +1,3 @@
 package integration
 
-const RulesFile = "../rules.hcl"
+const ChessRulesFile = "../rules/chess.hcl"
