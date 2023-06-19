@@ -68,25 +68,20 @@ func (c *config) toEmptyGameState(ctx *hcl.EvalContext, interactor Interactor) (
 }
 
 func (c *config) placePieces(state *mess.State) error {
-	for _, pieces := range c.InitialState.Pieces {
-		color, err := color.ColorString(pieces.PlayerColor)
-		if err != nil {
-			return fmt.Errorf("parsing player color: %w", err)
-		}
+	placementConfigs := map[color.Color]map[string]string{
+		color.White: c.InitialState.WhitePieces,
+		color.Black: c.InitialState.BlackPieces,
+	}
+	for color, pieces := range placementConfigs {
 		player := state.Player(color)
 
-		for _, piecePlacement := range pieces.Placements {
-			squareString := piecePlacement.Name
+		for squareString, pieceTypeName := range pieces {
 			square, err := board.NewSquare(squareString)
 			if err != nil {
 				return fmt.Errorf("parsing square: %w", err)
 			}
 
-			pieceTypeName, diags := piecePlacement.Expr.Value(nil)
-			if diags.HasErrors() {
-				return fmt.Errorf("parsing piece type: %w", diags)
-			}
-			pieceType, err := state.GetPieceType(pieceTypeName.AsString())
+			pieceType, err := state.GetPieceType(pieceTypeName)
 			if err != nil {
 				return fmt.Errorf("getting piece type: %w", err)
 			}

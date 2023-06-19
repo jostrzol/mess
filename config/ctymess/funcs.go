@@ -66,12 +66,33 @@ var AllFunc = function.New(&function.Spec{
 	},
 	Type: function.StaticReturnType(cty.Bool),
 	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-		result := cty.True
 		for _, arg := range args {
-			result = result.And(arg)
+			if arg.False() {
+				return cty.False, nil
+			}
 		}
 
-		return result, nil
+		return cty.True, nil
+	},
+})
+
+var AnyFunc = function.New(&function.Spec{
+	Description: "Returns true if any of the arguments is true",
+	Params:      []function.Parameter{},
+	VarParam: &function.Parameter{
+		Name:             "args",
+		Type:             cty.Bool,
+		AllowDynamicType: true,
+	},
+	Type: function.StaticReturnType(cty.Bool),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		for _, arg := range args {
+			if arg.True() {
+				return cty.True, nil
+			}
+		}
+
+		return cty.False, nil
 	},
 })
 
@@ -537,7 +558,7 @@ func CondCallFunc(ctx *hcl.EvalContext) function.Function {
 			var err error
 			if args[0].True() {
 				function := ctx.Functions[args[1].AsString()]
-				_, err = function.Call(args[2:])
+				return function.Call(args[2:])
 			}
 			return cty.NullVal(cty.DynamicPseudoType), err
 		},

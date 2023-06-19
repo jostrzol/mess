@@ -30,6 +30,7 @@ var InitialEvalContext = &hcl.EvalContext{
 		"sum":                 ctymess.SumFunc,
 		"concat":              ctymess.ConcatFunc,
 		"all":                 ctymess.AllFunc,
+		"any":                 ctymess.AnyFunc,
 		"square_to_coords":    ctymess.SquareToCoordsFunc,
 		"coords_to_square":    ctymess.CoordsToSquareFunc,
 		"println":             ctymess.PrintlnFunc,

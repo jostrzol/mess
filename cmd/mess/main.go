@@ -1,9 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/jostrzol/mess/config"
 	"github.com/jostrzol/mess/pkg/board"
@@ -33,13 +34,18 @@ func (i terminalInteractor) Choose(options []string) int {
 	}
 }
 
-func chooseMove(game *mess.Game) *mess.Move {
+func chooseMove(scanner *bufio.Scanner, game *mess.Game) (*mess.Move, error) {
 	validMoves := game.ValidMoves()
 	for {
-		var srcStr string
 		println("Choose a square with your piece")
 		print("> ")
-		fmt.Scanf("%s", &srcStr)
+		if !scanner.Scan() {
+			return nil, scanner.Err()
+		}
+		srcStr := scanner.Text()
+		if srcStr == "" {
+			continue
+		}
 
 		src, err := brd.NewSquare(srcStr)
 		if err != nil {
@@ -78,10 +84,15 @@ func chooseMove(game *mess.Game) *mess.Move {
 			}
 		}
 
-		var dstStr string
 		println("Choose a destination square")
 		print("> ")
-		fmt.Scanf("%s", &dstStr)
+		if !scanner.Scan() {
+			return nil, scanner.Err()
+		}
+		dstStr := scanner.Text()
+		if dstStr == "" {
+			continue
+		}
 
 		dst, err := brd.NewSquare(dstStr)
 		if err != nil {
@@ -95,21 +106,39 @@ func chooseMove(game *mess.Game) *mess.Move {
 			continue
 		}
 
-		return &move
+		return &move, nil
 	}
 }
 
+func cmdError(format string, a ...any) {
+	format = fmt.Sprintf("error: %s\n", format)
+	fmt.Printf(format, a...)
+	flag.Usage()
+	os.Exit(1)
+}
+
+func runError(format string, a ...any) {
+	format = fmt.Sprintf("error: %s\n", format)
+	fmt.Printf(format, a...)
+	os.Exit(2)
+}
+
 func main() {
-	var configFilename = flag.String("rules", "./rules.hcl", "path to a rules config file")
+	var configFilename = flag.String("rules", "", "path to a rules config file")
 	flag.Parse()
+
+	if *configFilename == "" {
+		cmdError("no rules file")
+	}
 
 	game, err := config.DecodeConfig(*configFilename, terminalInteractor{}, true)
 	if err != nil {
-		log.Fatalf("loading game rules: %s", err)
+		runError("loading game rules: %s", err)
 	}
 
 	var winner *mess.Player
 	isFinished := false
+	scanner := bufio.NewScanner(os.Stdin)
 	for !isFinished {
 		// generate moves first so that debug logs print before the board does
 		// (the moves are cached anyway, so this computation won't get wasted)
@@ -118,11 +147,17 @@ func main() {
 		println("Board: (uppercase - white, lowercase - black)")
 		println(game.PrettyString())
 
-		move := chooseMove(game)
+		move, err := chooseMove(scanner, game)
+		if err != nil {
+			runError("choosing move: %v", err)
+		} else if move == nil {
+			// EOF
+			return
+		}
 
 		err = move.Perform()
 		if err != nil {
-			log.Fatal(err)
+			runError("performing move: %v", err)
 		}
 
 		game.EndTurn()
