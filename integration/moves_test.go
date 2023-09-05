@@ -322,7 +322,7 @@ func TestPromotion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.color.String(), func(t *testing.T) {
-			interactor := rulestest.ConstInteractor{Option: "promote to queen"}
+			interactor := rulestest.ConstOptionInteractor{Option: "promote to queen"}
 			game, err := rules.DecodeRules(ChessRulesFile, interactor, false)
 			assert.NoError(t, err)
 
@@ -350,7 +350,7 @@ func TestPromotion(t *testing.T) {
 }
 
 func TestPromotionCheckMate(t *testing.T) {
-	interactor := rulestest.ConstInteractor{Option: "promote to knight"}
+	interactor := rulestest.ConstOptionInteractor{Option: "promote to knight"}
 	game, err := rules.DecodeRules(ChessRulesFile, interactor, false)
 	assert.NoError(t, err)
 

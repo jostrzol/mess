@@ -42,8 +42,11 @@ var InitialEvalContext = &hcl.EvalContext{
 		"move":                ctymess.StateMissingFunc,
 		"capture":             ctymess.StateMissingFunc,
 		"choose":              ctymess.StateMissingFunc,
+		"player_move":         ctymess.StateMissingFunc,
 		"place_new_piece":     ctymess.StateMissingFunc,
+		"convert_and_release": ctymess.StateMissingFunc,
 		"cond_call":           ctymess.StateMissingFunc,
+		"call":                ctymess.StateMissingFunc,
 	},
 	Variables: map[string]cty.Value{
 		"game":        cty.DynamicVal,
@@ -61,8 +64,11 @@ func initializeContext(ctx *hcl.EvalContext, game *mess.Game) {
 	ctx.Functions["move"] = ctymess.MoveFunc(game.State)
 	ctx.Functions["capture"] = ctymess.CaptureFunc(game.State)
 	ctx.Functions["choose"] = ctymess.ChooseFunc(game)
+	ctx.Functions["player_move"] = ctymess.PlayerMoveFunc(game)
 	ctx.Functions["place_new_piece"] = ctymess.PlaceNewPieceFunc(game.State)
+	ctx.Functions["convert_and_release"] = ctymess.ConvertAndReleaseFunc(game.State)
 	ctx.Functions["cond_call"] = ctymess.CondCallFunc(ctx)
+	ctx.Functions["call"] = ctymess.CallFunc(ctx)
 
 	ctx.Variables["game"] = ctymess.StateToCty(game.State)
 	ctx.Variables["piece_types"] = ctymess.PieceTypesToCty(game.PieceTypes())

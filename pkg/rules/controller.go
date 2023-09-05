@@ -14,18 +14,16 @@ import (
 )
 
 type controller struct {
-	state      *mess.State
-	ctx        *hcl.EvalContext
-	rules      *callbackFunctionsRules
-	interactor Interactor
+	state *mess.State
+	ctx   *hcl.EvalContext
+	rules *callbackFunctionsRules
 }
 
-func newController(state *mess.State, ctx *hcl.EvalContext, rules *rules, interactor Interactor) *controller {
+func newController(state *mess.State, ctx *hcl.EvalContext, rules *rules) *controller {
 	return &controller{
-		state:      state,
-		ctx:        ctx,
-		rules:      &rules.Functions,
-		interactor: interactor,
+		state: state,
+		ctx:   ctx,
+		rules: &rules.Functions,
 	}
 }
 
@@ -69,8 +67,10 @@ func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
 	return true, state.Player(color)
 }
 
-func (c *controller) Choose(options []string) int {
-	return c.interactor.Choose(options)
+func (c *controller) Turn(state *mess.State) error {
+	c.refreshGameStateInContext()
+	_, err := c.rules.TurnFunc.Call([]cty.Value{})
+	return err
 }
 
 func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []board.Square, error) {

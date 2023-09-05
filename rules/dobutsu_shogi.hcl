@@ -211,6 +211,46 @@ initial_state {
   }
 }
 
+// ===== TURN ==================================================
+composite_function "turn" {
+  params = []
+  result = {
+    func   = length(game.current_player.captures) == 0 ? "player_move" : "choose_turn_action"
+    _      = call(func)
+  }
+}
+
+composite_function "choose_turn_action" {
+  params = []
+  result = {
+    actions      = ["Move piece", "Place captured piece"]
+    action_funcs = ["player_move", "place_capture"]
+    choice       = choose(actions)
+    _            = call(action_funcs[choice])
+  }
+}
+
+composite_function "place_capture" {
+  params = []
+  result = {
+    captures = [for type, count in game.current_player.captures : [type, count]]
+    types    = [for pair in captures : format("%s (count: %v)", pair[0], pair[1])]
+    type_idx = choose(types)
+    type     = captures[type_idx][0]
+    coords_list = concat(
+      [
+        for x in range(board.width)
+        : [for y in range(board.height) : [x, y]]
+      ]...
+    )
+    squares       = [for coords in coords_list : coords_to_square(coords)]
+    empty_squares = [for square in squares : square if piece_at(square) == null]
+    square_idx    = choose(empty_squares)
+    square        = empty_squares[square_idx]
+    _             = convert_and_release(game.current_player, type, square)
+  }
+}
+
 // ===== GAME RESOLVING FUNCTIONS ==============================
 // Namely the function "pick_winner" and its helpers
 
@@ -237,7 +277,7 @@ composite_function "pick_winner" {
 composite_function "has_lost" {
   params = [player]
   result = {
-    lions = [for piece in player.pieces : piece if piece.type == "lion"]
+    lions  = [for piece in player.pieces : piece if piece.type == "lion"]
     return = length(lions) == 0
   }
 }

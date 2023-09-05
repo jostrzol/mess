@@ -1,17 +1,20 @@
 package mess
 
 import (
+	"fmt"
+
 	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
-	"github.com/jostrzol/mess/pkg/utils"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 type Player struct {
 	color            color.Color
 	pieces           map[*Piece]struct{}
-	prisoners        map[*Piece]struct{}
+	captures         map[*Piece]struct{}
 	forwardDirection brd.Offset
 }
 
@@ -27,7 +30,7 @@ func NewPlayers(board event.Subject) map[color.Color]*Player {
 	for color, player := range players {
 		player.color = color
 		player.pieces = make(map[*Piece]struct{})
-		player.prisoners = make(map[*Piece]struct{})
+		player.captures = make(map[*Piece]struct{})
 		board.Observe(player)
 	}
 	return players
@@ -38,11 +41,39 @@ func (p *Player) Color() color.Color {
 }
 
 func (p *Player) Pieces() []*Piece {
-	return utils.KeysToSlice(p.pieces)
+	return maps.Keys(p.pieces)
 }
 
-func (p *Player) Prisoners() []*Piece {
-	return utils.KeysToSlice(p.prisoners)
+func (p *Player) Captures() []*Piece {
+	return maps.Keys(p.captures)
+}
+
+func (p *Player) CapturesCountByType() map[*PieceType]int {
+	result := make(map[*PieceType]int, 0)
+	for piece := range p.captures {
+		result[piece.ty]++
+	}
+	return result
+}
+
+func (p *Player) ConvertAndReleasePiece(pieceType *PieceType, board *PieceBoard, square brd.Square) error {
+	captures := p.Captures()
+	i := slices.IndexFunc(captures, func(piece *Piece) bool { return piece.Type() == pieceType })
+	if i == -1 {
+		return fmt.Errorf("player %v does not have a capture of type %v", p, pieceType)
+	}
+
+	piece := captures[i]
+	oldOwner := piece.owner
+	piece.owner = p
+
+	err := board.Place(piece, square)
+	if err != nil {
+		piece.owner = oldOwner
+		return fmt.Errorf("placing the released piece at destination square: %w", err)
+	}
+
+	return nil
 }
 
 func (p *Player) ForwardDirection() board.Offset {
@@ -81,10 +112,10 @@ func (p *Player) Handle(event event.Event) {
 		if e.Piece.Owner() == p {
 			p.pieces[e.Piece] = struct{}{}
 		}
-		delete(p.prisoners, e.Piece)
+		delete(p.captures, e.Piece)
 	case PieceCaptured:
 		if e.CapturedBy == p {
-			p.prisoners[e.Piece] = struct{}{}
+			p.captures[e.Piece] = struct{}{}
 		}
 	case PieceRemoved:
 		if e.Piece.Owner() == p {

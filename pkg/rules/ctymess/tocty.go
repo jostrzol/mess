@@ -23,9 +23,15 @@ func PlayerToCty(player *mess.Player) cty.Value {
 	for _, piece := range player.Pieces() {
 		pieces = append(pieces, PieceToCty(piece))
 	}
+	captures := player.CapturesCountByType()
+	capturesCty := make(map[string]cty.Value, len(captures))
+	for pieceType, count := range captures {
+		capturesCty[pieceType.Name()] = cty.NumberIntVal(int64(count))
+	}
 	return cty.ObjectVal(map[string]cty.Value{
 		"color":             cty.StringVal(player.Color().String()),
 		"pieces":            listOrEmpty(Piece, pieces),
+		"captures":          mapOrEmpty(cty.Number, capturesCty),
 		"forward_direction": OffsetToCty(player.ForwardDirection()),
 	})
 }
@@ -53,13 +59,18 @@ func RecordToCty(record []mess.Turn) cty.Value {
 	result := make([]cty.Value, 0, len(record))
 	for _, turn := range record {
 		move := turn.FirstMove()
-		moveCty := cty.ObjectVal(map[string]cty.Value{
-			"piece":  PieceToCty(move.Piece),
-			"player": PlayerToCty(move.Piece.Owner()),
-			"src":    cty.StringVal(move.From.String()),
-			"dst":    cty.StringVal(move.To.String()),
-		})
-		result = append(result, moveCty)
+		if move != nil {
+			moveCty := cty.ObjectVal(map[string]cty.Value{
+				"piece":  PieceToCty(move.Piece),
+				"player": PlayerToCty(move.Piece.Owner()),
+				"src":    cty.StringVal(move.From.String()),
+				"dst":    cty.StringVal(move.To.String()),
+			})
+			result = append(result, moveCty)
+		} else {
+			// TODO: append something more useful
+			result = append(result, cty.DynamicVal)
+		}
 	}
 	return listOrEmpty(Turn, result)
 }
@@ -72,6 +83,13 @@ func MoveToCty(move *mess.Move) cty.Value {
 		"src":    cty.StringVal(move.From.String()),
 		"dst":    cty.StringVal(move.To.String()),
 	})
+}
+
+func mapOrEmpty(mapType cty.Type, mapValue map[string]cty.Value) cty.Value {
+	if len(mapValue) == 0 {
+		return cty.MapValEmpty(mapType)
+	}
+	return cty.MapVal(mapValue)
 }
 
 func listOrEmpty(listType cty.Type, slice []cty.Value) cty.Value {

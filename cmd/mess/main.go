@@ -12,9 +12,21 @@ import (
 	"github.com/jostrzol/mess/pkg/rules"
 )
 
-type terminalInteractor struct{}
+type terminalInteractor struct {
+	scanner *bufio.Scanner
+}
 
-func (i terminalInteractor) Choose(options []string) int {
+func (t *terminalInteractor) PreTurn(state *mess.State) {
+	// generate moves first so that debug logs print before the board does
+	// (the moves are cached anyway, so this computation won't get wasted)
+	state.ValidMoves()
+
+	println("Board: (uppercase - white, lowercase - black)")
+	println(state.PrettyString())
+
+}
+
+func (t *terminalInteractor) ChooseOption(options []string) int {
 	println("Choose option:")
 	for i, option := range options {
 		fmt.Printf("%d. %s\n", i+1, option)
@@ -34,15 +46,14 @@ func (i terminalInteractor) Choose(options []string) int {
 	}
 }
 
-func chooseMove(scanner *bufio.Scanner, game *mess.Game) (*mess.Move, error) {
-	validMoves := game.ValidMoves()
+func (t *terminalInteractor) ChooseMove(state *mess.State, validMoves []mess.Move) (*mess.Move, error) {
 	for {
 		println("Choose a square with your piece")
 		print("> ")
-		if !scanner.Scan() {
-			return nil, scanner.Err()
+		if !t.scanner.Scan() {
+			return nil, t.scanner.Err()
 		}
-		srcStr := scanner.Text()
+		srcStr := t.scanner.Text()
 		if srcStr == "" {
 			continue
 		}
@@ -52,17 +63,17 @@ func chooseMove(scanner *bufio.Scanner, game *mess.Game) (*mess.Move, error) {
 			fmt.Printf("%v\n", err)
 			println("Try again")
 			continue
-		} else if !game.Board().Contains(src) {
+		} else if !state.Board().Contains(src) {
 			println("Square not on board")
 			println("Try again")
 			continue
 		}
 
-		piece, _ := game.Board().At(src)
+		piece, _ := state.Board().At(src)
 		if piece == nil {
 			println("That square is empty!")
 			continue
-		} else if piece.Owner() != game.CurrentPlayer() {
+		} else if piece.Owner() != state.CurrentPlayer() {
 			println("That belongs to your opponent!")
 			continue
 		}
@@ -86,10 +97,10 @@ func chooseMove(scanner *bufio.Scanner, game *mess.Game) (*mess.Move, error) {
 
 		println("Choose a destination square")
 		print("> ")
-		if !scanner.Scan() {
-			return nil, scanner.Err()
+		if !t.scanner.Scan() {
+			return nil, t.scanner.Err()
 		}
-		dstStr := scanner.Text()
+		dstStr := t.scanner.Text()
 		if dstStr == "" {
 			continue
 		}
@@ -131,37 +142,16 @@ func main() {
 		cmdError("no rules file")
 	}
 
-	game, err := rules.DecodeRules(*rulesFilename, terminalInteractor{}, true)
+	scanner := bufio.NewScanner(os.Stdin)
+	interactor := &terminalInteractor{scanner}
+	game, err := rules.DecodeRules(*rulesFilename, interactor, true)
 	if err != nil {
 		runError("loading game rules: %s", err)
 	}
 
-	var winner *mess.Player
-	isFinished := false
-	scanner := bufio.NewScanner(os.Stdin)
-	for !isFinished {
-		// generate moves first so that debug logs print before the board does
-		// (the moves are cached anyway, so this computation won't get wasted)
-		game.ValidMoves()
-
-		println("Board: (uppercase - white, lowercase - black)")
-		println(game.PrettyString())
-
-		move, err := chooseMove(scanner, game)
-		if err != nil {
-			runError("choosing move: %v", err)
-		} else if move == nil {
-			// EOF
-			return
-		}
-
-		err = move.Perform()
-		if err != nil {
-			runError("performing move: %v", err)
-		}
-
-		game.EndTurn()
-		isFinished, winner = game.PickWinner()
+	winner, err := game.Run()
+	if err != nil {
+		runError("running game: %s", err)
 	}
 
 	if winner == nil {

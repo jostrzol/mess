@@ -5,7 +5,7 @@ import (
 
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
-	"github.com/jostrzol/mess/pkg/utils"
+	"golang.org/x/exp/maps"
 )
 
 type State struct {
@@ -49,7 +49,7 @@ func (s *State) Board() *PieceBoard {
 }
 
 func (s *State) Players() []*Player {
-	return utils.ValuesToSlice(s.players)
+	return maps.Values(s.players)
 }
 
 func (s *State) Player(color color.Color) *Player {
@@ -203,13 +203,13 @@ func (s *State) Record() []Turn {
 
 type Turn []event.Event
 
-func (t Turn) FirstMove() PieceMoved {
+func (t Turn) FirstMove() *PieceMoved {
 	for _, event := range t {
 		if e, ok := event.(PieceMoved); ok {
-			return e
+			return &e
 		}
 	}
-	panic("corrupted turn: no PieceMoved event")
+	return nil
 }
 
 func (s *State) IsGeneratingMoves() bool {

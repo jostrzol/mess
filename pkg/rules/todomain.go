@@ -9,16 +9,16 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func (c *rules) toEmptyGameState(ctx *hcl.EvalContext, interactor Interactor) (*mess.Game, error) {
+func (c *rules) toEmptyGameState(ctx *hcl.EvalContext, interactor mess.Interactor) (*mess.Game, error) {
 	brd, err := mess.NewPieceBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating new board: %w", err)
 	}
 
 	state := mess.NewState(brd)
-	controller := newController(state, ctx, c, interactor)
+	controller := newController(state, ctx, c)
 
-	game := mess.NewGame(state, controller)
+	game := mess.NewGame(state, controller, interactor)
 
 	stateValidators, err := controller.GetStateValidators()
 	if err != nil {

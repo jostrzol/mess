@@ -141,7 +141,7 @@ Blocks:
 				return cty.DynamicVal, diags
 			}
 
-			var returnExpr hcl.Expression
+			var returnExpr *hcl.Expression
 			for _, step := range steps {
 				varNameValue, keyDiags := step.Key.Value(nil)
 				diags = diags.Extend(keyDiags)
@@ -151,7 +151,7 @@ Blocks:
 
 				varName := varNameValue.AsString()
 				if varName == "return" {
-					returnExpr = step.Value
+					returnExpr = &step.Value
 					continue
 				}
 
@@ -168,9 +168,12 @@ Blocks:
 				return cty.DynamicVal, diags
 			}
 
-			result, diags := returnExpr.Value(ctx)
-			if diags.HasErrors() {
-				return cty.DynamicVal, diags
+			var result cty.Value = cty.DynamicVal
+			if returnExpr != nil {
+				result, diags = (*returnExpr).Value(ctx)
+				if diags.HasErrors() {
+					return cty.DynamicVal, diags
+				}
 			}
 
 			return result, nil

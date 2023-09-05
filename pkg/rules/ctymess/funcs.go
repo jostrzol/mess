@@ -486,6 +486,18 @@ func ChooseFunc(game *mess.Game) function.Function {
 	})
 }
 
+func PlayerMoveFunc(game *mess.Game) function.Function {
+	return function.New(&function.Spec{
+		Description: "Triggers player's move choice.",
+		Params:      []function.Parameter{},
+		Type:        function.StaticReturnType(cty.DynamicPseudoType),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			err := game.Move()
+			return cty.DynamicVal, err
+		},
+	})
+}
+
 func PlaceNewPieceFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
 		Description: "Place a new piece at the given destination. Replace if occupied.",
@@ -533,9 +545,78 @@ func PlaceNewPieceFunc(state *mess.State) function.Function {
 	})
 }
 
+func ConvertAndReleaseFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Convert a captured piece and release at the given square.",
+		Params: []function.Parameter{
+			{
+				Name: "player",
+				Type: Player,
+			},
+			{
+				Name: "piece_type_name",
+				Type: cty.String,
+			},
+			{
+				Name: "square",
+				Type: cty.String,
+			},
+		},
+		Type: function.StaticReturnType(cty.DynamicPseudoType),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var player *mess.Player
+			var color *color.Color
+			var pieceType *mess.PieceType
+			var square board.Square
+			var err error
+
+			if color, err = ColorFromCty(args[0].GetAttr("color")); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'color': %w", err)
+			}
+			player = state.Player(*color)
+			if pieceType, err = PieceTypeFromCty(state, args[1]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'pieceType': %w", err)
+			}
+			if square, err = SquareFromCty(args[2]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'square': %w", err)
+			}
+
+			err = player.ConvertAndReleasePiece(pieceType, state.Board(), square)
+			if err != nil {
+				return cty.DynamicVal, fmt.Errorf("converting and releasing a piece: %w", err)
+			}
+
+			return cty.DynamicVal, nil
+		},
+	})
+}
+
+func CallFunc(ctx *hcl.EvalContext) function.Function {
+	return function.New(&function.Spec{
+		Description: "Calls the given function.",
+		Params: []function.Parameter{
+			{
+				Name:             "function_name",
+				Type:             cty.DynamicPseudoType,
+				AllowDynamicType: true,
+			},
+		},
+		VarParam: &function.Parameter{
+			Name:             "arguments",
+			Type:             cty.DynamicPseudoType,
+			AllowDynamicType: true,
+		},
+		Type: function.StaticReturnType(cty.DynamicPseudoType),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			function := ctx.Functions[args[0].AsString()]
+			return function.Call(args[1:])
+		},
+	})
+}
+
 func CondCallFunc(ctx *hcl.EvalContext) function.Function {
 	return function.New(&function.Spec{
-		Description: "Calls the given function, if the condition is true, else returns null",
+		Description: "Calls the given function, if the condition is true, else returns null.",
 		Params: []function.Parameter{
 			{
 				Name:             "condition",

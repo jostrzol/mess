@@ -45,24 +45,24 @@ func (s *PlayerSuiteMockedBoard) TestString() {
 	s.Equal(s.white.String(), color.White.String())
 }
 
-func (s *PlayerSuiteMockedBoard) TestPrisonersEmpty() {
-	s.Empty(s.white.Prisoners())
+func (s *PlayerSuiteMockedBoard) TestCapturesEmpty() {
+	s.Empty(s.white.Captures())
 }
 
-func (s *PlayerSuiteMockedBoard) TestPrisonersCapture() {
+func (s *PlayerSuiteMockedBoard) TestCapturesCapture() {
 	knight := mess.NewPiece(Knight(s.T()), s.black)
 	s.board.Notify(mess.PieceCaptured{
 		Piece:      knight,
 		CapturedBy: s.white,
 	})
 
-	s.Len(s.white.Prisoners(), 1)
-	s.Contains(s.white.Prisoners(), knight)
+	s.Len(s.white.Captures(), 1)
+	s.Contains(s.white.Captures(), knight)
 
-	s.Empty(s.black.Prisoners())
+	s.Empty(s.black.Captures())
 }
 
-func (s *PlayerSuiteMockedBoard) TestPrisonersRelease() {
+func (s *PlayerSuiteMockedBoard) TestCapturesRelease() {
 	knight := mess.NewPiece(Knight(s.T()), s.black)
 	s.board.Notify(mess.PieceCaptured{
 		Piece:      knight,
@@ -73,12 +73,12 @@ func (s *PlayerSuiteMockedBoard) TestPrisonersRelease() {
 		Piece: knight,
 	})
 
-	s.Empty(s.white.Prisoners())
-	s.Empty(s.black.Prisoners())
+	s.Empty(s.white.Captures())
+	s.Empty(s.black.Captures())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecesEmpty() {
-	s.Empty(s.white.Prisoners())
+	s.Empty(s.white.Pieces())
 }
 
 func (s *PlayerSuiteMockedBoard) TestPiecePlaced() {

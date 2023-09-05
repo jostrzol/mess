@@ -285,7 +285,6 @@ composite_function "do_promote" {
       dst,
       color
     )
-    return = null
   }
 }
 
@@ -297,7 +296,6 @@ composite_function "capture_en_passant" {
     target_square = get_square_relative(dst, backward)
     target_piece  = piece_at(target_square)
     _             = capture(target_piece)
-    return        = null
   }
 }
 
@@ -311,7 +309,6 @@ composite_function "displace_rook_after_castling" {
     rook_src  = coords_to_square([dx > 0 ? board.width - 1 : 0, src_pos[1]])
     rook_dest = get_square_relative(dst, [dx > 0 ? -1 : 1, 0])
     _         = move(piece_at(rook_src), rook_dest)
-    return    = null
   }
 }
 
@@ -436,6 +433,14 @@ initial_state {
     H7 = "pawn"
 
     B2 = "pawn"
+  }
+}
+
+// ===== TURN ==================================================
+composite_function "turn" {
+  params = []
+  result = {
+    _ = player_move()
   }
 }
 

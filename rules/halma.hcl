@@ -170,6 +170,14 @@ variables {
   max_moves_to_leave_start = 30
 }
 
+// ===== TURN ==================================================
+composite_function "turn" {
+  params = []
+  result = {
+    _ = player_move()
+  }
+}
+
 // ===== GAME RESOLVING FUNCTIONS ==============================
 // Namely the function "pick_winner" and its helpers.
 

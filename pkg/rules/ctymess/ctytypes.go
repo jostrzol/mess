@@ -11,6 +11,7 @@ var Game = cty.Object(map[string]cty.Type{
 var Player = cty.Object(map[string]cty.Type{
 	"color":             cty.String,
 	"pieces":            cty.List(Piece),
+	"captures":          cty.Map(cty.Number),
 	"forward_direction": Offset,
 })
 

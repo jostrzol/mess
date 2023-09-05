@@ -6,11 +6,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-type Interactor interface {
-	Choose(options []string) int
-}
-
-func DecodeRules(filename string, interactor Interactor, placePieces bool) (*mess.Game, error) {
+func DecodeRules(filename string, interactor mess.Interactor, placePieces bool) (*mess.Game, error) {
 	ctx := InitialEvalContext
 
 	rules, err := decodeRules(filename, ctx)

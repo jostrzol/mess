@@ -61,6 +61,7 @@ type stateValidatorRules struct {
 
 type callbackFunctionsRules struct {
 	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
+	TurnFunc        function.Function            `mapstructure:"turn"`
 	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
 	StateValidators map[string]function.Function
 }
