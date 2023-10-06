@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import Color from "color";
 
 export interface Theme {
   background: string;
@@ -47,8 +48,9 @@ export const useTheme = (
     const root = document.documentElement;
     Object.entries(theme).forEach(([key, value]) => {
       const colorKey = `--theme-${key}`;
-      console.log(`${colorKey}: ${value}`);
-      root.style.setProperty(colorKey, value);
+      const colorValue = Color(value).array().join(" ");
+      console.log(`${colorKey}: ${colorValue}`)
+      root.style.setProperty(colorKey, colorValue);
     });
   };
   useEffect(applyTheme, [theme]);

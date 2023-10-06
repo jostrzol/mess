@@ -8,18 +8,18 @@ const config: Config = {
   ],
   theme: {
     colors: {
-      background: "var(--theme-background)",
+      background: "rgb(var(--theme-background) / <alpha-value>)",
       primary: {
-        DEFAULT: "var(--theme-primary)",
-        dim: "var(--theme-primary-dim)",
+        DEFAULT: "rgb(var(--theme-primary) / <alpha-value>)",
+        dim: "rgb(var(--theme-primary-dim) / <alpha-value>)",
       },
       txt: {
-        DEFAULT: "var(--theme-txt)",
-        dim: "var(--theme-txt-dim)",
+        DEFAULT: "rgb(var(--theme-txt) / <alpha-value>)",
+        dim: "rgb(var(--theme-txt-dim) / <alpha-value>)",
       },
       player: {
-        white: "var(--theme-player-white)",
-        black: "var(--theme-player-black)",
+        white: "rgb(var(--theme-player-white) / <alpha-value>)",
+        black: "rgb(var(--theme-player-black) / <alpha-value>)",
       },
     },
     extend: {},
