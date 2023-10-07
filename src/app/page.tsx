@@ -6,7 +6,7 @@ import { Menu } from "./components/menu";
 import { Theme, ThemeContext, themes, useTheme } from "./contexts/themeContext";
 
 const Home = () => {
-  const [cookies, setCookies, removeCookie] = useCookies(["theme"]);
+  const [cookies, setCookies, _] = useCookies(["theme"]);
   const [theme, setTheme] = useTheme(cookies["theme"] ?? themes["light"]);
   const onThemeChange = (theme: Theme) => {
     setCookies("theme", theme, { maxAge: 60 * 60 * 24 * 365 * 10 });

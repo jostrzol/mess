@@ -1,13 +1,14 @@
 import clsx from "clsx";
-import { Theme, themes } from "../contexts/themeContext";
-import { ReactNode, useState } from "react";
+import { ReactNode, useContext, useState } from "react";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
+import { Theme, ThemeContext, themes } from "../contexts/themeContext";
 
 export interface MenuProps {
   onThemeChange?: (theme: Theme) => void;
 }
 export const Menu = ({ onThemeChange }: MenuProps) => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+  const currentTheme = useContext(ThemeContext);
   return (
     <aside
       className={clsx(
@@ -36,10 +37,11 @@ export const Menu = ({ onThemeChange }: MenuProps) => {
       >
         <div className="m-5">
           <MenuSection title="Theme">
-            {Object.entries(themes).map(([name, theme]) => {
+            {Object.entries(themes).map(([name, colors]) => {
+              const isSelected = name == currentTheme.name;
               return (
                 <button
-                  onClick={() => onThemeChange?.(theme)}
+                  onClick={() => onThemeChange?.({ name, colors })}
                   className={clsx(
                     "mb-2",
                     "bg-background",
@@ -56,14 +58,18 @@ export const Menu = ({ onThemeChange }: MenuProps) => {
                       "mr-2",
                       "rounded-full",
                       "border-2",
-                      "translate-y-[1px]",
+                      "translate-y-[2px]",
+                      "transition-transform",
+                      isSelected && "scale-125",
                     )}
                     style={{
-                      backgroundColor: theme.background,
-                      borderColor: theme.primary,
+                      backgroundColor: colors.background,
+                      borderColor: colors.primary,
                     }}
                   />
-                  {name[0].toUpperCase() + name.slice(1).toLowerCase()}
+                  <span className={clsx(isSelected || "text-txt-dim")}>
+                    {name[0].toUpperCase() + name.slice(1).toLowerCase()}
+                  </span>
                 </button>
               );
             })}
@@ -83,7 +89,7 @@ export const Menu = ({ onThemeChange }: MenuProps) => {
       >
         <div
           className={clsx(
-            "transition",
+            "transition-transform",
             "duration-300",
             "delay-300",
             isMenuExpanded && "rotate-180",

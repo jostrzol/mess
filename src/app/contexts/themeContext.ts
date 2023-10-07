@@ -8,7 +8,7 @@ import {
 import Color from "color";
 import * as colors from "tailwindcss/colors";
 
-export interface Theme {
+export interface ThemeColors {
   background: string;
   primary: string;
   "primary-dim": string;
@@ -18,13 +18,18 @@ export interface Theme {
   "player-black": string;
 }
 
+export interface Theme {
+  name: string;
+  colors: ThemeColors;
+}
+
 export const themes = {
   light: {
     background: colors.slate[50],
     primary: "#1e40af",
     "primary-dim": "#2563eb",
     txt: colors.slate[900],
-    "txt-dim": colors.slate[800],
+    "txt-dim": colors.slate[400],
     "player-white": colors.slate[50],
     "player-black": colors.slate[950],
   },
@@ -33,21 +38,26 @@ export const themes = {
     primary: "#1e40af",
     "primary-dim": "#2563eb",
     txt: colors.slate[400],
-    "txt-dim": colors.slate[500],
+    "txt-dim": colors.slate[600],
     "player-white": colors.slate[50],
     "player-black": colors.slate[950],
   },
-} satisfies Record<string, Theme>;
+} satisfies Record<string, ThemeColors>;
 
-export const ThemeContext = createContext<Theme>(themes["light"]);
+export const ThemeContext = createContext<Theme>({
+  name: "light",
+  colors: themes["light"],
+});
 
-export type SetTheme = Dispatch<SetStateAction<Theme>>;
+type SetTheme = Dispatch<SetStateAction<Theme>>;
 
-export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
+export const useTheme = (
+  initialTheme: Theme,
+): [Theme, SetTheme] => {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const applyTheme = () => {
     const root = document.documentElement;
-    Object.entries(theme).forEach(([key, value]) => {
+    Object.entries(theme.colors).forEach(([key, value]) => {
       const colorKey = `--theme-${key}`;
       const colorValue = Color(value).array().join(" ");
       console.log(`${colorKey}: ${colorValue}`);
