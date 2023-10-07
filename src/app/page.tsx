@@ -1,15 +1,21 @@
 "use client";
 
-import {Board} from "./components/game/board";
-import {Menu} from "./components/menu";
-import {ThemeContext, themes, useTheme} from "./contexts/themeContext";
+import { useCookies } from "react-cookie";
+import { Board } from "./components/game/board";
+import { Menu } from "./components/menu";
+import { Theme, ThemeContext, themes, useTheme } from "./contexts/themeContext";
 
 const Home = () => {
-  const [theme, setTheme] = useTheme(themes["light"]);
+  const [cookies, setCookies, removeCookie] = useCookies(["theme"]);
+  const [theme, setTheme] = useTheme(cookies["theme"] ?? themes["light"]);
+  const onThemeChange = (theme: Theme) => {
+    setCookies("theme", theme, { maxAge: 60 * 60 * 24 * 365 * 10 });
+    setTheme(theme);
+  };
   return (
     <ThemeContext.Provider value={theme}>
       <body className="bg-background text-txt">
-        <Menu onThemeChange={(theme) => setTheme(theme)} />
+        <Menu onThemeChange={onThemeChange} />
         <main className="h-screen flex justify-center items-center">
           <Board
             pieces={[]}
