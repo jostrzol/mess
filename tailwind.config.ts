@@ -8,6 +8,7 @@ const config: Config = {
   ],
   theme: {
     colors: {
+      transparent: "transparent",
       background: "rgb(var(--theme-background) / <alpha-value>)",
       primary: {
         DEFAULT: "rgb(var(--theme-primary) / <alpha-value>)",
@@ -22,7 +23,11 @@ const config: Config = {
         black: "rgb(var(--theme-player-black) / <alpha-value>)",
       },
     },
-    extend: {},
+    extend: {
+      animation: {
+        "ping-1": "ping 0.5s cubic-bezier(0, 0, 0.2, 1) 1",
+      },
+    },
   },
   plugins: [],
 };

@@ -9,14 +9,12 @@ export const metadata: Metadata = {
   description: "A chess-like custom game engine.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="en" className={inter.className}>
       {children}
     </html>
   );
-}
+};
+
+export default RootLayout;

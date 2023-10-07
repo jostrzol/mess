@@ -1,46 +1,93 @@
 "use client";
 
 import clsx from "clsx";
+import { Board } from "./components/game/board";
 import { ThemeContext, themes, useTheme } from "./contexts/themeContext";
+import { MdOutlineArrowForwardIos } from "react-icons/md";
+import { useState } from "react";
 
-export default function Home() {
+const Home = () => {
   const [theme, setTheme] = useTheme(themes["light"]);
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   return (
     <ThemeContext.Provider value={theme}>
-      <body className="bg-background flex min-h-screen text-txt">
-        <aside className="flex-1 flex flex-col justify-center items-stretch">
-          {Object.entries(themes).map(([name, theme]) => {
-            return (
-              <button
-                onClick={() => setTheme(theme)}
-                className="p-2 m-4 border-primary border-2 rounded-md"
-                key={name}
-              >
-                {name}
-              </button>
-            );
-          })}
-        </aside>
-        <main
+      <body className="bg-background text-txt">
+        <aside
           className={clsx(
-            "flex-[3]",
             "flex",
-            "flex-col",
-            "items-center",
-            "justify-between",
-            "p-24",
-            "[&>*]:p-4",
-            "[&>*]:m-4",
+            "justify-start",
+            "sticky",
+            "max-w-fit",
+            "top-0",
+            "left-0",
+            "h-screen",
+            "-mb-[100vh]",
           )}
         >
-          <div className={`bg-primary`}>Primary</div>
-          <div className={`bg-primary-dim`}>Primary dim</div>
-          <div className={`bg-txt`}>Text</div>
-          <div className={`bg-txt-dim`}>Text dim</div>
-          <div className={`bg-player-white`}>Player white</div>
-          <div className={`bg-player-black`}>Player black</div>
+          <div
+            className={clsx(
+              "transition-[width]",
+              "duration-500",
+              isMenuExpanded && "w-96",
+              "w-0",
+              "flex",
+              "flex-col",
+              "justify-center",
+              "items-stretch",
+              "overflow-hidden",
+              "bg-background/80",
+            )}
+          >
+            {Object.entries(themes).map(([name, theme]) => {
+              return (
+                <button
+                  onClick={() => setTheme(theme)}
+                  className="p-2 m-4 border-primary border-2 rounded-md"
+                  key={name}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            className={clsx(
+              "flex-initial",
+              "shrink-0",
+              "p-2",
+              "h-full",
+              "bg-background/80",
+              "group",
+            )}
+            onClick={() => setIsMenuExpanded(!isMenuExpanded)}
+          >
+            <div
+              className={clsx(
+                "transition",
+                "duration-300",
+                "delay-300",
+                isMenuExpanded && "rotate-180",
+              )}
+            >
+              <div className={clsx("absolute", "group-hover:animate-ping-1")}>
+                <MdOutlineArrowForwardIos />
+              </div>
+              <MdOutlineArrowForwardIos />
+            </div>
+          </button>
+        </aside>
+        <main className="h-screen flex justify-center items-center">
+          <Board
+            pieces={[]}
+            board={{
+              height: 8,
+              width: 8,
+            }}
+          />
         </main>
       </body>
     </ThemeContext.Provider>
   );
-}
+};
+
+export default Home;
