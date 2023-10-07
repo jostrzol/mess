@@ -40,9 +40,9 @@ export const themes = {
 
 export const ThemeContext = createContext<Theme>(themes["light"]);
 
-export const useTheme = (
-  initialTheme: Theme,
-): [Theme, Dispatch<SetStateAction<Theme>>] => {
+export type SetTheme = Dispatch<SetStateAction<Theme>>;
+
+export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const applyTheme = () => {
     const root = document.documentElement;
