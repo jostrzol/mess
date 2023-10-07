@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import Color from "color";
+import * as colors from "tailwindcss/colors";
 
 export interface Theme {
   background: string;
@@ -19,22 +20,22 @@ export interface Theme {
 
 export const themes = {
   light: {
-    background: "#ffffff",
+    background: colors.slate[50],
     primary: "#1e40af",
     "primary-dim": "#2563eb",
-    txt: "#292524",
-    "txt-dim": "#57534e",
-    "player-white": "#ffffff",
-    "player-black": "#000000",
+    txt: colors.slate[900],
+    "txt-dim": colors.slate[800],
+    "player-white": colors.slate[50],
+    "player-black": colors.slate[950],
   },
   dark: {
-    background: "#000000",
+    background: colors.slate[950],
     primary: "#1e40af",
     "primary-dim": "#2563eb",
-    txt: "#78716c",
-    "txt-dim": "#44403c",
-    "player-white": "#ffffff",
-    "player-black": "#000000",
+    txt: colors.slate[400],
+    "txt-dim": colors.slate[500],
+    "player-white": colors.slate[50],
+    "player-black": colors.slate[950],
   },
 } satisfies Record<string, Theme>;
 

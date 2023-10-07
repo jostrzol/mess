@@ -1,12 +1,12 @@
 import clsx from "clsx";
 import { SetTheme, Theme, themes } from "../contexts/themeContext";
-import { useState } from "react";
-import {MdOutlineArrowForwardIos} from "react-icons/md";
+import { ReactNode, useState } from "react";
+import { MdOutlineArrowForwardIos } from "react-icons/md";
 
 export interface MenuProps {
-  onThemeChange?: (theme: Theme) => void
+  onThemeChange?: (theme: Theme) => void;
 }
-export const Menu = ({onThemeChange}: MenuProps) => {
+export const Menu = ({ onThemeChange }: MenuProps) => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   return (
     <aside
@@ -29,23 +29,46 @@ export const Menu = ({onThemeChange}: MenuProps) => {
           "w-0",
           "flex",
           "flex-col",
-          "justify-center",
-          "items-stretch",
           "overflow-hidden",
           "bg-background/80",
+          "whitespace-nowrap",
         )}
       >
-        {Object.entries(themes).map(([name, theme]) => {
-          return (
-            <button
-              onClick={() => onThemeChange?.(theme)}
-              className="p-2 m-4 border-primary border-2 rounded-md"
-              key={name}
-            >
-              {name}
-            </button>
-          );
-        })}
+        <div className="m-5">
+          <MenuSection title="Theme">
+            {Object.entries(themes).map(([name, theme]) => {
+              return (
+                <button
+                  onClick={() => onThemeChange?.(theme)}
+                  className={clsx(
+                    "mb-2",
+                    "bg-background",
+                    "border-primary",
+                    "max-w-fit",
+                  )}
+                  key={name}
+                >
+                  <span
+                    className={clsx(
+                      "w-4",
+                      "h-4",
+                      "inline-block",
+                      "mr-2",
+                      "rounded-full",
+                      "border-2",
+                      "translate-y-[1px]",
+                    )}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderColor: theme.primary,
+                    }}
+                  />
+                  {name}
+                </button>
+              );
+            })}
+          </MenuSection>
+        </div>
       </div>
       <button
         className={clsx(
@@ -73,5 +96,18 @@ export const Menu = ({onThemeChange}: MenuProps) => {
         </div>
       </button>
     </aside>
+  );
+};
+
+interface MenuSectionProps {
+  title: string;
+  children: ReactNode;
+}
+const MenuSection = ({ title, children }: MenuSectionProps) => {
+  return (
+    <section>
+      <h1 className={clsx("mb-4", "font-semibold")}>{title}</h1>
+      <div className={clsx("flex", "flex-col", "ml-2")}>{children}</div>
+    </section>
   );
 };
