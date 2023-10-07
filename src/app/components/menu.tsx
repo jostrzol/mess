@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { SetTheme, Theme, themes } from "../contexts/themeContext";
+import { Theme, themes } from "../contexts/themeContext";
 import { ReactNode, useState } from "react";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 
@@ -63,7 +63,7 @@ export const Menu = ({ onThemeChange }: MenuProps) => {
                       borderColor: theme.primary,
                     }}
                   />
-                  {name}
+                  {name[0].toUpperCase() + name.slice(1).toLowerCase()}
                 </button>
               );
             })}
