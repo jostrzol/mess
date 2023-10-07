@@ -49,7 +49,7 @@ export const useTheme = (
     Object.entries(theme).forEach(([key, value]) => {
       const colorKey = `--theme-${key}`;
       const colorValue = Color(value).array().join(" ");
-      console.log(`${colorKey}: ${colorValue}`)
+      console.log(`${colorKey}: ${colorValue}`);
       root.style.setProperty(colorKey, colorValue);
     });
   };
