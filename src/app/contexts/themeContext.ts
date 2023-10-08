@@ -16,6 +16,8 @@ export interface ThemeColors {
   "txt-dim": string;
   "player-white": string;
   "player-black": string;
+  "danger": string;
+  "danger-dim": string;
 }
 
 export interface Theme {
@@ -26,21 +28,25 @@ export interface Theme {
 export const themes = {
   light: {
     background: colors.slate[50],
-    primary: colors.blue[800],
-    "primary-dim": colors.blue[600],
+    primary: colors.blue[700],
+    "primary-dim": colors.blue[500],
     txt: colors.slate[900],
     "txt-dim": colors.slate[400],
     "player-white": colors.slate[50],
     "player-black": colors.slate[950],
+    danger: colors.rose[600],
+    "danger-dim": colors.rose[400],
   },
   dark: {
     background: colors.slate[950],
-    primary: colors.blue[800],
-    "primary-dim": colors.blue[600],
+    primary: colors.blue[700],
+    "primary-dim": colors.blue[500],
     txt: colors.slate[400],
     "txt-dim": colors.slate[600],
     "player-white": colors.slate[50],
     "player-black": colors.slate[950],
+    danger: colors.rose[600],
+    "danger-dim": colors.rose[800],
   },
 } satisfies Record<string, ThemeColors>;
 

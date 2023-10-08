@@ -12,11 +12,15 @@ export namespace Square {
     }
     const code = A_CODE + square[0];
     return String.fromCharCode(code);
-  }
+  };
 
   export const rank = (square: Square): string => {
     return (square[1] + 1).toString();
-  }
+  };
 
-  export const toString = (square: Square): string => file(square) + rank(square);
+  export const toString = (square: Square): string =>
+    file(square) + rank(square);
+
+  export const equals = (first: Square, second: Square): boolean =>
+    first[0] === second[0] && first[1] === second[1];
 }

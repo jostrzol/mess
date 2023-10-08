@@ -9,11 +9,7 @@ export interface PieceProps {
 export const Piece = ({ piece }: PieceProps) => {
   return (
     <ReactSVG
-      className={clsx(
-        piece.color == "white" ? "player-white" : "player-black",
-        "hover:scale-110",
-        "transition-transform",
-      )}
+      className={clsx(piece.color == "white" ? "player-white" : "player-black")}
       src={piece.type.iconUri}
     />
   );

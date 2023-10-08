@@ -22,6 +22,10 @@ const config: Config = {
         white: "rgb(var(--theme-player-white) / <alpha-value>)",
         black: "rgb(var(--theme-player-black) / <alpha-value>)",
       },
+      danger: {
+        DEFAULT: "rgb(var(--theme-danger) / <alpha-value>)",
+        dim: "rgb(var(--theme-danger-dim) / <alpha-value>)",
+      }
     },
     extend: {
       animation: {
