@@ -1,19 +1,19 @@
-<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
-  <defs>
-    <bx:grid x="0" y="0" width="2.5" height="2.5"></bx:grid>
-  </defs>
-  <g fill="var(--player-color)" stroke="var(--opponent-color)" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" transform="matrix(0.842752, 0, 0, 0.842752, 3.551473, 3.89312)">
-    <path style="stroke-width: 1px;" d="M 20 22.5 L 20 12.609 L 15 12.572 L 15 7.5 L 20 7.413 L 20 2.5 L 25 2.5 L 25 7.5 L 30 7.549 L 30 12.5 L 25 12.5 L 25 22.5 L 20 22.5 Z"></path>
-    <path mask="url(#holes)" d="M 12.477 39.5 C 17.477 38.79 24.977 38.866 32.477 39.5 L 32.477 32.5 C 32.477 32.5 41.477 28 38.477 22 C 34.477 15.5 27.477 17.5 22.477 21.16 C 17.477 17.5 10.477 15.5 6.477 22 C 3.477 28 12.477 32.5 12.477 32.5 L 12.477 39.5" style="stroke-width: 1px;"></path>
-    <path style="stroke-width: 1px;" d="M 8.477 41.512 L 9.749 36.518 L 35.259 36.518 L 36.477 41.518 L 8.477 41.512 Z"></path>
-    <g fill="none">
-      <path style="stroke-width: 1px;" d="M 18.477 30.027 L 18.371 25.229 C 17.639 23.599 14.834 23.309 13.481 23.599 C 9.563 25.229 18.371 31.749 18.477 30.027 Z"></path>
-      <path style="stroke-width: 1px;; transform-box: fill-box; transform-origin: 50% 50%;" d="M 32.477 23.787 L 32.371 28.585 C 31.639 30.215 28.834 30.505 27.481 30.215 C 23.563 28.585 32.371 22.065 32.477 23.787 Z" transform="matrix(-1, 0, 0, -1, 0.000001, -0.000004)"></path>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com" viewBox="0 0 45 45">
+    <defs>
+        <bx:grid width="2.5" height="2.5" x="0" y="0"/>
+    </defs>
+    <g fill="var(--player-color,#fff)" fill-rule="evenodd" stroke="var(--opponent-color,#000)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" transform="matrix(0.842752, 0, 0, 0.842752, 3.551473, 3.89312)">
+        <path d="M 20 22.5 L 20 12.609 L 15 12.572 L 15 7.5 L 20 7.413 L 20 2.5 L 25 2.5 L 25 7.5 L 30 7.549 L 30 12.5 L 25 12.5 L 25 22.5 L 20 22.5 Z"/>
+        <path d="M 12.477 39.5 C 17.477 38.79 24.977 38.866 32.477 39.5 L 32.477 32.5 C 32.477 32.5 41.477 28 38.477 22 C 34.477 15.5 27.477 17.5 22.477 21.16 C 17.477 17.5 10.477 15.5 6.477 22 C 3.477 28 12.477 32.5 12.477 32.5 L 12.477 39.5" mask="url(#holes)"/>
+        <path d="M 8.477 41.512 L 9.749 36.518 L 35.259 36.518 L 36.477 41.518 L 8.477 41.512 Z"/>
+        <g fill="none">
+            <path d="M 18.477 30.027 L 18.371 25.229 C 17.639 23.599 14.834 23.309 13.481 23.599 C 9.563 25.229 18.371 31.749 18.477 30.027 Z"/>
+            <path d="M 32.477 23.787 L 32.371 28.585 C 31.639 30.215 28.834 30.505 27.481 30.215 C 23.563 28.585 32.371 22.065 32.477 23.787 Z" style="transform-box:fill-box;transform-origin:50% 50%" transform="matrix(-1, 0, 0, -1, 0.000001, -0.000004)"/>
+        </g>
+        <mask id="holes">
+            <rect width="45" height="45" fill="white"/>
+            <path fill="black" stroke="black" d="M 18.477 30.027 L 18.371 25.229 C 17.639 23.599 14.834 23.309 13.481 23.599 C 9.563 25.229 18.371 31.749 18.477 30.027 Z"/>
+            <path fill="black" stroke="black" d="M 32.477 23.787 L 32.371 28.585 C 31.639 30.215 28.834 30.505 27.481 30.215 C 23.563 28.585 32.371 22.065 32.477 23.787 Z" style="transform-box:fill-box;transform-origin:50% 50%" transform="matrix(-1, 0, 0, -1, 0.000001, -0.000004)"/>
+        </mask>
     </g>
-    <mask id="holes">
-      <rect width="45" height="45" fill="white" />
-      <path fill="black" stroke="black" style="stroke-width: 1px;" d="M 18.477 30.027 L 18.371 25.229 C 17.639 23.599 14.834 23.309 13.481 23.599 C 9.563 25.229 18.371 31.749 18.477 30.027 Z"></path>
-      <path fill="black" stroke="black" style="stroke-width: 1px;; transform-box: fill-box; transform-origin: 50% 50%;" d="M 32.477 23.787 L 32.371 28.585 C 31.639 30.215 28.834 30.505 27.481 30.215 C 23.563 28.585 32.371 22.065 32.477 23.787 Z" transform="matrix(-1, 0, 0, -1, 0.000001, -0.000004)"></path>
-    </mask>
-  </g>
 </svg>

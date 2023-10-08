@@ -3,7 +3,7 @@ import { Color } from "@/app/model/color";
 import { Piece as PieceConfig } from "@/app/model/piece";
 import { locationToString } from "@/app/utils/functions";
 import clsx from "clsx";
-import {Piece} from "./piece";
+import { Piece } from "./piece";
 
 export type BoardProps = {
   pieces: PieceConfig[];
@@ -21,8 +21,8 @@ export const Board = ({ board, pieces }: BoardProps) => {
       className="grid grid-flow-row max-h-full max-w-full h-fit aspect-square p-12"
       style={{ gridTemplateColumns, gridTemplateRows }}
     >
-      {[...Array(board.height).keys()].flatMap((_, i) => {
-        const x = [...Array(board.width).keys()].map((_, j) => {
+      {[...Array(board.height).keys()].flatMap((_, j) =>
+        [...Array(board.width).keys()].map((_, i) => {
           const location = locationToString([i, j]);
           return (
             <Tile
@@ -31,9 +31,8 @@ export const Board = ({ board, pieces }: BoardProps) => {
               piece={piecesMap[location]}
             />
           );
-        });
-        return x;
-      })}
+        }),
+      )}
     </div>
   );
 };
