@@ -26,8 +26,8 @@ export interface Theme {
 export const themes = {
   light: {
     background: colors.slate[50],
-    primary: "#1e40af",
-    "primary-dim": "#2563eb",
+    primary: colors.blue[800],
+    "primary-dim": colors.blue[600],
     txt: colors.slate[900],
     "txt-dim": colors.slate[400],
     "player-white": colors.slate[50],
@@ -35,8 +35,8 @@ export const themes = {
   },
   dark: {
     background: colors.slate[950],
-    primary: "#1e40af",
-    "primary-dim": "#2563eb",
+    primary: colors.blue[800],
+    "primary-dim": colors.blue[600],
     txt: colors.slate[400],
     "txt-dim": colors.slate[600],
     "player-white": colors.slate[50],

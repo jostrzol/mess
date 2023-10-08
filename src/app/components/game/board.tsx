@@ -1,9 +1,9 @@
 import { Board as BoardConfig } from "@/app/model/board";
 import { Color } from "@/app/model/color";
 import { Piece as PieceConfig } from "@/app/model/piece";
-import { locationToString } from "@/app/utils/functions";
 import clsx from "clsx";
 import { Piece } from "./piece";
+import {Square} from "@/app/model/square";
 
 export type BoardProps = {
   pieces: PieceConfig[];
@@ -14,7 +14,7 @@ export const Board = ({ board, pieces }: BoardProps) => {
   const gridTemplateColumns = `repeat(${board.width}, 1fr)`;
   const gridTemplateRows = `repeat(${board.width}, auto)`;
   const piecesMap = Object.fromEntries(
-    pieces.map((piece) => [locationToString(piece.location), piece]),
+    pieces.map((piece) => [Square.toString(piece.square), piece]),
   );
   return (
     <div
@@ -23,12 +23,12 @@ export const Board = ({ board, pieces }: BoardProps) => {
     >
       {[...Array(board.height).keys()].flatMap((_, j) =>
         [...Array(board.width).keys()].map((_, i) => {
-          const location = locationToString([i, j]);
+          const square = Square.toString([i, j]);
           return (
             <Tile
-              key={location}
+              key={square}
               color={(i + j) % 2 == 0 ? "white" : "black"}
-              piece={piecesMap[location]}
+              piece={piecesMap[square]}
             />
           );
         }),

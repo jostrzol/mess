@@ -48,22 +48,22 @@ const Home = () => {
   } satisfies Record<string, PieceType>;
   const pieces: PieceConfig[] = Object.values(pieceTypes).flatMap((type, i) => [
     {
-      location: [3, i],
+      square: [3, i],
       color: "black",
       type,
     },
     {
-      location: [4, i],
+      square: [4, i],
       color: "black",
       type,
     },
     {
-      location: [5, i],
+      square: [5, i],
       color: "white",
       type,
     },
     {
-      location: [6, i],
+      square: [6, i],
       color: "white",
       type,
     },
