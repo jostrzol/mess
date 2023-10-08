@@ -1,8 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com" viewBox="0 0 45 45">
     <defs>
         <bx:grid width="2.5" height="2.5" x="0" y="0"/>
     </defs>
-    <g fill="var(--player-color,#fff)" fill-rule="evenodd" stroke="var(--opponent-color,#000)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" transform="matrix(0.842752, 0, 0, 0.842752, 3.551473, 3.89312)">
+    <g fill="var(--player-color,#fff)" fill-rule="evenodd" stroke="var(--opponent-color,#000)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" style="" transform="matrix(0.931925, 0, 0, 0.931925, 1.603195, 1.670187)">
         <path d="M 20 22.5 L 20 12.609 L 15 12.572 L 15 7.5 L 20 7.413 L 20 2.5 L 25 2.5 L 25 7.5 L 30 7.549 L 30 12.5 L 25 12.5 L 25 22.5 L 20 22.5 Z"/>
         <path d="M 12.477 39.5 C 17.477 38.79 24.977 38.866 32.477 39.5 L 32.477 32.5 C 32.477 32.5 41.477 28 38.477 22 C 34.477 15.5 27.477 17.5 22.477 21.16 C 17.477 17.5 10.477 15.5 6.477 22 C 3.477 28 12.477 32.5 12.477 32.5 L 12.477 39.5" mask="url(#holes)"/>
         <path d="M 8.477 41.512 L 9.749 36.518 L 35.259 36.518 L 36.477 41.518 L 8.477 41.512 Z"/>
