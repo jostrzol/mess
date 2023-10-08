@@ -1,14 +1,14 @@
-package config
+package rules
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/jostrzol/mess/config/ctymess"
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/rules/ctymess"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
@@ -16,22 +16,22 @@ import (
 type controller struct {
 	state      *mess.State
 	ctx        *hcl.EvalContext
-	config     *callbackFunctionsConfig
+	rules      *callbackFunctionsRules
 	interactor Interactor
 }
 
-func newController(state *mess.State, ctx *hcl.EvalContext, config *config, interactor Interactor) *controller {
+func newController(state *mess.State, ctx *hcl.EvalContext, rules *rules, interactor Interactor) *controller {
 	return &controller{
 		state:      state,
 		ctx:        ctx,
-		config:     &config.Functions,
+		rules:      &rules.Functions,
 		interactor: interactor,
 	}
 }
 
 func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
 	ctyState := c.refreshGameStateInContext()
-	resultCty, err := c.config.PickWinnerFunc.Call([]cty.Value{ctyState})
+	resultCty, err := c.rules.PickWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
 		log.Printf("calling pick_winner user-defined function: %v", err)
 		return false, nil
@@ -74,7 +74,7 @@ func (c *controller) Choose(options []string) int {
 }
 
 func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []board.Square, error) {
-	funcCty, ok := c.config.CustomFuncs[name]
+	funcCty, ok := c.rules.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -98,7 +98,7 @@ func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []
 }
 
 func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveAction, error) {
-	funcCty, ok := c.config.CustomFuncs[name]
+	funcCty, ok := c.rules.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -117,9 +117,9 @@ func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveAction, error)
 }
 
 func (c *controller) GetStateValidators() ([]mess.StateValidator, error) {
-	validators := make([]mess.StateValidator, 0, len(c.config.StateValidators))
+	validators := make([]mess.StateValidator, 0, len(c.rules.StateValidators))
 
-	for validatorName, validatorCty := range c.config.StateValidators {
+	for validatorName, validatorCty := range c.rules.StateValidators {
 		// copy is required, because else the validator closure
 		// would always take validator and name from the last c.StateValidators
 		// entry (the iterator reference changes as the loop iterates)

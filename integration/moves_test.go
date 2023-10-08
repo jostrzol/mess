@@ -3,12 +3,12 @@ package integration
 import (
 	"testing"
 
-	"github.com/jostrzol/mess/config"
-	"github.com/jostrzol/mess/config/configtest"
 	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/mess/messtest"
+	"github.com/jostrzol/mess/pkg/rules"
+	"github.com/jostrzol/mess/pkg/rules/rulestest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -241,7 +241,7 @@ func TestMoves(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			game, err := config.DecodeConfig(ChessRulesFile, configtest.PanicInteractor{}, false)
+			game, err := rules.DecodeRules(ChessRulesFile, rulestest.PanicInteractor{}, false)
 			assert.NoError(t, err)
 
 			for _, piece := range tt.initState {
@@ -322,8 +322,8 @@ func TestPromotion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.color.String(), func(t *testing.T) {
-			interactor := configtest.ConstInteractor{Option: "promote to queen"}
-			game, err := config.DecodeConfig(ChessRulesFile, interactor, false)
+			interactor := rulestest.ConstInteractor{Option: "promote to queen"}
+			game, err := rules.DecodeRules(ChessRulesFile, interactor, false)
 			assert.NoError(t, err)
 
 			place(t, game, tt.color, "pawn", tt.src)
@@ -350,8 +350,8 @@ func TestPromotion(t *testing.T) {
 }
 
 func TestPromotionCheckMate(t *testing.T) {
-	interactor := configtest.ConstInteractor{Option: "promote to knight"}
-	game, err := config.DecodeConfig(ChessRulesFile, interactor, false)
+	interactor := rulestest.ConstInteractor{Option: "promote to knight"}
+	game, err := rules.DecodeRules(ChessRulesFile, interactor, false)
 	assert.NoError(t, err)
 
 	place(t, game, color.White, "pawn", "A7")

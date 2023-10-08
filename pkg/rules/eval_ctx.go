@@ -1,9 +1,9 @@
-package config
+package rules
 
 import (
 	"github.com/hashicorp/hcl/v2"
-	"github.com/jostrzol/mess/config/ctymess"
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/rules/ctymess"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"

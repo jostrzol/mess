@@ -1,4 +1,4 @@
-package config
+package rules
 
 import (
 	"fmt"
@@ -8,64 +8,64 @@ import (
 	"github.com/hashicorp/hcl/v2/ext/userfunc"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/jostrzol/mess/config/composeuserfunc"
+	"github.com/jostrzol/mess/pkg/rules/composeuserfunc"
 	"github.com/mitchellh/mapstructure"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 )
 
-type config struct {
-	Board           boardConfig          `hcl:"board,block"`
-	PieceTypes      pieceTypesConfig     `hcl:"piece_types,block"`
-	InitialState    initialStateConfig   `hcl:"initial_state,block"`
-	StateValidators stateValidatorConfig `hcl:"state_validators,block"`
-	Functions       callbackFunctionsConfig
+type rules struct {
+	Board           boardRules          `hcl:"board,block"`
+	PieceTypes      pieceTypesRules     `hcl:"piece_types,block"`
+	InitialState    initialStateRules   `hcl:"initial_state,block"`
+	StateValidators stateValidatorRules `hcl:"state_validators,block"`
+	Functions       callbackFunctionsRules
 }
 
-type boardConfig struct {
+type boardRules struct {
 	Height uint `hcl:"height"`
 	Width  uint `hcl:"width"`
 }
 
-type pieceTypesConfig struct {
-	PieceTypes []pieceTypeConfig `hcl:"piece_type,block"`
+type pieceTypesRules struct {
+	PieceTypes []pieceTypeRules `hcl:"piece_type,block"`
 }
 
-type pieceTypeConfig struct {
-	Name    string         `hcl:"piece_name,label"`
-	Motions []motionConfig `hcl:"motion,block"`
+type pieceTypeRules struct {
+	Name    string        `hcl:"piece_name,label"`
+	Motions []motionRules `hcl:"motion,block"`
 }
 
-type motionConfig struct {
+type motionRules struct {
 	GeneratorName string   `hcl:"generator"`
 	ActionNames   []string `hcl:"actions,optional"`
 }
 
-type initialStateConfig struct {
+type initialStateRules struct {
 	WhitePieces map[string]string `hcl:"white_pieces"`
 	BlackPieces map[string]string `hcl:"black_pieces"`
 }
 
-type variablesConfig struct {
-	VariablesBlock *variablesBlockConfig `hcl:"variables,block"`
-	Remain         hcl.Body              `hcl:",remain"`
+type variablesRules struct {
+	VariablesBlock *variablesBlockRules `hcl:"variables,block"`
+	Remain         hcl.Body             `hcl:",remain"`
 }
 
-type variablesBlockConfig struct {
+type variablesBlockRules struct {
 	Variables hcl.Attributes `hcl:",remain"`
 }
 
-type stateValidatorConfig struct {
+type stateValidatorRules struct {
 	Body hcl.Body `hcl:",remain"`
 }
 
-type callbackFunctionsConfig struct {
+type callbackFunctionsRules struct {
 	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
 	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
 	StateValidators map[string]function.Function
 }
 
-func decodeConfig(filename string, ctx *hcl.EvalContext) (*config, error) {
+func decodeRules(filename string, ctx *hcl.EvalContext) (*rules, error) {
 	diags := make(hcl.Diagnostics, 0)
 
 	src, err := os.ReadFile(filename)
@@ -87,11 +87,11 @@ func decodeConfig(filename string, ctx *hcl.EvalContext) (*config, error) {
 	diags.Extend(tmpDiags)
 	mergeWithStd(ctx.Variables, userVariables, "variable")
 
-	config := &config{}
-	tmpDiags = gohcl.DecodeBody(body, ctx, config)
+	rules := &rules{}
+	tmpDiags = gohcl.DecodeBody(body, ctx, rules)
 	diags.Extend(tmpDiags)
 
-	err = mapstructure.Decode(ctx.Functions, &config.Functions)
+	err = mapstructure.Decode(ctx.Functions, &rules.Functions)
 	if err != nil {
 		diags.Append(&hcl.Diagnostic{
 			Severity: hcl.DiagError,
@@ -99,15 +99,15 @@ func decodeConfig(filename string, ctx *hcl.EvalContext) (*config, error) {
 		})
 	}
 
-	if config.StateValidators.Body != nil {
-		stateValidators, _, tmpDiags := decodeUserFunctions(config.StateValidators.Body, ctx)
+	if rules.StateValidators.Body != nil {
+		stateValidators, _, tmpDiags := decodeUserFunctions(rules.StateValidators.Body, ctx)
 		diags.Extend(tmpDiags)
-		config.Functions.StateValidators = stateValidators
+		rules.Functions.StateValidators = stateValidators
 	} else {
-		config.Functions.StateValidators = make(map[string]function.Function)
+		rules.Functions.StateValidators = make(map[string]function.Function)
 	}
 
-	return config, nil
+	return rules, nil
 }
 
 func decodeUserFunctions(
@@ -152,18 +152,18 @@ func decodeUserVariables(
 	body hcl.Body, ctx *hcl.EvalContext,
 ) (map[string]cty.Value, hcl.Body, hcl.Diagnostics) {
 	diags := make(hcl.Diagnostics, 0)
-	var variablesConfig variablesConfig
+	var variablesRules variablesRules
 
-	tmpDiags := gohcl.DecodeBody(body, ctx, &variablesConfig)
+	tmpDiags := gohcl.DecodeBody(body, ctx, &variablesRules)
 	diags.Extend(tmpDiags)
 
 	userVariables := make(map[string]cty.Value)
 
-	if variablesConfig.VariablesBlock == nil {
-		return userVariables, variablesConfig.Remain, diags
+	if variablesRules.VariablesBlock == nil {
+		return userVariables, variablesRules.Remain, diags
 	}
 
-	for _, variable := range variablesConfig.VariablesBlock.Variables {
+	for _, variable := range variablesRules.VariablesBlock.Variables {
 		if _, ok := userVariables[variable.Name]; ok {
 			diags.Append(&hcl.Diagnostic{
 				Severity:    hcl.DiagError,
@@ -179,7 +179,7 @@ func decodeUserVariables(
 		}
 	}
 
-	return userVariables, variablesConfig.Remain, diags
+	return userVariables, variablesRules.Remain, diags
 }
 
 func mergeWithStd[V any](stdMap map[string]V, userMap map[string]V, kind string) hcl.Diagnostics {

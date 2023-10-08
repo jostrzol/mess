@@ -1,4 +1,4 @@
-package configtest
+package rulestest
 
 import (
 	"fmt"

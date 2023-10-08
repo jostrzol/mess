@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jostrzol/mess/config"
 	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/rules"
 )
 
 type terminalInteractor struct{}
@@ -124,14 +124,14 @@ func runError(format string, a ...any) {
 }
 
 func main() {
-	var configFilename = flag.String("rules", "", "path to a rules config file")
+	var rulesFilename = flag.String("rules", "", "path to a rules file")
 	flag.Parse()
 
-	if *configFilename == "" {
+	if *rulesFilename == "" {
 		cmdError("no rules file")
 	}
 
-	game, err := config.DecodeConfig(*configFilename, terminalInteractor{}, true)
+	game, err := rules.DecodeRules(*rulesFilename, terminalInteractor{}, true)
 	if err != nil {
 		runError("loading game rules: %s", err)
 	}
