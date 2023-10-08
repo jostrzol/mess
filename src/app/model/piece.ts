@@ -6,4 +6,5 @@ export interface Piece {
   type: PieceType;
   color: Color;
   square: Square;
+  validMoves: Square[]
 }
