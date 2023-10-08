@@ -1,4 +1,4 @@
-import {Color} from "./color";
+import { Color } from "./color";
 import { PieceType } from "./pieceType";
 
 export interface Piece {

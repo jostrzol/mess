@@ -1,6 +1,5 @@
 import { Piece as PieceConfig } from "@/app/model/piece";
 import clsx from "clsx";
-import Image from "next/image";
 import { ReactSVG } from "react-svg";
 
 export interface PieceProps {

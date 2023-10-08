@@ -6,7 +6,6 @@ import { Menu } from "./components/menu";
 import { Theme, ThemeContext, themes, useTheme } from "./contexts/themeContext";
 import { Piece as PieceConfig } from "./model/piece";
 import { PieceType } from "./model/pieceType";
-import { Piece } from "./components/game/piece";
 
 const Home = () => {
   const [cookies, setCookies, _] = useCookies(["theme"]);

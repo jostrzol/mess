@@ -1,3 +1,4 @@
+import Color from "color";
 import {
   Dispatch,
   SetStateAction,
@@ -5,7 +6,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import Color from "color";
 import * as colors from "tailwindcss/colors";
 
 export interface ThemeColors {
@@ -51,9 +51,7 @@ export const ThemeContext = createContext<Theme>({
 
 type SetTheme = Dispatch<SetStateAction<Theme>>;
 
-export const useTheme = (
-  initialTheme: Theme,
-): [Theme, SetTheme] => {
+export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const applyTheme = () => {
     const root = document.documentElement;
