@@ -1,11 +1,12 @@
 import { Board as BoardConfig } from "@/app/model/board";
 import { Color } from "@/app/model/color";
-import { Piece } from "@/app/model/piece";
+import { Piece as PieceConfig } from "@/app/model/piece";
 import { locationToString } from "@/app/utils/functions";
 import clsx from "clsx";
+import {Piece} from "./piece";
 
 export type BoardProps = {
-  pieces: Piece[];
+  pieces: PieceConfig[];
   board: BoardConfig;
 };
 
@@ -39,7 +40,7 @@ export const Board = ({ board, pieces }: BoardProps) => {
 
 type TileProps = {
   color: Color;
-  piece?: Piece;
+  piece?: PieceConfig;
 };
 
 const Tile = ({ color, piece }: TileProps) => {
@@ -50,12 +51,15 @@ const Tile = ({ color, piece }: TileProps) => {
         "min-w-[3rem]",
         color == "white" ? "bg-player-white" : "bg-player-black",
         "rounded-2xl",
+        "relative",
+        piece && "hover:cursor-pointer",
       )}
       style={{
         overflowClipMargin: "content-box",
         overflow: "clip",
       }}
     >
+      {piece && <Piece piece={piece} />}
       {/* Needed to make the parent div expand.
       Coulnd't get it to work without the image */}
       <svg className="invisible">

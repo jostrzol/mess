@@ -20,6 +20,7 @@ export const Menu = ({ onThemeChange }: MenuProps) => {
         "left-0",
         "h-screen",
         "-mb-[100vh]",
+        "z-10",
       )}
     >
       <div

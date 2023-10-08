@@ -9,3 +9,15 @@ h1 {
 * {
   font-size: large;
 }
+
+@layer base {
+  .player-white {
+    --player-color: rgb(var(--theme-player-white));
+    --opponent-color: rgb(var(--theme-player-black));
+  }
+
+  .player-black {
+    --player-color: rgb(var(--theme-player-black));
+    --opponent-color: rgb(var(--theme-player-white));
+  }
+}
