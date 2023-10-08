@@ -64,7 +64,6 @@ export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
     Object.entries(theme.colors).forEach(([key, value]) => {
       const colorKey = `--theme-${key}`;
       const colorValue = Color(value).array().join(" ");
-      console.log(`${colorKey}: ${colorValue}`);
       root.style.setProperty(colorKey, colorValue);
     });
   };
