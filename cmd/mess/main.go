@@ -88,11 +88,10 @@ func (t *terminalInteractor) ChooseMove(state *mess.State, validMoves []mess.Mov
 		if len(validForPiece) == 0 {
 			println("No valid moves for this piece!")
 			continue
-		} else {
-			println("Valid destinations:")
-			for _, validMove := range validForPiece {
-				fmt.Printf("-> %v\n", &validMove.To)
-			}
+		}
+		println("Valid destinations:")
+		for _, validMove := range validForPiece {
+			fmt.Printf("-> %v\n", &validMove.To)
 		}
 
 		println("Choose a destination square")

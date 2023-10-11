@@ -174,7 +174,7 @@ variables {
 composite_function "turn" {
   params = []
   result = {
-    _ = player_move()
+    return = player_move()
   }
 }
 

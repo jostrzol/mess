@@ -437,10 +437,13 @@ initial_state {
 }
 
 // ===== TURN ==================================================
+// This function is required and decides on the flow of a turn. The most basic
+// one just calls player_move(), which orders the player to make one valid move.
+
 composite_function "turn" {
   params = []
   result = {
-    _ = player_move()
+    return = player_move()
   }
 }
 
