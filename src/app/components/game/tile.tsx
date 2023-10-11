@@ -44,7 +44,7 @@ export const Tile = ({
           "w-4",
           "h-4",
           "rounded-full",
-          piece ? "bg-danger" : "bg-primary/80",
+          piece ? "bg-danger/90" : "bg-primary/90",
           "transition-opacity",
           isMoveProjected || "opacity-0",
           "pointer-events-none",
