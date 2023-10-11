@@ -50,16 +50,18 @@ export const themes = {
   },
 } satisfies Record<string, ThemeColors>;
 
-export const ThemeContext = createContext<Theme>({
+export const defaultTheme: Theme = {
   name: "light",
   colors: themes["light"],
-});
+};
+export const ThemeContext = createContext<Theme>(defaultTheme);
 
 type SetTheme = Dispatch<SetStateAction<Theme>>;
 
 export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const applyTheme = () => {
+    console.log(theme.colors)
     const root = document.documentElement;
     Object.entries(theme.colors).forEach(([key, value]) => {
       const colorKey = `--theme-${key}`;

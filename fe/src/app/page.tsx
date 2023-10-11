@@ -3,14 +3,14 @@
 import { useCookies } from "react-cookie";
 import { Board } from "./components/game/board";
 import { Menu } from "./components/menu";
-import { Theme, ThemeContext, themes, useTheme } from "./contexts/themeContext";
+import { defaultTheme, Theme, ThemeContext, useTheme } from "./contexts/themeContext";
 import { Piece as PieceConfig } from "./model/piece";
 import { PieceType } from "./model/pieceType";
 import { Square } from "./model/square";
 
 const Home = () => {
   const [cookies, setCookies, _] = useCookies(["theme"]);
-  const [theme, setTheme] = useTheme(cookies["theme"] ?? themes["light"]);
+  const [theme, setTheme] = useTheme(cookies["theme"] ?? defaultTheme);
   const onThemeChange = (theme: Theme) => {
     setCookies("theme", theme, { maxAge: 60 * 60 * 24 * 365 * 10 });
     setTheme(theme);
