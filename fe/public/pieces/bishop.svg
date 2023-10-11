@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com" version="1.1" viewBox="0 0 45 45">
+    <defs>
+        <bx:grid width="2.5" height="2.5" x="0" y="0"/>
+    </defs>
+    <g fill="var(--player-color,#fff)" stroke="var(--opponent-color,#000)" style="opacity:1;fill-rule:evenodd;fill-opacity:1;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" transform="translate(0,0.6)">
+        <g style="stroke-linecap:butt" transform="matrix(1.159139, 0, 0, 1.159139, -3.926309, -1.671156)">
+            <path d="M 15.046 31.9 L 30.575 31.9 C 30.575 29.312 27.987 26.724 27.987 26.724 C 33.681 25.171 34.199 14.818 22.811 10.676 C 11.423 14.818 11.94 25.171 17.634 26.724 C 17.634 26.724 15.046 29.312 15.046 31.9 Z" style=""/>
+            <path d="M 25.399 8.088 C 25.399 10.081 23.242 11.326 21.517 10.33 C 20.716 9.867 20.223 9.013 20.223 8.088 C 20.223 6.096 22.379 4.851 24.105 5.847 C 24.906 6.309 25.399 7.164 25.399 8.088 Z" style=""/>
+        </g>
+        <path d="M 16.514 29.305 L 28.515 29.305 M 22.515 16.705 L 22.515 22.704 M 19.515 19.705 L 25.515 19.705" style="stroke-linejoin:miter"/>
+        <path d="M 9.5 39.754 L 10.686 35.1 L 34.459 35.1 L 35.594 39.76 L 9.5 39.754 Z"/>
+    </g>
+</svg>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com" version="1.1" viewBox="0 0 45 45">
+    <defs>
+        <bx:grid width="2.5" height="2.5" x="0" y="0"/>
+    </defs>
+    <g fill="var(--player-color,#fff)" stroke="var(--opponent-color,#000)" style="stroke-width:1.5;stroke-linejoin:round">
+        <path d="M 22.512 25.538 L 22.512 25.539 L 18.196 10.431000000000001 L 14.844 10.606 L 15.801 25.8 L 9.379 15.736 L 7 16.8 L 15.012 36.7 L 30.012 36.7 L 38.012 16.9 L 35.601 15.842 L 29.178 25.905 L 30.136 10.711 L 26.784 10.537 L 22.512 25.538 Z" style=""/>
+        <g transform="matrix(1, 0, 0, 1, 0, 1)">
+            <ellipse cx="15.964" cy="6.536" rx="3.5" ry="3.5" style="transform-origin:26px 8.2145px"/>
+            <ellipse cx="7" cy="12.8" rx="3" ry="3" style="transform-origin:26px 11.082px"/>
+        </g>
+        <g transform="matrix(-1, 0, 0, 1, 45.000001, 1)">
+            <ellipse cx="15.964" cy="6.536" rx="3.5" ry="3.5" style="transform-origin:19px 8.2145px"/>
+            <ellipse cx="7" cy="12.8" rx="3" ry="3" style="transform-origin:19px 11.082px"/>
+        </g>
+        <path d="M 9.471 40.354 L 10.657 35.7 L 34.43 35.7 L 35.565 40.36 L 9.471 40.354 Z"/>
+    </g>
+</svg>
