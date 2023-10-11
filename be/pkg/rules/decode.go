@@ -75,26 +75,28 @@ func decodeRules(filename string, ctx *hcl.EvalContext) (*rules, error) {
 	}
 
 	file, parseDiags := hclsyntax.ParseConfig(src, filename, hcl.InitialPos)
-	diags.Extend(parseDiags)
+	diags = diags.Extend(parseDiags)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
 	userFuncs, body, tmpDiags := decodeUserFunctions(file.Body, ctx)
-	diags.Extend(tmpDiags)
-	mergeWithStd(ctx.Functions, userFuncs, "function")
+	diags = diags.Extend(tmpDiags)
+	tmpDiags = mergeWithStd(ctx.Functions, userFuncs, "function")
+	diags = diags.Extend(tmpDiags)
 
 	userVariables, body, tmpDiags := decodeUserVariables(body, ctx)
-	diags.Extend(tmpDiags)
-	mergeWithStd(ctx.Variables, userVariables, "variable")
+	diags = diags.Extend(tmpDiags)
+	tmpDiags = mergeWithStd(ctx.Variables, userVariables, "variable")
+	diags = diags.Extend(tmpDiags)
 
 	rules := &rules{}
 	tmpDiags = gohcl.DecodeBody(body, ctx, rules)
-	diags.Extend(tmpDiags)
+	diags = diags.Extend(tmpDiags)
 
 	err = mapstructure.Decode(ctx.Functions, &rules.Functions)
 	if err != nil {
-		diags.Append(&hcl.Diagnostic{
+		diags = diags.Append(&hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Detail:   fmt.Sprintf("populating callback functions: %v", err),
 		})
@@ -102,10 +104,14 @@ func decodeRules(filename string, ctx *hcl.EvalContext) (*rules, error) {
 
 	if rules.StateValidators.Body != nil {
 		stateValidators, _, tmpDiags := decodeUserFunctions(rules.StateValidators.Body, ctx)
-		diags.Extend(tmpDiags)
+		diags = diags.Extend(tmpDiags)
 		rules.Functions.StateValidators = stateValidators
 	} else {
 		rules.Functions.StateValidators = make(map[string]function.Function)
+	}
+
+	if diags.HasErrors() {
+		return nil, diags
 	}
 
 	return rules, nil
@@ -121,14 +127,14 @@ func decodeUserFunctions(
 	}
 
 	userFuncs, remain, tmpDiags := userfunc.DecodeUserFunctions(body, "function", contextFunc)
-	diags.Extend(tmpDiags)
+	diags = diags.Extend(tmpDiags)
 
 	if userFuncs == nil {
 		userFuncs = make(map[string]function.Function)
 	}
 
 	compositeFuncs, remain, tmpDiags := composeuserfunc.DecodeCompositeUserFunctions(remain, "composite_function", contextFunc)
-	diags.Extend(tmpDiags)
+	diags = diags.Extend(tmpDiags)
 
 	if compositeFuncs == nil {
 		compositeFuncs = make(map[string]function.Function)
@@ -136,7 +142,7 @@ func decodeUserFunctions(
 
 	for name, f := range compositeFuncs {
 		if _, present := userFuncs[name]; present {
-			diags.Append(&hcl.Diagnostic{
+			diags = diags.Append(&hcl.Diagnostic{
 				Severity:    hcl.DiagError,
 				EvalContext: ctx,
 				Detail:      fmt.Sprintf("function named %q already defined", name),
@@ -156,7 +162,7 @@ func decodeUserVariables(
 	var variablesRules variablesRules
 
 	tmpDiags := gohcl.DecodeBody(body, ctx, &variablesRules)
-	diags.Extend(tmpDiags)
+	diags = diags.Extend(tmpDiags)
 
 	userVariables := make(map[string]cty.Value)
 
@@ -166,7 +172,7 @@ func decodeUserVariables(
 
 	for _, variable := range variablesRules.VariablesBlock.Variables {
 		if _, ok := userVariables[variable.Name]; ok {
-			diags.Append(&hcl.Diagnostic{
+			diags = diags.Append(&hcl.Diagnostic{
 				Severity:    hcl.DiagError,
 				Subject:     variable.Expr.Range().Ptr(),
 				Expression:  variable.Expr,
@@ -175,7 +181,7 @@ func decodeUserVariables(
 			})
 		} else {
 			value, evalDiags := variable.Expr.Value(ctx)
-			diags.Extend(evalDiags)
+			diags = diags.Extend(evalDiags)
 			userVariables[variable.Name] = value
 		}
 	}
@@ -187,7 +193,7 @@ func mergeWithStd[V any](stdMap map[string]V, userMap map[string]V, kind string)
 	diags := make(hcl.Diagnostics, 0)
 	for name, f := range userMap {
 		if _, ok := stdMap[name]; ok {
-			diags.Append(&hcl.Diagnostic{
+			diags = diags.Append(&hcl.Diagnostic{
 				Severity: hcl.DiagWarning,
 				Detail:   fmt.Sprintf("overwrote standard %s %q", kind, name),
 			})
