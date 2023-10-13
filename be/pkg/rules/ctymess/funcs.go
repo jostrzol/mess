@@ -196,6 +196,30 @@ var PrintlnFunc = function.New(&function.Spec{
 	},
 })
 
+var FilterNulls = function.New(&function.Spec{
+	Description: "returns a list without nulls",
+	Params: []function.Parameter{
+		{
+			Name:             "argument",
+			Type:             cty.List(cty.DynamicPseudoType),
+			AllowDynamicType: true,
+		},
+	},
+	Type: function.StaticReturnType(cty.List(cty.DynamicPseudoType)),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		result := make([]cty.Value, 0)
+		for _, value := range args[0].AsValueSlice() {
+			if !value.IsNull() {
+				result = append(result, value)
+			}
+		}
+		if len(result) == 0 {
+			return cty.ListValEmpty(cty.DynamicPseudoType), nil
+		}
+		return cty.ListVal(result), nil
+	},
+})
+
 var StateMissingFunc = function.New(&function.Spec{
 	Description: "Placeholder - the game state is not built yet",
 	Params:      []function.Parameter{},

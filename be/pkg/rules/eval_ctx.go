@@ -34,6 +34,7 @@ var InitialEvalContext = &hcl.EvalContext{
 		"square_to_coords":    ctymess.SquareToCoordsFunc,
 		"coords_to_square":    ctymess.CoordsToSquareFunc,
 		"println":             ctymess.PrintlnFunc,
+		"filternulls":         ctymess.FilterNulls,
 		"get_square_relative": ctymess.StateMissingFunc,
 		"piece_at":            ctymess.StateMissingFunc,
 		"owner_of":            ctymess.StateMissingFunc,

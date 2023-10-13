@@ -98,8 +98,8 @@ composite_function "motion_neighbours" {
     ]
     dests = [for dpos in dposes : get_square_relative(square, dpos)]
     return = [
-      for dest in dests : dest
-      if dest == null ? false : !belongs_to(piece.color, dest)
+      for dest in filternulls(dests) : dest
+      if !belongs_to(piece.color, dest)
     ]
   }
 }
@@ -164,9 +164,8 @@ composite_function "motion_forward_diagonal" {
     dposes    = [[-1, forward_y], [1, forward_y]]
     dests     = [for dpos in dposes : get_square_relative(square, dpos)]
     return = [
-      for dest in dests : dest
-      if(dest == null ? false
-        : piece_at(dest) != null && !belongs_to(piece.color, dest)
+      for dest in filternulls(dests) : dest
+      if(piece_at(dest) != null && !belongs_to(piece.color, dest)
     )]
   }
 }
@@ -184,8 +183,8 @@ composite_function "motion_en_passant" {
     last_move = last_or_null(game.record)
     backward  = [for dpos in owner_of(piece).forward_direction : -1 * dpos]
     return = [
-      for dest in dests : dest
-      if dest == null || last_move == null ? false : (
+      for dest in filternulls(dests) : dest
+      if last_move == null ? false : (
         piece_at(dest) == null
         && last_move.piece.type == "pawn"
         && last_move.dst == get_square_relative(dest, backward)

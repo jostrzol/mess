@@ -3,10 +3,13 @@
 package composeuserfunc
 
 import (
+	"strings"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/ext/userfunc"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
+	"github.com/zclconf/go-cty/cty/gocty"
 )
 
 var compositeFuncBodySchema = &hcl.BodySchema{
@@ -82,14 +85,21 @@ Blocks:
 		}
 		for _, paramExpr := range paramExprs {
 			param := hcl.ExprAsKeyword(paramExpr)
+
 			if param == "" {
-				diags = append(diags, &hcl.Diagnostic{
-					Severity: hcl.DiagError,
-					Summary:  "Invalid param element",
-					Detail:   "Each parameter name must be an identifier.",
-					Subject:  paramExpr.Range().Ptr(),
-				})
-				continue Blocks
+				unwrapped := hcl.UnwrapExpression(paramExpr)
+				value, err := unwrapped.Value(nil)
+				diags = diags.Extend(err)
+
+				if err := gocty.FromCtyValue(value, &param); err != nil {
+					diags = append(diags, &hcl.Diagnostic{
+						Severity: hcl.DiagError,
+						Summary:  "Invalid param element",
+						Detail:   "Each parameter name must be an identifier.",
+						Subject:  paramExpr.Range().Ptr(),
+					})
+					continue Blocks
+				}
 			}
 			params = append(params, param)
 		}
@@ -108,10 +118,13 @@ Blocks:
 		}
 
 		spec := &function.Spec{}
-		for _, paramName := range params {
+		for i, paramName := range params {
+			paramName, allowNull := strings.CutSuffix(paramName, "?")
+			params[i] = paramName
 			spec.Params = append(spec.Params, function.Parameter{
-				Name: paramName,
-				Type: cty.DynamicPseudoType,
+				Name:      paramName,
+				AllowNull: allowNull,
+				Type:      cty.DynamicPseudoType,
 			})
 		}
 		if varParamExpr != nil {
@@ -121,6 +134,7 @@ Blocks:
 			}
 		}
 		impl := func(args []cty.Value) (cty.Value, error) {
+			_ = name
 			ctx := getBaseCtx()
 			ctx = ctx.NewChild()
 			ctx.Variables = make(map[string]cty.Value)
