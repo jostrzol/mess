@@ -2,6 +2,8 @@ package mess
 
 import (
 	"fmt"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
@@ -36,6 +38,21 @@ func (p *Piece) String() string {
 
 func (p *Piece) Type() *PieceType {
 	return p.ty
+}
+
+func (p *Piece) Symbol() rune {
+	def := rune('?')
+	if p.owner == nil {
+		return def
+	}
+	switch p.Color() {
+	case color.White:
+		return p.ty.SymbolWhite()
+	case color.Black:
+		return p.ty.SymbolBlack()
+	default:
+		return def
+	}
 }
 
 func (p *Piece) Owner() *Player {
@@ -107,8 +124,14 @@ func (p *Piece) Handle(event event.Event) {
 	p.moves = nil
 }
 
+type symbols struct {
+	white rune
+	black rune
+}
+
 type PieceType struct {
 	name           string
+	symbols        symbols
 	moveGenerators chainMoveGenerators
 }
 
@@ -121,6 +144,35 @@ func NewPieceType(name string) *PieceType {
 
 func (t *PieceType) Name() string {
 	return t.name
+}
+
+func (t *PieceType) SymbolWhite() rune {
+	if t.symbols.white == 0 {
+		return unicode.ToUpper(t.firstNameRune())
+	}
+	return t.symbols.white
+}
+
+func (t *PieceType) SymbolBlack() rune {
+	if t.symbols.black == 0 {
+		return unicode.ToLower(t.firstNameRune())
+	}
+	return t.symbols.black
+}
+
+func (t *PieceType) firstNameRune() rune {
+	r, _ := utf8.DecodeRuneInString(t.name)
+	if r == utf8.RuneError {
+		return rune('?')
+	}
+	return r
+}
+
+func (t *PieceType) SetSymbols(symbolWhite rune, symbolBlack rune) {
+	t.symbols = symbols{
+		white: symbolWhite,
+		black: symbolBlack,
+	}
 }
 
 func (t *PieceType) String() string {

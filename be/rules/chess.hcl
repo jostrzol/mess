@@ -24,6 +24,10 @@ board {
 
 piece_types {
   piece_type "king" {
+    symbols {
+      white = "♔"
+      black = "♚"
+    }
     motion {
       generator = "motion_castling"
       actions   = ["displace_rook_after_castling"]
@@ -34,6 +38,10 @@ piece_types {
   }
 
   piece_type "queen" {
+    symbols {
+      white = "♕"
+      black = "♛"
+    }
     motion {
       generator = "motion_line_diagonal"
     }
@@ -43,24 +51,40 @@ piece_types {
   }
 
   piece_type "rook" {
+    symbols {
+      white = "♖"
+      black = "♜"
+    }
     motion {
       generator = "motion_line_straight"
     }
   }
 
   piece_type "knight" {
+    symbols {
+      white = "♘"
+      black = "♞"
+    }
     motion {
       generator = "motion_hook"
     }
   }
 
   piece_type "bishop" {
+    symbols {
+      white = "♗"
+      black = "♝"
+    }
     motion {
       generator = "motion_line_diagonal"
     }
   }
 
   piece_type "pawn" {
+    symbols {
+      white = "♙"
+      black = "♟"
+    }
     motion {
       generator = "motion_forward_straight"
       actions   = ["promote"]
@@ -209,8 +233,8 @@ composite_function "motion_hook" {
     ]
     dests = [for dpos in dposes : get_square_relative(square, dpos)]
     return = [
-      for dest in dests : dest
-      if dest == null ? false : !belongs_to(piece.color, dest)
+      for dest in filternulls(dests) : dest
+      if !belongs_to(piece.color, dest)
     ]
   }
 }
@@ -407,11 +431,22 @@ function "opponent_color" {
 // ===== INITIAL STATE =========================================
 initial_state {
   white_pieces = {
-    E1 = "king"
     A1 = "rook"
-    H1 = "rook"
+    B1 = "knight"
+    C1 = "bishop"
+    D1 = "queen"
+    E1 = "king"
+    F1 = "bishop"
     G1 = "knight"
-    B5 = "pawn"
+    H1 = "rook"
+    A2 = "pawn"
+    B2 = "pawn"
+    C2 = "pawn"
+    D2 = "pawn"
+    E2 = "pawn"
+    F2 = "pawn"
+    G2 = "pawn"
+    H2 = "pawn"
   }
   black_pieces = {
     A8 = "rook"
@@ -430,8 +465,6 @@ initial_state {
     F7 = "pawn"
     G7 = "pawn"
     H7 = "pawn"
-
-    B2 = "pawn"
   }
 }
 

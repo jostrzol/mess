@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/jostrzol/mess/pkg/board"
@@ -60,11 +61,34 @@ func (c *rules) toEmptyGameState(ctx *hcl.EvalContext, interactor mess.Interacto
 				},
 			)
 		}
+		if pieceTypeRules.Symbols != nil {
+			symbolWhite, err := decodeSymbol(pieceTypeRules.Symbols.White)
+			if err != nil {
+				return nil, err
+			}
+			symbolBlack, err := decodeSymbol(pieceTypeRules.Symbols.Black)
+			if err != nil {
+				return nil, err
+			}
+			pieceType.SetSymbols(symbolWhite, symbolBlack)
+		}
 		state.AddPieceType(pieceType)
 	}
 
 	initializeContext(ctx, game)
 	return game, nil
+}
+
+func decodeSymbol(symbol string) (rune, error) {
+	r, n := utf8.DecodeRuneInString(symbol)
+	if n == 0 {
+		return 0, fmt.Errorf("symbol cannot be empty")
+	} else if r == utf8.RuneError {
+		return 0, fmt.Errorf("symbol not an utf-8 character")
+	} else if n != len(symbol) {
+		return 0, fmt.Errorf("symbol too long (must be exactly one utf-8 character)")
+	}
+	return r, nil
 }
 
 func (c *rules) placePieces(state *mess.State) error {

@@ -1,11 +1,9 @@
 package mess
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/jostrzol/mess/pkg/board"
-	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
 )
 
@@ -34,20 +32,7 @@ func (b *PieceBoard) PrettyString() string {
 		if p == nil {
 			return rune(' ')
 		}
-		ty := p.Type()
-		var theByte byte
-		if ty.Name() != "knight" {
-			theByte = ty.name[0]
-		} else {
-			theByte = 'n'
-		}
-		var result byte
-		if p.Color() == color.White {
-			result = bytes.ToUpper([]byte{theByte})[0]
-		} else {
-			result = bytes.ToLower([]byte{theByte})[0]
-		}
-		return rune(result)
+		return p.Symbol()
 	})
 }
 

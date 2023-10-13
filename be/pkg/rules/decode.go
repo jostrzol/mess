@@ -15,10 +15,10 @@ import (
 )
 
 type rules struct {
-	Board           boardRules          `hcl:"board,block"`
-	PieceTypes      pieceTypesRules     `hcl:"piece_types,block"`
-	InitialState    initialStateRules   `hcl:"initial_state,block"`
-	StateValidators stateValidatorRules `hcl:"state_validators,block"`
+	Board           boardRules           `hcl:"board,block"`
+	PieceTypes      pieceTypesRules      `hcl:"piece_types,block"`
+	InitialState    initialStateRules    `hcl:"initial_state,block"`
+	StateValidators *stateValidatorRules `hcl:"state_validators,block"`
 	Functions       callbackFunctionsRules
 }
 
@@ -33,7 +33,13 @@ type pieceTypesRules struct {
 
 type pieceTypeRules struct {
 	Name    string        `hcl:"piece_name,label"`
+	Symbols *symbols      `hcl:"symbols,block"`
 	Motions []motionRules `hcl:"motion,block"`
+}
+
+type symbols struct {
+	White string `hcl:"white"`
+	Black string `hcl:"black"`
 }
 
 type motionRules struct {
@@ -102,7 +108,7 @@ func decodeRules(filename string, ctx *hcl.EvalContext) (*rules, error) {
 		})
 	}
 
-	if rules.StateValidators.Body != nil {
+	if rules.StateValidators != nil {
 		stateValidators, _, tmpDiags := decodeUserFunctions(rules.StateValidators.Body, ctx)
 		diags = diags.Extend(tmpDiags)
 		rules.Functions.StateValidators = stateValidators
