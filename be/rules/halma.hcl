@@ -25,8 +25,8 @@ board {
 piece_types {
   piece_type "piece" {
     symbols {
-      white = "●"
-      black = "○"
+      white = "○"
+      black = "●"
     }
     motion {
       generator = "motion_neighbours"
