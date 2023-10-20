@@ -11,13 +11,13 @@ import (
 
 type Motion struct {
 	Name             string
-	Generate         MoveGeneratorFunc
-	ChoiceGenerators []ChoiceFunc
+	MoveGenerator    MoveGeneratorFunc
+	ChoiceGenerators []ChoiceGeneratorFunc
 	Action           MoveActionFunc
 }
 
 type MoveGeneratorFunc = func(*Piece) []board.Square
-type ChoiceFunc = func(*Piece, board.Square, board.Square) Choice
+type ChoiceGeneratorFunc = func(*Piece, board.Square, board.Square) Choice
 type MoveActionFunc = func(*Piece, board.Square, board.Square, []Option) error
 
 type chainMotions []Motion
@@ -26,7 +26,7 @@ func (g chainMotions) Generate(piece *Piece) []GeneratedMove {
 	resultMap := make(map[brd.Square]GeneratedMove, 0)
 	for _, motion := range g {
 		name := motion.Name
-		destinations := motion.Generate(piece)
+		destinations := motion.MoveGenerator(piece)
 
 		for _, destination := range destinations {
 			source := piece.Square()

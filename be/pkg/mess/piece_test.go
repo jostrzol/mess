@@ -18,7 +18,7 @@ func Rook(t *testing.T) *mess.PieceType {
 	pieceType := mess.NewPieceType("rook")
 	pieceType.AddMoveGenerator(mess.Motion{
 		Name: "rook_motion",
-		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
+		MoveGenerator: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
 			result := make([]board.Square, 0)
 			for _, offset := range []board.Offset{
 				{X: 1, Y: 0},

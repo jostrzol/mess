@@ -55,7 +55,7 @@ func decodePieceType(controller *controller, pieceTypeRules pieceTypeRules) (*me
 				return nil, err
 			}
 		}
-		choiceGenerators := make([]mess.ChoiceFunc, 0, len(motionRules.ChoiceGeneratorNames))
+		choiceGenerators := make([]mess.ChoiceGeneratorFunc, 0, len(motionRules.ChoiceGeneratorNames))
 		for _, choiceGeneratorName := range motionRules.ChoiceGeneratorNames {
 			choiceGenerator, err := controller.GetCustomFuncAsChoiceGenerator(choiceGeneratorName)
 			if err != nil {
@@ -68,7 +68,7 @@ func decodePieceType(controller *controller, pieceTypeRules pieceTypeRules) (*me
 		pieceType.AddMotion(
 			mess.Motion{
 				Name:             motionRules.GeneratorName,
-				Generate:         moveGenerator,
+				MoveGenerator:    moveGenerator,
 				ChoiceGenerators: choiceGenerators,
 				Action:           action,
 			},

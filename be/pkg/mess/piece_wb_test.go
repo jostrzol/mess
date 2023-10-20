@@ -12,7 +12,7 @@ func staticMoveGenerator(t *testing.T, strings ...string) Motion {
 	t.Helper()
 	return Motion{
 		Name: "test_generator",
-		Generate: func(piece *Piece) ([]brd.Square, MoveActionFunc) {
+		MoveGenerator: func(piece *Piece) ([]brd.Square, MoveActionFunc) {
 			destinations := make([]brd.Square, 0, len(strings))
 			for _, squareStr := range strings {
 				square, err := brd.NewSquare(squareStr)

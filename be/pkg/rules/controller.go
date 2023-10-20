@@ -97,7 +97,7 @@ func (c *controller) GetCustomFuncAsGenerator(name string) (mess.MoveGeneratorFu
 	}, nil
 }
 
-func (c *controller) GetCustomFuncAsChoiceGenerator(name string) (mess.ChoiceFunc, error) {
+func (c *controller) GetCustomFuncAsChoiceGenerator(name string) (mess.ChoiceGeneratorFunc, error) {
 	funcCty, ok := c.rules.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)

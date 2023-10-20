@@ -62,7 +62,7 @@ func StaticMoveGenerator(t *testing.T, strings ...string) mess.Motion {
 	t.Helper()
 	return mess.Motion{
 		Name: "test_generator",
-		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
+		MoveGenerator: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
 			destinations := make([]board.Square, 0, len(strings))
 			for _, squareStr := range strings {
 				square, err := board.NewSquare(squareStr)
@@ -78,7 +78,7 @@ func OffsetMoveGenerator(t *testing.T, offsets ...board.Offset) mess.Motion {
 	t.Helper()
 	return mess.Motion{
 		Name: "test_generator",
-		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
+		MoveGenerator: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
 			destinations := make([]board.Square, 0, len(offsets))
 			for _, offset := range offsets {
 				square := piece.Square().Offset(offset)
