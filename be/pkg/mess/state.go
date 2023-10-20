@@ -15,7 +15,7 @@ type State struct {
 	record            []Turn
 	isRecording       bool
 	validators        chainStateValidators
-	validMoves        []Move
+	validMoves        []GeneratedMove
 	turnNumber        int
 	isGeneratingMoves bool
 	pieceTypes        map[string]*PieceType
@@ -100,7 +100,7 @@ func (s *State) AddStateValidator(validator StateValidator) {
 	s.validators = append(s.validators, validator)
 }
 
-func (s *State) ValidMoves() []Move {
+func (s *State) ValidMoves() []GeneratedMove {
 	if s.validMoves == nil {
 		s.generateValidMoves()
 	}
@@ -108,28 +108,48 @@ func (s *State) ValidMoves() []Move {
 }
 
 func (s *State) generateValidMoves() {
-	result := make([]Move, 0)
 	s.isGeneratingMoves = true
 	defer func() { s.isGeneratingMoves = false }()
 
-	moves := s.currentPlayer.Moves()
-	for _, move := range moves {
-		err := move.Perform()
+	generatedMoves := s.currentPlayer.Moves()
+	result := make([]GeneratedMove, 0, len(generatedMoves))
+	for len(generatedMoves) != 0 {
+		last_i := len(generatedMoves) - 1
+		generatedMove := generatedMoves[last_i]
+		generatedMoves = generatedMoves[:last_i]
 
-		isValid := false
-		if err != nil {
-			fmt.Printf("error performing move for validation: %v", err)
-		} else {
-			isValid = s.validators.Validate(s, &move)
-		}
-		s.UndoTurn()
+		generatedMove.FilterOptionSets(func(optionSet []Option) bool {
+			return s.validateOptionSet(generatedMove, optionSet)
+		})
 
-		if isValid {
-			result = append(result, move)
-			// fmt.Printf("DEBUG: generated move: %v\n", &move)
-		}
+		result = append(result, generatedMove)
 	}
 	s.validMoves = result
+}
+
+func (s *State) validateOptionSet(generatedMove GeneratedMove, optionSet []Option) bool {
+	move := generatedMove.ToMove(optionSet)
+
+	if len(s.validators) > 0 {
+		isValid, err := s.validateMove(move)
+		if err != nil {
+			fmt.Printf("error validating move: %v\n", err)
+		}
+
+		return isValid
+	}
+
+	return true
+}
+
+func (s *State) validateMove(move Move) (bool, error) {
+	err := move.Perform()
+	if err != nil {
+		return false, fmt.Errorf("performing move %s: %v", &move, err)
+	}
+	s.UndoTurn()
+
+	return s.validators.Validate(s, &move), nil
 }
 
 func (s *State) Handle(event event.Event) {

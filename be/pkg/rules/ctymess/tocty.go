@@ -85,18 +85,14 @@ func MoveToCty(move *mess.Move) cty.Value {
 	})
 }
 
-func mapOrEmpty(mapType cty.Type, mapValue map[string]cty.Value) cty.Value {
-	if len(mapValue) == 0 {
-		return cty.MapValEmpty(mapType)
-	}
-	return cty.MapVal(mapValue)
-}
-
-func listOrEmpty(listType cty.Type, slice []cty.Value) cty.Value {
-	if len(slice) == 0 {
-		return cty.ListValEmpty(listType)
-	}
-	return cty.ListVal(slice)
+func GeneratedMoveToCty(generatedMove *mess.GeneratedMove) cty.Value {
+	return cty.ObjectVal(map[string]cty.Value{
+		"name":   cty.StringVal(generatedMove.Name),
+		"piece":  PieceToCty(generatedMove.Piece),
+		"player": PlayerToCty(generatedMove.Piece.Owner()),
+		"src":    cty.StringVal(generatedMove.From.String()),
+		"dst":    cty.StringVal(generatedMove.To.String()),
+	})
 }
 
 func BoardToCty(board *mess.PieceBoard) cty.Value {
@@ -116,4 +112,26 @@ func PieceTypesToCty(pieceTypes []*mess.PieceType) cty.Value {
 		ctyPieceTypes = append(ctyPieceTypes, ctyPt)
 	}
 	return cty.ListVal(ctyPieceTypes)
+}
+
+func OptionsToCty(options []mess.Option) cty.Value {
+	result := make([]cty.Value, 0, len(options))
+	for _, option := range options {
+		result = append(result, cty.StringVal(option.String()))
+	}
+	return listOrEmpty(cty.DynamicPseudoType, result)
+}
+
+func mapOrEmpty(mapType cty.Type, mapValue map[string]cty.Value) cty.Value {
+	if len(mapValue) == 0 {
+		return cty.MapValEmpty(mapType)
+	}
+	return cty.MapVal(mapValue)
+}
+
+func listOrEmpty(listType cty.Type, slice []cty.Value) cty.Value {
+	if len(slice) == 0 {
+		return cty.ListValEmpty(listType)
+	}
+	return cty.ListVal(slice)
 }

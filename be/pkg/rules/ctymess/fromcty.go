@@ -2,7 +2,6 @@ package ctymess
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
@@ -28,11 +27,9 @@ func SquareFromCty(value cty.Value) (board.Square, error) {
 func SquaresFromCty(value cty.Value) ([]board.Square, error) {
 	var squareStrs []string
 	var err error
-	if value.Type().IsTupleType() {
-		value, err = convert.Convert(value, cty.List(cty.DynamicPseudoType))
-		if err != nil {
-			log.Printf("transforming to list: %v", err)
-		}
+	value, err = tupleToList(value)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := gocty.FromCtyValue(value, &squareStrs); err != nil {
@@ -124,4 +121,61 @@ func PieceTypeFromCty(state *mess.State, value cty.Value) (*mess.PieceType, erro
 		}
 	}
 	return nil, fmt.Errorf("piece type of name %q not found", pieceTypeName)
+}
+
+func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err error) {
+	errPrefix := ""
+	defer func() {
+		errTmp := recover()
+		if errTmp != nil {
+			err = fmt.Errorf("%v, %w", errPrefix, errTmp.(error))
+		}
+	}()
+
+	if value.IsNull() {
+		return
+	}
+
+	errPrefix = "getting choice type"
+	choiceType := value.GetAttr("type").AsString()
+
+	switch choiceType {
+	case "piece_type":
+		errPrefix = "getting piece_type options"
+		pieceTypeNamesCty, err := tupleToList(value.GetAttr("options"))
+		if err != nil {
+			return nil, err
+		}
+
+		var pieceTypeNames []string
+		if err := gocty.FromCtyValue(pieceTypeNamesCty, &pieceTypeNames); err != nil {
+			return nil, fmt.Errorf("parsing piece_type options: %w", err)
+		}
+
+		pieceTypes := make([]*mess.PieceType, len(pieceTypeNames))
+		for i, pieceTypeName := range pieceTypeNames {
+			pieceType, err := state.GetPieceType(pieceTypeName)
+			if err != nil {
+				return nil, fmt.Errorf("parsing piece_type choice: %w", err)
+			}
+			pieceTypes[i] = pieceType
+		}
+		return mess.PieceTypeChoice{PieceTypes: pieceTypes}, nil
+	case "square":
+		// TODO:
+		panic("TODO")
+	default:
+		return nil, fmt.Errorf("invalid choice type: %v", choiceType)
+	}
+}
+
+func tupleToList(value cty.Value) (cty.Value, error) {
+	var err error
+	if value.Type().IsTupleType() {
+		value, err = convert.Convert(value, cty.List(cty.DynamicPseudoType))
+		if err != nil {
+			return value, fmt.Errorf("transforming to list: %v", err)
+		}
+	}
+	return value, nil
 }

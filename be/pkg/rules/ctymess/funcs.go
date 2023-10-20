@@ -396,9 +396,9 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 			}
 
 			result := make([]cty.Value, 0)
-			for _, move := range state.ValidMoves() {
-				if move.Piece == piece {
-					result = append(result, MoveToCty(&move))
+			for _, generatedMove := range state.ValidMoves() {
+				if generatedMove.Piece == piece {
+					result = append(result, GeneratedMoveToCty(&generatedMove))
 				}
 			}
 
@@ -472,52 +472,6 @@ func CaptureFunc(state *mess.State) function.Function {
 			}
 
 			return cty.EmptyTupleVal, nil
-		},
-	})
-}
-
-func ChooseFunc(game *mess.Game) function.Function {
-	return function.New(&function.Spec{
-		Description: "Makes the player choose one of the provided options",
-		Params: []function.Parameter{
-			{
-				Name:             "options",
-				Type:             cty.List(cty.String),
-				AllowDynamicType: true,
-			},
-		},
-		Type: function.StaticReturnType(cty.Number),
-		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			var options []string
-
-			err := gocty.FromCtyValue(args[0], &options)
-			if err != nil {
-				return cty.DynamicVal, fmt.Errorf("argument 'options': %w", err)
-			}
-
-			if len(options) == 0 {
-				return cty.NullVal(cty.String), nil
-			}
-
-			if game.IsGeneratingMoves() {
-				return cty.NumberIntVal(0), nil
-			}
-
-			chosen := game.Choose(options)
-
-			return cty.NumberIntVal(int64(chosen)), nil
-		},
-	})
-}
-
-func PlayerMoveFunc(game *mess.Game) function.Function {
-	return function.New(&function.Spec{
-		Description: "Triggers player's move choice.",
-		Params:      []function.Parameter{},
-		Type:        function.StaticReturnType(cty.DynamicPseudoType),
-		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			err := game.Move()
-			return cty.DynamicVal, err
 		},
 	})
 }

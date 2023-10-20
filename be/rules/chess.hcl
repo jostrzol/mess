@@ -30,7 +30,7 @@ piece_types {
     }
     motion {
       generator = "motion_castling"
-      actions   = ["displace_rook_after_castling"]
+      action    = "displace_rook_after_castling"
     }
     motion {
       generator = "motion_neighbours"
@@ -86,19 +86,21 @@ piece_types {
       black = "♟"
     }
     motion {
-      generator = "motion_forward_straight"
-      actions   = ["promote"]
+      generator         = "motion_forward_straight"
+      choice_generators = ["promote_choose_piece_type"]
+      action            = "promote"
     }
     motion {
       generator = "motion_forward_straight_double"
     }
     motion {
-      generator = "motion_forward_diagonal"
-      actions   = ["promote"]
+      generator         = "motion_forward_diagonal"
+      choice_generators = ["promote_choose_piece_type"]
+      action            = "promote"
     }
     motion {
       generator = "motion_en_passant"
-      actions   = ["capture_en_passant"]
+      action    = "capture_en_passant"
     }
   }
 }
@@ -279,35 +281,35 @@ composite_function "motion_line_straight" {
 // * the source square,
 // * the destination square.
 
-// Exchanges a piece for a new one of any type except pawn and king. Works only
-// if moved to the last rank.
-composite_function "promote" {
+// Promote - choice generator
+// Makes the player choose the target piece type (any except for king and pawn).
+composite_function "promote_choose_piece_type" {
   params = [piece, src, dst]
   result = {
     owner     = owner_of(piece)
     forward_y = owner.forward_direction[1]
     last_y    = forward_y == 1 ? board.height - 1 : 0
     pos       = square_to_coords(dst)
-    return    = cond_call(pos[1] == last_y, "do_promote", owner.color, dst)
+    options = [
+      for type in piece_types : type.name
+      if !contains(["king", "pawn"], type.name)
+    ]
+    choice = {
+      type    = "piece_type"
+      options = options
+    }
+    return = pos[1] == last_y ? choice : null
   }
 }
 
-composite_function "do_promote" {
-  params = [color, dst]
+// Promote - action
+// Exchanges a piece for a new one, previously chosen.
+composite_function "promote" {
+  params = [piece, src, dst, options]
   result = {
-    valid_piece_types = [
-      for type in piece_types : type
-      if !contains(["king", "pawn"], type.name)
-    ]
-    choice = choose([
-      for type in valid_piece_types : format("promote to %s", type.name)
-    ])
-    _ = cond_call(choice != null,
-      "place_new_piece",
-      valid_piece_types[choice].name,
-      dst,
-      color
-    )
+    owner     = owner_of(piece)
+    type_name = options[0]
+    _         = place_new_piece(type_name, dst, owner.color)
   }
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-func (c *rules) toEmptyGameState(ctx *hcl.EvalContext, interactor mess.Interactor) (*mess.Game, error) {
+func (c *rules) toEmptyGameState(ctx *hcl.EvalContext) (*mess.Game, error) {
 	brd, err := mess.NewPieceBoard(int(c.Board.Width), int(c.Board.Height))
 	if err != nil {
 		return nil, fmt.Errorf("creating new board: %w", err)
@@ -19,7 +19,7 @@ func (c *rules) toEmptyGameState(ctx *hcl.EvalContext, interactor mess.Interacto
 	state := mess.NewState(brd)
 	controller := newController(state, ctx, c)
 
-	game := mess.NewGame(state, controller, interactor)
+	game := mess.NewGame(state, controller)
 
 	stateValidators, err := controller.GetStateValidators()
 	if err != nil {
@@ -30,53 +30,62 @@ func (c *rules) toEmptyGameState(ctx *hcl.EvalContext, interactor mess.Interacto
 	}
 
 	for _, pieceTypeRules := range c.PieceTypes.PieceTypes {
-		pieceType := mess.NewPieceType(pieceTypeRules.Name)
-		for _, motionRules := range pieceTypeRules.Motions {
-			moveGenerator, err := controller.GetCustomFuncAsGenerator(motionRules.GeneratorName)
-			if err != nil {
-				return nil, err
-			}
-			actions := make([]mess.MoveAction, 0, len(motionRules.ActionNames))
-			for _, actionName := range motionRules.ActionNames {
-				action, err := controller.GetCustomFuncAsAction(actionName)
-				if err != nil {
-					return nil, err
-				}
-				actions = append(actions, action)
-			}
-			var action mess.MoveAction
-			if len(actions) != 0 {
-				action = func(piece *mess.Piece, from board.Square, to board.Square) {
-					for _, action := range actions {
-						action(piece, from, to)
-					}
-				}
-			}
-			pieceType.AddMoveGenerator(
-				mess.MoveGenerator{
-					Name: motionRules.GeneratorName,
-					Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
-						return moveGenerator(piece), action
-					},
-				},
-			)
-		}
-		if pieceTypeRules.Symbols != nil {
-			symbolWhite, err := decodeSymbol(pieceTypeRules.Symbols.White)
-			if err != nil {
-				return nil, err
-			}
-			symbolBlack, err := decodeSymbol(pieceTypeRules.Symbols.Black)
-			if err != nil {
-				return nil, err
-			}
-			pieceType.SetSymbols(symbolWhite, symbolBlack)
+		pieceType, err := decodePieceType(controller, pieceTypeRules)
+		if err != nil {
+			return nil, fmt.Errorf("decoding piece type %q: %v", pieceTypeRules.Name, err)
 		}
 		state.AddPieceType(pieceType)
 	}
 
 	initializeContext(ctx, game)
 	return game, nil
+}
+
+func decodePieceType(controller *controller, pieceTypeRules pieceTypeRules) (*mess.PieceType, error) {
+	pieceType := mess.NewPieceType(pieceTypeRules.Name)
+	for _, motionRules := range pieceTypeRules.Motions {
+		moveGenerator, err := controller.GetCustomFuncAsGenerator(motionRules.GeneratorName)
+		if err != nil {
+			return nil, err
+		}
+		var action mess.MoveActionFunc
+		if motionRules.ActionName != "" {
+			action, err = controller.GetCustomFuncAsAction(motionRules.ActionName)
+			if err != nil {
+				return nil, err
+			}
+		}
+		choiceGenerators := make([]mess.ChoiceFunc, 0, len(motionRules.ChoiceGeneratorNames))
+		for _, choiceGeneratorName := range motionRules.ChoiceGeneratorNames {
+			choiceGenerator, err := controller.GetCustomFuncAsChoiceGenerator(choiceGeneratorName)
+			if err != nil {
+				return nil, err
+			}
+			choiceGenerators = append(choiceGenerators, choiceGenerator)
+		}
+		if motionRules.ActionName != "" {
+		}
+		pieceType.AddMotion(
+			mess.Motion{
+				Name:             motionRules.GeneratorName,
+				Generate:         moveGenerator,
+				ChoiceGenerators: choiceGenerators,
+				Action:           action,
+			},
+		)
+	}
+	if pieceTypeRules.Symbols != nil {
+		symbolWhite, err := decodeSymbol(pieceTypeRules.Symbols.White)
+		if err != nil {
+			return nil, err
+		}
+		symbolBlack, err := decodeSymbol(pieceTypeRules.Symbols.Black)
+		if err != nil {
+			return nil, err
+		}
+		pieceType.SetSymbols(symbolWhite, symbolBlack)
+	}
+	return pieceType, nil
 }
 
 func decodeSymbol(symbol string) (rune, error) {

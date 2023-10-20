@@ -73,7 +73,7 @@ func (c *controller) Turn(state *mess.State) error {
 	return err
 }
 
-func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []board.Square, error) {
+func (c *controller) GetCustomFuncAsGenerator(name string) (mess.MoveGeneratorFunc, error) {
 	funcCty, ok := c.rules.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
@@ -85,7 +85,7 @@ func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []
 		c.refreshGameStateInContext()
 		result, err := funcCty.Call([]cty.Value{squareCty, pieceCty})
 		if err != nil {
-			log.Printf("calling motion generator %q for %v at %v: %v", name, piece, piece.Square(), err)
+			log.Printf("calling motion generator %q: %v", name, err)
 			return make([]board.Square, 0)
 		}
 
@@ -97,22 +97,58 @@ func (c *controller) GetCustomFuncAsGenerator(name string) (func(*mess.Piece) []
 	}, nil
 }
 
-func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveAction, error) {
+func (c *controller) GetCustomFuncAsChoiceGenerator(name string) (mess.ChoiceFunc, error) {
 	funcCty, ok := c.rules.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
 
-	return func(piece *mess.Piece, from board.Square, to board.Square) {
+	return func(piece *mess.Piece, from, to board.Square) mess.Choice {
 		pieceCty := ctymess.PieceToCty(piece)
 		fromCty := ctymess.SquareToCty(from)
 		toCty := ctymess.SquareToCty(to)
+
 		c.refreshGameStateInContext()
-		_, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
+		result, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
 		if err != nil {
-			log.Printf("calling motion action %q for %v %v->%v: %v", name, piece, from, to, err)
-			return
+			fmt.Printf("error calling choice generator %q: %v\n", name, err)
+			return nil
 		}
+
+		choice, err := ctymess.ChoiceFromCty(c.state, result)
+		if err != nil {
+			fmt.Printf("error parsing choice generator %q result: %v\n", name, err)
+			return nil
+		}
+
+		return choice
+	}, nil
+}
+
+func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveActionFunc, error) {
+	funcCty, ok := c.rules.CustomFuncs[name]
+	if !ok {
+		return nil, fmt.Errorf("user function %q not found", name)
+	}
+
+	return func(piece *mess.Piece, from, to board.Square, optionSet []mess.Option) error {
+		pieceCty := ctymess.PieceToCty(piece)
+		fromCty := ctymess.SquareToCty(from)
+		toCty := ctymess.SquareToCty(to)
+
+		var err error
+		c.refreshGameStateInContext()
+		if len(optionSet) > 0 {
+			optionsCty := ctymess.OptionsToCty(optionSet)
+			_, err = funcCty.Call([]cty.Value{pieceCty, fromCty, toCty, optionsCty})
+		} else {
+			_, err = funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
+		}
+
+		if err != nil {
+			return fmt.Errorf("calling motion action %q for: %v", name, err)
+		}
+		return nil
 	}, nil
 }
 

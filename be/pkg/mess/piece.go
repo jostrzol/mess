@@ -2,10 +2,7 @@ package mess
 
 import (
 	"fmt"
-	"unicode"
-	"unicode/utf8"
 
-	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/event"
@@ -16,7 +13,7 @@ type Piece struct {
 	owner  *Player
 	board  *PieceBoard
 	square brd.Square
-	moves  []Move
+	moves  []GeneratedMove
 }
 
 func NewPiece(pieceType *PieceType, owner *Player) *Piece {
@@ -94,7 +91,7 @@ func (p *Piece) GetCapturedBy(player *Player) error {
 	return nil
 }
 
-func (p *Piece) Moves() []Move {
+func (p *Piece) Moves() []GeneratedMove {
 	if p.moves == nil {
 		p.generateMoves()
 	}
@@ -122,133 +119,4 @@ func (p *Piece) Handle(event event.Event) {
 		}
 	}
 	p.moves = nil
-}
-
-type symbols struct {
-	white rune
-	black rune
-}
-
-type PieceType struct {
-	name           string
-	symbols        symbols
-	moveGenerators chainMoveGenerators
-}
-
-func NewPieceType(name string) *PieceType {
-	return &PieceType{
-		name:           name,
-		moveGenerators: make(chainMoveGenerators, 0),
-	}
-}
-
-func (t *PieceType) Name() string {
-	return t.name
-}
-
-func (t *PieceType) SymbolWhite() rune {
-	if t.symbols.white == 0 {
-		return unicode.ToUpper(t.firstNameRune())
-	}
-	return t.symbols.white
-}
-
-func (t *PieceType) SymbolBlack() rune {
-	if t.symbols.black == 0 {
-		return unicode.ToLower(t.firstNameRune())
-	}
-	return t.symbols.black
-}
-
-func (t *PieceType) firstNameRune() rune {
-	r, _ := utf8.DecodeRuneInString(t.name)
-	if r == utf8.RuneError {
-		return rune('?')
-	}
-	return r
-}
-
-func (t *PieceType) SetSymbols(symbolWhite rune, symbolBlack rune) {
-	t.symbols = symbols{
-		white: symbolWhite,
-		black: symbolBlack,
-	}
-}
-
-func (t *PieceType) String() string {
-	return t.Name()
-}
-
-func (t *PieceType) AddMoveGenerator(generator MoveGenerator) {
-	t.moveGenerators = append(t.moveGenerators, generator)
-}
-
-func (t *PieceType) moves(piece *Piece) []Move {
-	result := make([]Move, 0)
-	for _, generated := range t.moveGenerators.Generate(piece) {
-		move := Move{
-			Name:   generated.name,
-			Piece:  piece,
-			From:   piece.Square(),
-			To:     generated.destination,
-			Action: generated.action,
-		}
-		result = append(result, move)
-	}
-	return result
-}
-
-type MoveAction = func(*Piece, board.Square, board.Square)
-
-type MoveGenerator struct {
-	Name     string
-	Generate func(*Piece) ([]board.Square, MoveAction)
-}
-
-type chainMoveGenerators []MoveGenerator
-type moveGeneratorResult struct {
-	name        string
-	destination board.Square
-	action      MoveAction
-}
-
-func (g chainMoveGenerators) Generate(piece *Piece) []moveGeneratorResult {
-	resultMap := make(map[brd.Square]moveGeneratorResult, 0)
-	for _, generator := range g {
-		name := generator.Name
-		destinations, action := generator.Generate(piece)
-
-		for _, destination := range destinations {
-			resultMap[destination] = moveGeneratorResult{name, destination, action}
-		}
-	}
-
-	resultSlice := make([]moveGeneratorResult, 0, len(resultMap))
-	for _, result := range resultMap {
-		resultSlice = append(resultSlice, result)
-	}
-	return resultSlice
-}
-
-type Move struct {
-	Name   string
-	Piece  *Piece
-	From   brd.Square
-	To     brd.Square
-	Action MoveAction
-}
-
-func (m *Move) Perform() error {
-	err := m.Piece.MoveTo(m.To)
-	if err != nil {
-		return err
-	}
-	if m.Action != nil {
-		m.Action(m.Piece, m.From, m.To)
-	}
-	return nil
-}
-
-func (m *Move) String() string {
-	return fmt.Sprintf("%v: %v->%v", m.Piece, m.From, m.To)
 }

@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
+func staticMoveGenerator(t *testing.T, strings ...string) Motion {
 	t.Helper()
-	return MoveGenerator{
+	return Motion{
 		Name: "test_generator",
-		Generate: func(piece *Piece) ([]brd.Square, MoveAction) {
+		Generate: func(piece *Piece) ([]brd.Square, MoveActionFunc) {
 			destinations := make([]brd.Square, 0, len(strings))
 			for _, squareStr := range strings {
 				square, err := brd.NewSquare(squareStr)
@@ -27,24 +27,24 @@ func staticMoveGenerator(t *testing.T, strings ...string) MoveGenerator {
 func TestChainMoveGenerators(t *testing.T) {
 	tests := []struct {
 		name       string
-		generators []MoveGenerator
+		generators []Motion
 		expected   []string
 	}{
 		{
 			name:       "Empty",
-			generators: []MoveGenerator{},
+			generators: []Motion{},
 			expected:   []string{},
 		},
 		{
 			name: "One",
-			generators: []MoveGenerator{
+			generators: []Motion{
 				staticMoveGenerator(t, "A1"),
 			},
 			expected: []string{"A1"},
 		},
 		{
 			name: "Two",
-			generators: []MoveGenerator{
+			generators: []Motion{
 				staticMoveGenerator(t, "A1"),
 				staticMoveGenerator(t, "B1"),
 			},
@@ -52,7 +52,7 @@ func TestChainMoveGenerators(t *testing.T) {
 		},
 		{
 			name: "TwoOverlapping",
-			generators: []MoveGenerator{
+			generators: []Motion{
 				staticMoveGenerator(t, "A1"),
 				staticMoveGenerator(t, "A1"),
 			},
@@ -60,7 +60,7 @@ func TestChainMoveGenerators(t *testing.T) {
 		},
 		{
 			name: "TwoOverlapping",
-			generators: []MoveGenerator{
+			generators: []Motion{
 				staticMoveGenerator(t, "A1", "B2"),
 				staticMoveGenerator(t, "C5"),
 				staticMoveGenerator(t, "B2", "D4", "C5"),
@@ -70,7 +70,7 @@ func TestChainMoveGenerators(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			generators := chainMoveGenerators(tt.generators)
+			generators := chainMotions(tt.generators)
 			destinations := make([]board.Square, 0)
 			for _, generated := range generators.Generate(nil) {
 				destinations = append(destinations, generated.destination)

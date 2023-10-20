@@ -20,7 +20,7 @@ func MovesMatcher(piece *mess.Piece, destinations ...string) MovesMatcherS {
 	return MovesMatcherS{Piece: piece, Destinations: destinations}
 }
 
-func MovesMatch(t *testing.T, moves []mess.Move, matchers ...MovesMatcherS) {
+func MovesMatch(t *testing.T, moves []mess.GeneratedMove, matchers ...MovesMatcherS) {
 	anyNotFound := false
 	var msg strings.Builder
 	msg.WriteString(fmt.Sprintf("matching moves (%v) to (%v):\n", moves, matchers))
@@ -58,11 +58,11 @@ func MovesMatch(t *testing.T, moves []mess.Move, matchers ...MovesMatcherS) {
 	}
 }
 
-func StaticMoveGenerator(t *testing.T, strings ...string) mess.MoveGenerator {
+func StaticMoveGenerator(t *testing.T, strings ...string) mess.Motion {
 	t.Helper()
-	return mess.MoveGenerator{
+	return mess.Motion{
 		Name: "test_generator",
-		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
+		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
 			destinations := make([]board.Square, 0, len(strings))
 			for _, squareStr := range strings {
 				square, err := board.NewSquare(squareStr)
@@ -74,11 +74,11 @@ func StaticMoveGenerator(t *testing.T, strings ...string) mess.MoveGenerator {
 	}
 }
 
-func OffsetMoveGenerator(t *testing.T, offsets ...board.Offset) mess.MoveGenerator {
+func OffsetMoveGenerator(t *testing.T, offsets ...board.Offset) mess.Motion {
 	t.Helper()
-	return mess.MoveGenerator{
+	return mess.Motion{
 		Name: "test_generator",
-		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveAction) {
+		Generate: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
 			destinations := make([]board.Square, 0, len(offsets))
 			for _, offset := range offsets {
 				square := piece.Square().Offset(offset)

@@ -136,7 +136,7 @@ func (s *StateSuite) TestValidMovesWithValidator() {
 	king := mess.NewPiece(King(s.T()), s.state.CurrentPlayer())
 	king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
 
-	s.state.AddStateValidator(func(s *mess.State, m *mess.Move) bool {
+	s.state.AddStateValidator(func(s *mess.State, m *mess.GeneratedMove) bool {
 		return m.To != boardtest.NewSquare("A2")
 	})
 

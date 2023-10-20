@@ -298,7 +298,7 @@ func TestMoves(t *testing.T) {
 
 			validMoves := game.ValidMoves()
 			for from, matcher := range matchers {
-				var foundMoves []mess.Move
+				var foundMoves []mess.GeneratedMove
 				for _, validMove := range validMoves {
 					if validMove.From.String() == from {
 						foundMoves = append(foundMoves, validMove)

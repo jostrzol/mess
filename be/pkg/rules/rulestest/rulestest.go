@@ -16,7 +16,7 @@ func (i RandomInteractor) ChooseOption(options []string) int {
 	return rand.Int() % len(options)
 }
 
-func (i RandomInteractor) ChooseMove(_ *mess.State, validMoves []mess.Move) (*mess.Move, error) {
+func (i RandomInteractor) ChooseMove(_ *mess.State, validMoves []mess.GeneratedMove) (*mess.GeneratedMove, error) {
 	idx := rand.Int() % len(validMoves)
 	return &validMoves[idx], nil
 }
@@ -30,7 +30,7 @@ func (i PanicInteractor) ChooseOption(_ []string) int {
 	panic("option choosing not expected")
 }
 
-func (i PanicInteractor) ChooseMove(_ *mess.State, _ []mess.Move) (*mess.Move, error) {
+func (i PanicInteractor) ChooseMove(_ *mess.State, _ []mess.GeneratedMove) (*mess.GeneratedMove, error) {
 	panic("move choosing not expected")
 }
 
@@ -50,6 +50,6 @@ func (i ConstOptionInteractor) ChooseOption(options []string) int {
 	panic(fmt.Sprintf("expected option %q not found in %v", i.Option, options))
 }
 
-func (i ConstOptionInteractor) ChooseMove(_ *mess.State, _ []mess.Move) (*mess.Move, error) {
+func (i ConstOptionInteractor) ChooseMove(_ *mess.State, _ []mess.GeneratedMove) (*mess.GeneratedMove, error) {
 	panic("move choosing not expected")
 }
