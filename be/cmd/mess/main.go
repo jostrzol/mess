@@ -44,6 +44,8 @@ func main() {
 	}
 
 	fmt.Println()
+	fmt.Println("Game over")
+
 	if winner == nil {
 		fmt.Printf("Draw!\n")
 	} else {

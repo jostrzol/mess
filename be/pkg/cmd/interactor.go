@@ -15,7 +15,6 @@ type Interactor struct {
 	statePrinted   chan (struct{})
 	movesGenerated chan (struct{})
 	moveChosen     chan (*mess.Move)
-	terminate      chan (struct{})
 }
 
 func NewInteractor(scanner *bufio.Scanner, game *mess.Game) *Interactor {
@@ -25,7 +24,6 @@ func NewInteractor(scanner *bufio.Scanner, game *mess.Game) *Interactor {
 		statePrinted:   make(chan (struct{})),
 		movesGenerated: make(chan (struct{})),
 		moveChosen:     make(chan (*mess.Move)),
-		terminate:      make(chan (struct{})),
 	}
 }
 
@@ -39,7 +37,7 @@ func (t *Interactor) Run() (*mess.Player, error) {
 		move := <-t.moveChosen
 		err := move.Perform()
 		if err != nil {
-			t.terminate <- struct{}{}
+			t.CloseChannels()
 			return nil, fmt.Errorf("performing move: %v", err)
 		}
 
@@ -47,10 +45,18 @@ func (t *Interactor) Run() (*mess.Player, error) {
 		t.PrintState()
 
 		isFinished, winner = t.game.PickWinner()
-		t.PreloadMoves()
+		if !isFinished {
+			t.PreloadMoves()
+		}
 	}
-	t.terminate <- struct{}{}
+	t.CloseChannels()
 	return winner, nil
+}
+
+func (t *Interactor) CloseChannels() {
+	close(t.statePrinted)
+	close(t.movesGenerated)
+	close(t.moveChosen)
 }
 
 func (t *Interactor) PrintState() {
@@ -68,27 +74,24 @@ func (t *Interactor) PreloadMoves() {
 }
 
 func (t *Interactor) ChooseMove() {
-	for {
-		select {
-		case <-t.terminate:
-			break
-		case <-t.statePrinted:
-			move, err := t.tryChooseMove()
-			if errors.Is(err, ErrCancel) {
-				fmt.Println("<cancel>")
+	moreWork := true
+	for moreWork {
+		_, moreWork = <-t.statePrinted
+		move, err := t.tryChooseMove()
+		if errors.Is(err, ErrCancel) {
+			fmt.Println("<cancel>")
 
-				go t.PrintState()
-				go t.PreloadMoves()
-			} else if err != nil {
-				fmt.Printf("Error: %v!\n", err)
-				fmt.Printf("Press enter to continue...")
-				t.scanner.Scan()
+			go t.PrintState()
+			go t.PreloadMoves()
+		} else if err != nil {
+			fmt.Printf("Error: %v!\n", err)
+			fmt.Printf("Press enter to continue...")
+			t.scanner.Scan()
 
-				go t.PrintState()
-				go t.PreloadMoves()
-			} else {
-				t.moveChosen <- move
-			}
+			go t.PrintState()
+			go t.PreloadMoves()
+		} else {
+			t.moveChosen <- move
 		}
 	}
 }
