@@ -22,7 +22,7 @@ func MovesMatcher(piece *mess.Piece, destinations ...string) MovesMatcherS {
 	return MovesMatcherS{Piece: piece, Destinations: destinations}
 }
 
-func MovesMatch(t *testing.T, moves []mess.Move, matchers ...MovesMatcherS) {
+func MovesMatch(t *testing.T, moves []mess.MoveGroup, matchers ...MovesMatcherS) {
 	anyNotFound := false
 	var msg strings.Builder
 	msg.WriteString(fmt.Sprintf("matching moves (%v) to (%v):\n", moves, matchers))
@@ -93,41 +93,20 @@ func OffsetMotion(t *testing.T, offsets ...board.Offset) mess.Motion {
 	}
 }
 
-func PerformWithRandomOptions(src rand.Source, generatedMove mess.Move) error {
-	var optionSet []mess.Option
-	if len(generatedMove.OptionSets) > 0 {
-		chosen := int(src.Int63()) % len(generatedMove.OptionSets)
-		optionSet = generatedMove.OptionSets[chosen]
-	}
-
-	move := generatedMove.ToMove(optionSet)
-	return move.Perform()
+func ChooseRandom(src rand.Source, moveGroup mess.MoveGroup) mess.Move {
+	moves := moveGroup.Moves()
+	chosen := int(src.Int63()) % len(moves)
+	return moves[chosen]
 }
 
-func PerformWithoutOptions(generatedMove mess.Move) error {
-	var optionSet []mess.Option
-	if len(generatedMove.OptionSets) == 0 {
-		optionSet = nil
-	} else if len(generatedMove.OptionSets) == 1 && len(generatedMove.OptionSets[0]) == 0 {
-		optionSet = generatedMove.OptionSets[0]
-	} else {
-		err := fmt.Errorf("expected move without options, got: %v", generatedMove)
-		panic(err)
-	}
-
-	move := generatedMove.ToMove(optionSet)
-	return move.Perform()
-}
-
-func PerformWithOptionSet(optionSetTexts []string, generatedMove mess.Move) error {
-	i := slices.IndexFunc(generatedMove.OptionSets, func(optionSet []mess.Option) bool {
-		return fmt.Sprintf("%v", optionSetTexts) == fmt.Sprintf("%v", optionSet)
+func MoveWithOptionTexts(optionTexts []string, moveGroup mess.MoveGroup) mess.Move {
+	moves := moveGroup.Moves()
+	i := slices.IndexFunc(moves, func(move mess.Move) bool {
+		return fmt.Sprintf("%v", optionTexts) == fmt.Sprintf("%v", move.Options)
 	})
 	if i == -1 {
-		err := fmt.Errorf("option set %v not generated", optionSetTexts)
+		err := fmt.Errorf("option set %v not generated", optionTexts)
 		panic(err)
 	}
-
-	move := generatedMove.ToMove(generatedMove.OptionSets[i])
-	return move.Perform()
+	return moves[i]
 }

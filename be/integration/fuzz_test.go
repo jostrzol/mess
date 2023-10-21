@@ -28,9 +28,10 @@ func FuzzGameMax10Steps(f *testing.F) {
 			assert.NotEmpty(t, moves)
 
 			chosen := int(src.Int63()) % len(moves)
-			generatedMove := moves[chosen]
+			moveGroup := moves[chosen]
 
-			err = messtest.PerformWithRandomOptions(src, generatedMove)
+			move := messtest.ChooseRandom(src, moveGroup)
+			err = move.Perform()
 			assert.NoError(t, err)
 
 			isFinished, _ = game.PickWinner()

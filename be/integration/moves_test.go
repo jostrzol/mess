@@ -258,9 +258,10 @@ func TestMoves(t *testing.T) {
 				moveMade := false
 				generatedMoves := game.ValidMoves()
 
-				for _, generatedMove := range generatedMoves {
-					if generatedMove.From.String() == move.from && generatedMove.To.String() == move.to {
-						err := messtest.PerformWithoutOptions(generatedMove)
+				for _, moveGroup := range generatedMoves {
+					if moveGroup.From.String() == move.from && moveGroup.To.String() == move.to {
+						move := moveGroup.Single()
+						err := move.Perform()
 						assert.NoError(t, err)
 						moveMade = true
 						break
@@ -298,10 +299,10 @@ func TestMoves(t *testing.T) {
 
 			validMoves := game.ValidMoves()
 			for from, matcher := range matchers {
-				var foundMoves []mess.Move
-				for _, validMove := range validMoves {
-					if validMove.From.String() == from {
-						foundMoves = append(foundMoves, validMove)
+				var foundMoves []mess.MoveGroup
+				for _, moveGroup := range validMoves {
+					if moveGroup.From.String() == from {
+						foundMoves = append(foundMoves, moveGroup)
 					}
 				}
 
@@ -330,9 +331,10 @@ func TestPromotion(t *testing.T) {
 
 			moves := game.ValidMoves()
 			performed := false
-			for _, move := range moves {
-				if move.Piece.Type().Name() == "pawn" {
-					err = messtest.PerformWithOptionSet([]string{"queen"}, move)
+			for _, moveGroup := range moves {
+				if moveGroup.Piece.Type().Name() == "pawn" {
+					move := messtest.MoveWithOptionTexts([]string{"queen"}, moveGroup)
+					err := move.Perform()
 					assert.NoError(t, err)
 					performed = true
 					break
@@ -366,9 +368,10 @@ func TestPromotionCheckMate(t *testing.T) {
 
 	moves := game.ValidMoves()
 	performed := false
-	for _, move := range moves {
-		if move.Piece.Type().Name() == "pawn" {
-			err = messtest.PerformWithOptionSet([]string{"knight"}, move)
+	for _, moveGroup := range moves {
+		if moveGroup.Piece.Type().Name() == "pawn" {
+			move := messtest.MoveWithOptionTexts([]string{"knight"}, moveGroup)
+			err := move.Perform()
 			assert.NoError(t, err)
 			performed = true
 			break
