@@ -256,9 +256,9 @@ func TestMoves(t *testing.T) {
 				}
 
 				moveMade := false
-				generatedMoves := game.ValidMoves()
+				moveGroups := game.ValidMoves()
 
-				for _, moveGroup := range generatedMoves {
+				for _, moveGroup := range moveGroups {
 					if moveGroup.From.String() == move.from && moveGroup.To.String() == move.to {
 						move := moveGroup.Single()
 						err := move.Perform()
@@ -297,10 +297,10 @@ func TestMoves(t *testing.T) {
 				}
 			}
 
-			validMoves := game.ValidMoves()
+			moveGroups := game.ValidMoves()
 			for from, matcher := range matchers {
 				var foundMoves []mess.MoveGroup
-				for _, moveGroup := range validMoves {
+				for _, moveGroup := range moveGroups {
 					if moveGroup.From.String() == from {
 						foundMoves = append(foundMoves, moveGroup)
 					}
