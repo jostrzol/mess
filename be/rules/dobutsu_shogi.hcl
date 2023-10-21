@@ -50,7 +50,7 @@ piece_types {
   piece_type "chick" {
     motion {
       generator = "motion_forward_straight"
-      actions   = ["promote"]
+      action    = "promote"
     }
   }
 }
@@ -215,8 +215,8 @@ initial_state {
 composite_function "turn" {
   params = []
   result = {
-    func   = length(game.current_player.captures) == 0 ? "player_move" : "choose_turn_action"
-    _      = call(func)
+    func = length(game.current_player.captures) == 0 ? "player_move" : "choose_turn_action"
+    _    = call(func)
   }
 }
 

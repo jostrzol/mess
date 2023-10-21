@@ -10,6 +10,12 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
+const barLength = 80
+
+var ErrNoMoves = fmt.Errorf("no valid moves for this piece")
+var ErrCancel = fmt.Errorf("cancel")
+var ErrEOT = fmt.Errorf("EOT")
+
 type interactor struct {
 	scanner        *bufio.Scanner
 	game           *mess.Game
@@ -95,18 +101,23 @@ func (t *interactor) chooseMove() {
 		_, moreWork = <-t.statePrinted
 		move, err := t.tryChooseMove()
 		if errors.Is(err, ErrCancel) {
-			fmt.Println("<cancel>")
+			t.printBar()
+			fmt.Println("| Move cancelled")
+			t.printBar()
 
 			go t.printState()
 			go t.preloadMoves()
 		} else if errors.Is(err, ErrEOT) {
-			fmt.Println("<end of text>")
+			t.printBar()
+			fmt.Println("| Encountered end of text")
+			t.printBar()
+
 			moreWork = false
 			t.moveChosen <- nil
 		} else if err != nil {
-			fmt.Printf("Error: %v!\n", err)
-			fmt.Printf("Press enter to continue...")
-			t.scanner.Scan()
+			t.printBar()
+			fmt.Printf("| -> Error: %v!\n", err)
+			t.printBar()
 
 			go t.printState()
 			go t.preloadMoves()
@@ -114,6 +125,13 @@ func (t *interactor) chooseMove() {
 			t.moveChosen <- move
 		}
 	}
+}
+
+func (t *interactor) printBar() {
+	for i := 0; i < barLength; i++ {
+		fmt.Print("-")
+	}
+	fmt.Println()
 }
 
 func (t *interactor) tryChooseMove() (*mess.Move, error) {
@@ -133,7 +151,7 @@ func (t *interactor) tryChooseMove() (*mess.Move, error) {
 	}
 
 	if len(validForPiece) == 0 {
-		return nil, fmt.Errorf("no valid moves for this piece")
+		return nil, ErrNoMoves
 	}
 	println("Valid destinations:")
 	for _, validMove := range validForPiece {
@@ -233,6 +251,3 @@ func (t *interactor) scan() (string, error) {
 	}
 	return text, nil
 }
-
-var ErrCancel = fmt.Errorf("cancel")
-var ErrEOT = fmt.Errorf("EOT")
