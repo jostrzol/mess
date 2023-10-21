@@ -8,7 +8,6 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/mess/messtest"
 	"github.com/jostrzol/mess/pkg/rules"
-	"github.com/jostrzol/mess/pkg/rules/rulestest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +17,8 @@ func place(t *testing.T, game *mess.Game, color color.Color, typeName string, sq
 	assert.NoError(t, err)
 	owner := game.Player(color)
 	piece := mess.NewPiece(pieceType, owner)
-	game.Board().Place(piece, boardtest.NewSquare(square))
+	err = game.Board().Place(piece, boardtest.NewSquare(square))
+	assert.NoError(t, err)
 }
 
 func TestMoves(t *testing.T) {
@@ -241,7 +241,7 @@ func TestMoves(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			game, err := rules.DecodeRules(ChessRulesFile, rulestest.PanicInteractor{}, false)
+			game, err := rules.DecodeRules(ChessRulesFile, false)
 			assert.NoError(t, err)
 
 			for _, piece := range tt.initState {
@@ -256,11 +256,11 @@ func TestMoves(t *testing.T) {
 				}
 
 				moveMade := false
-				validMoves := game.ValidMoves()
+				generatedMoves := game.ValidMoves()
 
-				for _, validMove := range validMoves {
-					if validMove.From.String() == move.from && validMove.To.String() == move.to {
-						err := validMove.Perform()
+				for _, generatedMove := range generatedMoves {
+					if generatedMove.From.String() == move.from && generatedMove.To.String() == move.to {
+						err := messtest.PerformWithoutOptions(generatedMove)
 						assert.NoError(t, err)
 						moveMade = true
 						break
@@ -298,7 +298,7 @@ func TestMoves(t *testing.T) {
 
 			validMoves := game.ValidMoves()
 			for from, matcher := range matchers {
-				var foundMoves []mess.GeneratedMove
+				var foundMoves []mess.Move
 				for _, validMove := range validMoves {
 					if validMove.From.String() == from {
 						foundMoves = append(foundMoves, validMove)
@@ -322,8 +322,7 @@ func TestPromotion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.color.String(), func(t *testing.T) {
-			interactor := rulestest.ConstOptionInteractor{Option: "promote to queen"}
-			game, err := rules.DecodeRules(ChessRulesFile, interactor, false)
+			game, err := rules.DecodeRules(ChessRulesFile, false)
 			assert.NoError(t, err)
 
 			place(t, game, tt.color, "pawn", tt.src)
@@ -333,7 +332,7 @@ func TestPromotion(t *testing.T) {
 			performed := false
 			for _, move := range moves {
 				if move.Piece.Type().Name() == "pawn" {
-					err = move.Perform()
+					err = messtest.PerformWithOptionSet([]string{"queen"}, move)
 					assert.NoError(t, err)
 					performed = true
 					break
@@ -350,8 +349,7 @@ func TestPromotion(t *testing.T) {
 }
 
 func TestPromotionCheckMate(t *testing.T) {
-	interactor := rulestest.ConstOptionInteractor{Option: "promote to knight"}
-	game, err := rules.DecodeRules(ChessRulesFile, interactor, false)
+	game, err := rules.DecodeRules(ChessRulesFile, false)
 	assert.NoError(t, err)
 
 	place(t, game, color.White, "pawn", "A7")
@@ -370,7 +368,7 @@ func TestPromotionCheckMate(t *testing.T) {
 	performed := false
 	for _, move := range moves {
 		if move.Piece.Type().Name() == "pawn" {
-			err = move.Perform()
+			err = messtest.PerformWithOptionSet([]string{"knight"}, move)
 			assert.NoError(t, err)
 			performed = true
 			break

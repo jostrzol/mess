@@ -22,8 +22,8 @@ type MoveActionFunc = func(*Piece, board.Square, board.Square, []Option) error
 
 type chainMotions []Motion
 
-func (g chainMotions) Generate(piece *Piece) []GeneratedMove {
-	resultMap := make(map[brd.Square]GeneratedMove, 0)
+func (g chainMotions) Generate(piece *Piece) []MoveGroup {
+	resultMap := make(map[brd.Square]MoveGroup, 0)
 	for _, motion := range g {
 		name := motion.Name
 		destinations := motion.MoveGenerator(piece)
@@ -41,17 +41,17 @@ func (g chainMotions) Generate(piece *Piece) []GeneratedMove {
 
 				optionSets = choicesToOptionSets(choices)
 			} else {
-				optionSets = make([][]Option, 1)
-				optionSets[0] = make([]Option, 0)
+				// One empty option set (no choices, action will be performed)
+				optionSets = [][]Option{[]Option{}}
 			}
 
-			resultMap[destination] = GeneratedMove{
+			resultMap[destination] = MoveGroup{
 				Name:       name,
 				Piece:      piece,
 				From:       source,
 				To:         destination,
-				Action:     motion.Action,
-				OptionSets: optionSets,
+				action:     motion.Action,
+				optionSets: optionSets,
 			}
 		}
 	}
@@ -63,7 +63,8 @@ func choicesToOptionSets(choices []Choice) [][]Option {
 	options := make([][]Option, len(choices))
 	for i, choice := range choices {
 		if choice == nil {
-			return [][]Option{}
+			// One nil option set (action won't be performed)
+			return [][]Option{nil}
 		}
 		options[i] = choice.GenerateOptions()
 	}
@@ -78,43 +79,93 @@ func choicesToOptionSets(choices []Choice) [][]Option {
 	return result
 }
 
-type GeneratedMove struct {
+type MoveGroup struct {
 	Name       string
 	Piece      *Piece
 	From       brd.Square
 	To         brd.Square
-	Action     MoveActionFunc
-	OptionSets [][]Option
+	action     MoveActionFunc
+	optionSets [][]Option
 }
 
-func (m *GeneratedMove) FilterOptionSets(predicate func([]Option) bool) {
-	result := make([][]Option, 0, len(m.OptionSets))
-	for _, optionSet := range m.OptionSets {
-		if predicate(optionSet) {
-			result = append(result, optionSet)
+func (mg MoveGroup) Length() int {
+	return len(mg.optionSets)
+}
+
+func (mg MoveGroup) ChoicesNumber() int {
+	if mg.Length() == 0 {
+		return 0
+	}
+	return len(mg.optionSets[0])
+}
+
+func (mg MoveGroup) Moves() []Move {
+	moves := make([]Move, 0, len(mg.optionSets))
+	for _, options := range mg.optionSets {
+		moves = append(moves, mg.move(options))
+	}
+	return moves
+}
+
+func (mg MoveGroup) Single() Move {
+	if mg.Length() != 1 {
+		err := fmt.Errorf("expected move group length of 1, got: %v", mg.Length())
+		panic(err)
+	}
+	return mg.move(mg.optionSets[0])
+}
+
+func (mg MoveGroup) FilterMoves(predicate func(Move) bool) MoveGroup {
+	validOptionSets := make([][]Option, 0, len(mg.optionSets))
+	for _, options := range mg.optionSets {
+		move := mg.move(options)
+		if predicate(move) {
+			validOptionSets = append(validOptionSets, options)
 		}
 	}
-	m.OptionSets = result
+	return MoveGroup{
+		Name:       mg.Name,
+		Piece:      mg.Piece,
+		From:       mg.From,
+		To:         mg.To,
+		action:     mg.action,
+		optionSets: validOptionSets,
+	}
 }
 
-func (m *GeneratedMove) ToMove(optionSet []Option) Move {
+func (mg MoveGroup) move(options []Option) Move {
 	return Move{
-		Name:      m.Name,
-		Piece:     m.Piece,
-		From:      m.From,
-		To:        m.To,
-		Action:    m.Action,
-		OptionSet: optionSet,
+		Name:    mg.Name,
+		Piece:   mg.Piece,
+		From:    mg.From,
+		To:      mg.To,
+		Options: options,
+		action:  mg.action,
 	}
+}
+
+func (mg MoveGroup) UniqueOptionStrings(index int) []string {
+	optionStrings := make(map[string]struct{}, 1)
+	for _, options := range mg.optionSets {
+		option := options[index]
+		optionStrings[option.String()] = struct{}{}
+	}
+	return maps.Keys(optionStrings)
+}
+
+func (mg MoveGroup) FilterMovesByOptionString(index int, str string) MoveGroup {
+	return mg.FilterMoves(func(m Move) bool {
+		return m.Options[index].String() == str
+	})
 }
 
 type Move struct {
-	Name      string
-	Piece     *Piece
-	From      brd.Square
-	To        brd.Square
-	Action    MoveActionFunc
-	OptionSet []Option
+	Name    string
+	Piece   *Piece
+	From    brd.Square
+	To      brd.Square
+	Options []Option
+	action  MoveActionFunc
 }
 
 func (m *Move) Perform() error {
@@ -122,8 +173,8 @@ func (m *Move) Perform() error {
 	if err != nil {
 		return err
 	}
-	if m.Action != nil && m.OptionSet != nil {
-		err = m.Action(m.Piece, m.From, m.To, m.OptionSet)
+	if m.action != nil && m.Options != nil {
+		err = m.action(m.Piece, m.From, m.To, m.Options)
 		if err != nil {
 			return err
 		}
@@ -132,5 +183,5 @@ func (m *Move) Perform() error {
 }
 
 func (m *Move) String() string {
-	return fmt.Sprintf("%v: %v->%v", m.Piece, m.From, m.To)
+	return fmt.Sprintf("%v(%v): %v->%v", m.Name, m.Piece, m.From, m.To)
 }

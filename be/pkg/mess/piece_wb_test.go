@@ -5,6 +5,7 @@ import (
 
 	"github.com/jostrzol/mess/pkg/board"
 	brd "github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/board/boardtest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,14 +13,14 @@ func staticMoveGenerator(t *testing.T, strings ...string) Motion {
 	t.Helper()
 	return Motion{
 		Name: "test_generator",
-		MoveGenerator: func(piece *Piece) ([]brd.Square, MoveActionFunc) {
+		MoveGenerator: func(piece *Piece) []brd.Square {
 			destinations := make([]brd.Square, 0, len(strings))
 			for _, squareStr := range strings {
 				square, err := brd.NewSquare(squareStr)
 				assert.NoError(t, err)
 				destinations = append(destinations, square)
 			}
-			return destinations, nil
+			return destinations
 		},
 	}
 }
@@ -72,8 +73,8 @@ func TestChainMoveGenerators(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			generators := chainMotions(tt.generators)
 			destinations := make([]board.Square, 0)
-			for _, generated := range generators.Generate(nil) {
-				destinations = append(destinations, generated.destination)
+			for _, generated := range generators.Generate(&Piece{square: boardtest.NewSquare("A1")}) {
+				destinations = append(destinations, generated.To)
 			}
 			assertSquaresMatch(t, destinations, tt.expected...)
 		})

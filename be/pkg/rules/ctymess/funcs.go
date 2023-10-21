@@ -377,7 +377,7 @@ func IsAttackedByFunc(state *mess.State) function.Function {
 
 func ValidMovesForFunc(state *mess.State) function.Function {
 	return function.New(&function.Spec{
-		Description: "Returns all the squares that the given piece can go to in 1 turn",
+		Description: "Returns all the squares that the given piece can possibly go to in 1 turn",
 		Params: []function.Parameter{
 			{
 				Name:             "piece",
@@ -396,9 +396,9 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 			}
 
 			result := make([]cty.Value, 0)
-			for _, generatedMove := range state.ValidMoves() {
-				if generatedMove.Piece == piece {
-					result = append(result, GeneratedMoveToCty(&generatedMove))
+			for _, moveGroup := range state.ValidMoves() {
+				if moveGroup.Piece == piece {
+					result = append(result, MoveGroupToCty(&moveGroup))
 				}
 			}
 

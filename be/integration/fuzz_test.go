@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/jostrzol/mess/pkg/mess/messtest"
 	"github.com/jostrzol/mess/pkg/rules"
-	"github.com/jostrzol/mess/pkg/rules/rulestest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +16,7 @@ func FuzzGameMax10Steps(f *testing.F) {
 
 	f.Add(int64(12345))
 	f.Fuzz(func(t *testing.T, seed int64) {
-		game, err := rules.DecodeRules(ChessRulesFile, rulestest.RandomInteractor{}, true)
+		game, err := rules.DecodeRules(ChessRulesFile, true)
 		assert.NoError(t, err)
 
 		src := rand.NewSource(seed)
@@ -28,7 +28,9 @@ func FuzzGameMax10Steps(f *testing.F) {
 			assert.NotEmpty(t, moves)
 
 			chosen := int(src.Int63()) % len(moves)
-			err := moves[chosen].Perform()
+			generatedMove := moves[chosen]
+
+			err = messtest.PerformWithRandomOptions(src, generatedMove)
 			assert.NoError(t, err)
 
 			isFinished, _ = game.PickWinner()

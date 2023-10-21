@@ -84,8 +84,8 @@ func (p *Player) String() string {
 	return p.color.String()
 }
 
-func (p *Player) Moves() []GeneratedMove {
-	result := make([]GeneratedMove, 0)
+func (p *Player) Moves() []MoveGroup {
+	result := make([]MoveGroup, 0)
 	for piece := range p.pieces {
 		result = append(result, piece.Moves()...)
 	}

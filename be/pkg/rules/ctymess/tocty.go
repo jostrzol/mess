@@ -85,13 +85,13 @@ func MoveToCty(move *mess.Move) cty.Value {
 	})
 }
 
-func GeneratedMoveToCty(generatedMove *mess.GeneratedMove) cty.Value {
+func MoveGroupToCty(moveGroup *mess.MoveGroup) cty.Value {
 	return cty.ObjectVal(map[string]cty.Value{
-		"name":   cty.StringVal(generatedMove.Name),
-		"piece":  PieceToCty(generatedMove.Piece),
-		"player": PlayerToCty(generatedMove.Piece.Owner()),
-		"src":    cty.StringVal(generatedMove.From.String()),
-		"dst":    cty.StringVal(generatedMove.To.String()),
+		"name":   cty.StringVal(moveGroup.Name),
+		"piece":  PieceToCty(moveGroup.Piece),
+		"player": PlayerToCty(moveGroup.Piece.Owner()),
+		"src":    cty.StringVal(moveGroup.From.String()),
+		"dst":    cty.StringVal(moveGroup.To.String()),
 	})
 }
 

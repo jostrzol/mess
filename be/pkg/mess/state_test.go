@@ -125,7 +125,8 @@ func (s *StateSuite) TestUndoCapture() {
 
 func (s *StateSuite) TestValidMoves() {
 	king := mess.NewPiece(King(s.T()), s.state.CurrentPlayer())
-	king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
+	err := king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
+	s.NoError(err)
 
 	moves := s.state.ValidMoves()
 
@@ -134,9 +135,10 @@ func (s *StateSuite) TestValidMoves() {
 
 func (s *StateSuite) TestValidMovesWithValidator() {
 	king := mess.NewPiece(King(s.T()), s.state.CurrentPlayer())
-	king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
+	err := king.PlaceOn(s.state.Board(), boardtest.NewSquare("A1"))
+	s.NoError(err)
 
-	s.state.AddStateValidator(func(s *mess.State, m *mess.GeneratedMove) bool {
+	s.state.AddStateValidator(func(s *mess.State, m *mess.Move) bool {
 		return m.To != boardtest.NewSquare("A2")
 	})
 

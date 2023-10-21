@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func trueStateValidator(*State, *GeneratedMove) bool  { return true }
-func falseStateValidator(*State, *GeneratedMove) bool { return false }
+func trueStateValidator(*State, *Move) bool  { return true }
+func falseStateValidator(*State, *Move) bool { return false }
 
 func TestChainStateValidator(t *testing.T) {
 	tests := []struct {

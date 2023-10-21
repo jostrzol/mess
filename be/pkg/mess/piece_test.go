@@ -16,9 +16,9 @@ import (
 func Rook(t *testing.T) *mess.PieceType {
 	t.Helper()
 	pieceType := mess.NewPieceType("rook")
-	pieceType.AddMoveGenerator(mess.Motion{
+	pieceType.AddMotion(mess.Motion{
 		Name: "rook_motion",
-		MoveGenerator: func(piece *mess.Piece) ([]board.Square, mess.MoveActionFunc) {
+		MoveGenerator: func(piece *mess.Piece) []board.Square {
 			result := make([]board.Square, 0)
 			for _, offset := range []board.Offset{
 				{X: 1, Y: 0},
@@ -32,7 +32,7 @@ func Rook(t *testing.T) *mess.PieceType {
 					square = square.Offset(offset)
 				}
 			}
-			return result, nil
+			return result
 		},
 	})
 	return pieceType
@@ -41,7 +41,7 @@ func Rook(t *testing.T) *mess.PieceType {
 func Knight(t *testing.T) *mess.PieceType {
 	t.Helper()
 	pieceType := mess.NewPieceType("knight")
-	pieceType.AddMoveGenerator(messtest.OffsetMoveGenerator(t, []board.Offset{
+	pieceType.AddMotion(messtest.OffsetMotion(t, []board.Offset{
 		{X: 1, Y: 2},
 		{X: 1, Y: -2},
 		{X: -1, Y: 2},
@@ -57,7 +57,7 @@ func Knight(t *testing.T) *mess.PieceType {
 func King(t *testing.T) *mess.PieceType {
 	t.Helper()
 	pieceType := mess.NewPieceType("king")
-	pieceType.AddMoveGenerator(messtest.OffsetMoveGenerator(t, []board.Offset{
+	pieceType.AddMotion(messtest.OffsetMotion(t, []board.Offset{
 		{X: 1, Y: 0},
 		{X: -1, Y: 0},
 		{X: 0, Y: 1},

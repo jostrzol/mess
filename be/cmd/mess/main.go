@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/jostrzol/mess/pkg/cmd"
-	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/rules"
 )
 
@@ -33,32 +32,18 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
-	interactor := &cmd.Interactor{Scanner: scanner}
 	game, err := rules.DecodeRules(*rulesFilename, true)
 	if err != nil {
 		runError("loading game rules: %s", err)
 	}
+	interactor := cmd.NewInteractor(scanner, game)
 
-	var winner *mess.Player
-	isFinished := false
-	for !isFinished {
-		interactor.PreTurn(game.State)
-
-		moves := game.ValidMoves()
-		move, err := interactor.ChooseMove(game.State, moves)
-		if err != nil {
-			runError("choosing move: %s", err)
-		}
-
-		err = move.Perform()
-		if err != nil {
-			runError("performing move: %s", err)
-		}
-
-		game.EndTurn()
-		isFinished, winner = game.PickWinner()
+	winner, err := interactor.Run()
+	if err != nil {
+		runError("running game: %s", err)
 	}
 
+	fmt.Println()
 	if winner == nil {
 		fmt.Printf("Draw!\n")
 	} else {
