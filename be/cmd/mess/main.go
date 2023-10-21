@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -39,7 +40,9 @@ func main() {
 	interactor := cmd.NewInteractor(scanner, game)
 
 	winner, err := interactor.Run()
-	if err != nil {
+	if errors.Is(err, cmd.ErrEOT) {
+		os.Exit(3)
+	} else if err != nil {
 		runError("running game: %s", err)
 	}
 

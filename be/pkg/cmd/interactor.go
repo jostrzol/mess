@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
@@ -15,6 +16,7 @@ type Interactor struct {
 	statePrinted   chan (struct{})
 	movesGenerated chan (struct{})
 	moveChosen     chan (*mess.Move)
+	mutex          sync.Mutex
 }
 
 func NewInteractor(scanner *bufio.Scanner, game *mess.Game) *Interactor {
@@ -24,6 +26,7 @@ func NewInteractor(scanner *bufio.Scanner, game *mess.Game) *Interactor {
 		statePrinted:   make(chan (struct{})),
 		movesGenerated: make(chan (struct{})),
 		moveChosen:     make(chan (*mess.Move)),
+		mutex:          sync.Mutex{},
 	}
 }
 
@@ -35,6 +38,11 @@ func (t *Interactor) Run() (*mess.Player, error) {
 	t.PreloadMoves()
 	for !isFinished {
 		move := <-t.moveChosen
+		if move == nil {
+			t.CloseChannels()
+			return nil, ErrEOT
+		}
+
 		err := move.Perform()
 		if err != nil {
 			t.CloseChannels()
@@ -44,9 +52,15 @@ func (t *Interactor) Run() (*mess.Player, error) {
 		t.game.EndTurn()
 		t.PrintState()
 
-		isFinished, winner = t.game.PickWinner()
+		func() {
+			t.mutex.Lock()
+			defer t.mutex.Unlock()
+
+			isFinished, winner = t.game.PickWinner()
+		}()
+
 		if !isFinished {
-			t.PreloadMoves()
+			go t.PreloadMoves()
 		}
 	}
 	t.CloseChannels()
@@ -67,6 +81,8 @@ func (t *Interactor) PrintState() {
 }
 
 func (t *Interactor) PreloadMoves() {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
 	t.game.ValidMoves()
 	if len(t.movesGenerated) == 0 {
 		t.movesGenerated <- struct{}{}
@@ -83,6 +99,10 @@ func (t *Interactor) ChooseMove() {
 
 			go t.PrintState()
 			go t.PreloadMoves()
+		} else if errors.Is(err, ErrEOT) {
+			fmt.Println("<end of text>")
+			moreWork = false
+			t.moveChosen <- nil
 		} else if err != nil {
 			fmt.Printf("Error: %v!\n", err)
 			fmt.Printf("Press enter to continue...")
@@ -202,6 +222,9 @@ func (t *Interactor) chooseOption(moveGroup mess.MoveGroup, choiceIdx int) (mess
 
 func (t *Interactor) scan() (string, error) {
 	if !t.scanner.Scan() {
+		if t.scanner.Err() == nil {
+			return "", ErrEOT
+		}
 		return "", t.scanner.Err()
 	}
 	text := t.scanner.Text()
@@ -212,3 +235,4 @@ func (t *Interactor) scan() (string, error) {
 }
 
 var ErrCancel = fmt.Errorf("cancel")
+var ErrEOT = fmt.Errorf("EOT")
