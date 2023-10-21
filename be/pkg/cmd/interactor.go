@@ -10,7 +10,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 )
 
-type Interactor struct {
+type interactor struct {
 	scanner        *bufio.Scanner
 	game           *mess.Game
 	statePrinted   chan (struct{})
@@ -19,8 +19,8 @@ type Interactor struct {
 	mutex          sync.Mutex
 }
 
-func NewInteractor(scanner *bufio.Scanner, game *mess.Game) *Interactor {
-	return &Interactor{
+func newInteractor(game *mess.Game, scanner *bufio.Scanner) *interactor {
+	return &interactor{
 		scanner:        scanner,
 		game:           game,
 		statePrinted:   make(chan (struct{})),
@@ -30,27 +30,27 @@ func NewInteractor(scanner *bufio.Scanner, game *mess.Game) *Interactor {
 	}
 }
 
-func (t *Interactor) Run() (*mess.Player, error) {
+func (t *interactor) Run() (*mess.Player, error) {
 	var winner *mess.Player
 	isFinished := false
-	go t.ChooseMove()
-	t.PrintState()
-	t.PreloadMoves()
+	go t.chooseMove()
+	t.printState()
+	t.preloadMoves()
 	for !isFinished {
 		move := <-t.moveChosen
 		if move == nil {
-			t.CloseChannels()
+			t.closeChannels()
 			return nil, ErrEOT
 		}
 
 		err := move.Perform()
 		if err != nil {
-			t.CloseChannels()
+			t.closeChannels()
 			return nil, fmt.Errorf("performing move: %v", err)
 		}
 
 		t.game.EndTurn()
-		t.PrintState()
+		t.printState()
 
 		func() {
 			t.mutex.Lock()
@@ -60,27 +60,27 @@ func (t *Interactor) Run() (*mess.Player, error) {
 		}()
 
 		if !isFinished {
-			go t.PreloadMoves()
+			go t.preloadMoves()
 		}
 	}
-	t.CloseChannels()
+	t.closeChannels()
 	return winner, nil
 }
 
-func (t *Interactor) CloseChannels() {
+func (t *interactor) closeChannels() {
 	close(t.statePrinted)
 	close(t.movesGenerated)
 	close(t.moveChosen)
 }
 
-func (t *Interactor) PrintState() {
+func (t *interactor) printState() {
 	fmt.Println(t.game.PrettyString())
 	if len(t.statePrinted) == 0 {
 		t.statePrinted <- struct{}{}
 	}
 }
 
-func (t *Interactor) PreloadMoves() {
+func (t *interactor) preloadMoves() {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	t.game.ValidMoves()
@@ -89,7 +89,7 @@ func (t *Interactor) PreloadMoves() {
 	}
 }
 
-func (t *Interactor) ChooseMove() {
+func (t *interactor) chooseMove() {
 	moreWork := true
 	for moreWork {
 		_, moreWork = <-t.statePrinted
@@ -97,8 +97,8 @@ func (t *Interactor) ChooseMove() {
 		if errors.Is(err, ErrCancel) {
 			fmt.Println("<cancel>")
 
-			go t.PrintState()
-			go t.PreloadMoves()
+			go t.printState()
+			go t.preloadMoves()
 		} else if errors.Is(err, ErrEOT) {
 			fmt.Println("<end of text>")
 			moreWork = false
@@ -108,15 +108,15 @@ func (t *Interactor) ChooseMove() {
 			fmt.Printf("Press enter to continue...")
 			t.scanner.Scan()
 
-			go t.PrintState()
-			go t.PreloadMoves()
+			go t.printState()
+			go t.preloadMoves()
 		} else {
 			t.moveChosen <- move
 		}
 	}
 }
 
-func (t *Interactor) tryChooseMove() (*mess.Move, error) {
+func (t *interactor) tryChooseMove() (*mess.Move, error) {
 	println("Choose a square with your piece")
 	print("> ")
 	piece, err := t.chooseOwnPiece()
@@ -162,7 +162,7 @@ func (t *Interactor) tryChooseMove() (*mess.Move, error) {
 	return &move, nil
 }
 
-func (t *Interactor) chooseOwnPiece() (*mess.Piece, error) {
+func (t *interactor) chooseOwnPiece() (*mess.Piece, error) {
 	square, err := t.chooseSquare()
 	if err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (t *Interactor) chooseOwnPiece() (*mess.Piece, error) {
 	return piece, nil
 }
 
-func (t *Interactor) chooseSquare() (board.Square, error) {
+func (t *interactor) chooseSquare() (board.Square, error) {
 	squareStr, err := t.scan()
 	if err != nil {
 		return board.Square{}, err
@@ -192,7 +192,7 @@ func (t *Interactor) chooseSquare() (board.Square, error) {
 	return square, nil
 }
 
-func (t *Interactor) chooseOption(moveGroup mess.MoveGroup, choiceIdx int) (mess.MoveGroup, error) {
+func (t *interactor) chooseOption(moveGroup mess.MoveGroup, choiceIdx int) (mess.MoveGroup, error) {
 	optionStrings := moveGroup.UniqueOptionStrings(choiceIdx)
 
 	println("Choose option:")
@@ -220,7 +220,7 @@ func (t *Interactor) chooseOption(moveGroup mess.MoveGroup, choiceIdx int) (mess
 	return moveGroup, nil
 }
 
-func (t *Interactor) scan() (string, error) {
+func (t *interactor) scan() (string, error) {
 	if !t.scanner.Scan() {
 		if t.scanner.Err() == nil {
 			return "", ErrEOT

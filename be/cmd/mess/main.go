@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -32,14 +31,12 @@ func main() {
 		cmdError("no rules file")
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
 	game, err := rules.DecodeRules(*rulesFilename, true)
 	if err != nil {
 		runError("loading game rules: %s", err)
 	}
-	interactor := cmd.NewInteractor(scanner, game)
 
-	winner, err := interactor.Run()
+	winner, err := cmd.Run(game, os.Stdin, os.Stdout)
 	if errors.Is(err, cmd.ErrEOT) {
 		os.Exit(3)
 	} else if err != nil {
