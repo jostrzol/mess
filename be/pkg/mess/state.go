@@ -126,13 +126,13 @@ func (s *State) generateValidMoves() {
 	s.validMoves = result
 }
 
-func (s *State) validateMove(move Move) bool {
+func (s *State) validateMove(move *Move) bool {
 	err := move.Perform()
 	if err != nil {
 		fmt.Printf("error validating move: %v\n", err)
 		return false
 	}
-	isValid := s.validators.Validate(s, &move)
+	isValid := s.validators.Validate(s, move)
 	s.UndoTurn()
 
 	return isValid

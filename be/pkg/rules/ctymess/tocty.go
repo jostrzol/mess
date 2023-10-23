@@ -1,6 +1,8 @@
 package ctymess
 
 import (
+	"fmt"
+
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/zclconf/go-cty/cty"
@@ -76,13 +78,15 @@ func RecordToCty(record []mess.Turn) cty.Value {
 }
 
 func MoveToCty(move *mess.Move) cty.Value {
-	return cty.ObjectVal(map[string]cty.Value{
-		"name":   cty.StringVal(move.Name),
-		"piece":  PieceToCty(move.Piece),
-		"player": PlayerToCty(move.Piece.Owner()),
-		"src":    cty.StringVal(move.From.String()),
-		"dst":    cty.StringVal(move.To.String()),
+	result := cty.ObjectVal(map[string]cty.Value{
+		"name":    cty.StringVal(move.Name),
+		"piece":   PieceToCty(move.Piece),
+		"player":  PlayerToCty(move.Piece.Owner()),
+		"src":     cty.StringVal(move.From.String()),
+		"dst":     cty.StringVal(move.To.String()),
+		"options": OptionsToCty(move.Options),
 	})
+	return result
 }
 
 func MoveGroupToCty(moveGroup *mess.MoveGroup) cty.Value {
@@ -106,20 +110,54 @@ func BoardToCty(board *mess.PieceBoard) cty.Value {
 func PieceTypesToCty(pieceTypes []*mess.PieceType) cty.Value {
 	ctyPieceTypes := make([]cty.Value, 0, len(pieceTypes))
 	for _, pt := range pieceTypes {
-		ctyPt := cty.ObjectVal(map[string]cty.Value{
-			"name": cty.StringVal(pt.Name()),
-		})
+		ctyPt := PieceTypeToCty(pt)
 		ctyPieceTypes = append(ctyPieceTypes, ctyPt)
 	}
 	return cty.ListVal(ctyPieceTypes)
 }
 
+func PieceTypeToCty(pieceType *mess.PieceType) cty.Value {
+	return cty.ObjectVal(map[string]cty.Value{
+		"name": cty.StringVal(pieceType.Name()),
+	})
+}
+
 func OptionsToCty(options []mess.Option) cty.Value {
+	if options == nil {
+		return cty.NullVal(cty.List(Option))
+	}
+
 	result := make([]cty.Value, 0, len(options))
 	for _, option := range options {
-		result = append(result, cty.StringVal(option.String()))
+		result = append(result, OptionToCty(option))
 	}
 	return listOrEmpty(cty.DynamicPseudoType, result)
+}
+
+func OptionToCty(option mess.Option) cty.Value {
+	switch opt := option.(type) {
+	case *mess.PieceTypeOption:
+		return cty.ObjectVal(map[string]cty.Value{
+			"message":    cty.StringVal(opt.Message()),
+			"type":       cty.StringVal("piece_type"),
+			"piece_type": PieceTypeToCty(opt.PieceType),
+		})
+	case *mess.SquareOption:
+		return cty.ObjectVal(map[string]cty.Value{
+			"message": cty.StringVal(opt.Message()),
+			"type":    cty.StringVal("square"),
+			"square":  SquareToCty(opt.Square),
+		})
+	case *mess.MoveOption:
+		return cty.ObjectVal(map[string]cty.Value{
+			"message": cty.StringVal(opt.Message()),
+			"type":    cty.StringVal("move"),
+			"move":    MoveToCty(opt.Move),
+		})
+	default:
+		err := fmt.Errorf("invalid option type %T", option)
+		panic(err)
+	}
 }
 
 func mapOrEmpty(mapType cty.Type, mapValue map[string]cty.Value) cty.Value {

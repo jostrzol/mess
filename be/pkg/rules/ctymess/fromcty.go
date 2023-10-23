@@ -26,11 +26,7 @@ func SquareFromCty(value cty.Value) (board.Square, error) {
 
 func SquaresFromCty(value cty.Value) ([]board.Square, error) {
 	var squareStrs []string
-	var err error
-	value, err = tupleToList(value)
-	if err != nil {
-		return nil, err
-	}
+	value = tupleToList(value)
 
 	if err := gocty.FromCtyValue(value, &squareStrs); err != nil {
 		return nil, err
@@ -70,23 +66,13 @@ func ColorFromCty(colorCty cty.Value) (*color.Color, error) {
 
 func PieceFromCty(state *mess.State, value cty.Value) (*mess.Piece, error) {
 	var err error
-	defer func() {
-		var ok bool
-		value := recover()
-		if value == nil {
-			return
-		}
-		err, ok = value.(error)
-		if !ok {
-			panic(value)
-		}
-	}()
+	var squareStr string
 
-	squareStr := value.GetAttr("square").AsString()
+	squareCty, err := getAttr(value, "square")
 	if err != nil {
-		return nil, fmt.Errorf("getting piece's square: %w", err)
+		return nil, err
 	}
-	square, err := board.NewSquare(squareStr)
+	square, err := SquareFromCty(squareCty)
 	if err != nil {
 		return nil, fmt.Errorf("parsing square %q: %w", squareStr, err)
 	}
@@ -99,20 +85,9 @@ func PieceFromCty(state *mess.State, value cty.Value) (*mess.Piece, error) {
 
 func PieceTypeFromCty(state *mess.State, value cty.Value) (*mess.PieceType, error) {
 	var err error
-	defer func() {
-		var ok bool
-		value := recover()
-		if value == nil {
-			return
-		}
-		err, ok = value.(error)
-		if !ok {
-			panic(value)
-		}
-	}()
+	var pieceTypeName string
 
-	pieceTypeName := value.AsString()
-	if err != nil {
+	if err = gocty.FromCtyValue(value, &pieceTypeName); err != nil {
 		return nil, fmt.Errorf("parsing piece type name: %w", err)
 	}
 	for _, pt := range state.PieceTypes() {
@@ -124,28 +99,28 @@ func PieceTypeFromCty(state *mess.State, value cty.Value) (*mess.PieceType, erro
 }
 
 func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err error) {
-	errPrefix := ""
-	defer func() {
-		errTmp := recover()
-		if errTmp != nil {
-			err = fmt.Errorf("%v, %w", errPrefix, errTmp.(error))
-		}
-	}()
-
 	if value.IsNull() {
-		return
+		return nil, nil
 	}
 
-	errPrefix = "getting choice type"
-	choiceType := value.GetAttr("type").AsString()
+	choiceType, err := getAttrAsString(value, "type")
+	if err != nil {
+		return nil, err
+	}
+	messageStr, err := getAttrAsString(value, "message")
+	if err != nil {
+		return nil, err
+	}
+
+	choiceMessage := mess.ChoiceMessage(messageStr)
 
 	switch choiceType {
 	case "piece_type":
-		errPrefix = "getting piece_type options"
-		pieceTypeNamesCty, err := tupleToList(value.GetAttr("options"))
+		pieceTypeNamesCty, err := getAttr(value, "options")
 		if err != nil {
 			return nil, err
 		}
+		pieceTypeNamesCty = tupleToList(pieceTypeNamesCty)
 
 		var pieceTypeNames []string
 		if err := gocty.FromCtyValue(pieceTypeNamesCty, &pieceTypeNames); err != nil {
@@ -160,22 +135,172 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err 
 			}
 			pieceTypes[i] = pieceType
 		}
-		return mess.PieceTypeChoice{PieceTypes: pieceTypes}, nil
+		return &mess.PieceTypeChoice{ChoiceMessage: choiceMessage, PieceTypes: pieceTypes}, nil
 	case "square":
 		// TODO:
 		panic("TODO")
+	case "move":
+		return &mess.MoveChoice{ChoiceMessage: choiceMessage}, nil
 	default:
 		return nil, fmt.Errorf("invalid choice type: %v", choiceType)
 	}
 }
 
-func tupleToList(value cty.Value) (cty.Value, error) {
+func OptionsFromCty(state *mess.State, value cty.Value) (options []mess.Option, err error) {
+	if value.IsNull() {
+		return nil, nil
+	}
+
+	value = tupleToList(value)
+	if err != nil {
+		return nil, err
+	}
+
+	if !value.Type().IsListType() {
+		return nil, fmt.Errorf("expected list type, found %v", value.Type().FriendlyName())
+	}
+
+	result := make([]mess.Option, 0, value.LengthInt())
+	it := value.ElementIterator()
+	for it.Next() {
+		index, value := it.Element()
+		option, err := OptionFromCty(state, value)
+		if err != nil {
+			return nil, fmt.Errorf("converting element [%d]: %w", index.AsBigFloat(), err)
+		}
+		result = append(result, option)
+	}
+	return result, nil
+}
+
+func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
+	optionType, err := getAttrAsString(value, "type")
+	if err != nil {
+		return nil, err
+	}
+	messageStr, err := getAttrAsString(value, "message")
+	if err != nil {
+		return nil, err
+	}
+	choiceMessage := mess.ChoiceMessage(messageStr)
+
+	switch optionType {
+	case "piece_type":
+		pieceTypeCty, err := getAttr(value, "piece_type", "name")
+		if err != nil {
+			return nil, err
+		}
+
+		pieceType, err := PieceTypeFromCty(state, pieceTypeCty)
+		if err != nil {
+			return nil, err
+		}
+		return &mess.PieceTypeOption{ChoiceMessage: choiceMessage, PieceType: pieceType}, nil
+	case "square":
+		squareCty, err := getAttr(value, "square")
+		if err != nil {
+			return nil, err
+		}
+
+		square, err := SquareFromCty(squareCty)
+		if err != nil {
+			return nil, err
+		}
+		return &mess.SquareOption{ChoiceMessage: choiceMessage, Square: square}, nil
+	case "move":
+		moveCty, err := getAttr(value, "move")
+		if err != nil {
+			return nil, err
+		}
+
+		move, err := MoveFromCty(state, moveCty)
+		if err != nil {
+			return nil, err
+		}
+		return &mess.MoveOption{ChoiceMessage: choiceMessage, Move: move}, nil
+	default:
+		return nil, fmt.Errorf("invalid choice type: %v", optionType)
+	}
+}
+
+func MoveFromCty(state *mess.State, value cty.Value) (*mess.Move, error) {
+	srcCty, err := getAttr(value, "src")
+	if err != nil {
+		return nil, err
+	}
+	src, err := SquareFromCty(srcCty)
+	if err != nil {
+		return nil, err
+	}
+
+	dstCty, err := getAttr(value, "dst")
+	if err != nil {
+		return nil, err
+	}
+	dst, err := SquareFromCty(dstCty)
+	if err != nil {
+		return nil, err
+	}
+
+	optionsCty, err := getAttr(value, "options")
+	if err != nil {
+		return nil, err
+	}
+	options, err := OptionsFromCty(state, optionsCty)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, mg := range state.ValidMoves() {
+		if mg.From == src && mg.To == dst {
+			return mg.Move(options), nil
+		}
+	}
+	return nil, fmt.Errorf("move not valid")
+}
+
+func tupleToList(value cty.Value) cty.Value {
 	var err error
 	if value.Type().IsTupleType() {
 		value, err = convert.Convert(value, cty.List(cty.DynamicPseudoType))
 		if err != nil {
-			return value, fmt.Errorf("transforming to list: %v", err)
+			panic(err)
 		}
 	}
-	return value, nil
+	return value
+}
+
+func getAttrAsString(value cty.Value, names ...string) (result string, err error) {
+	value, err = getAttr(value, names...)
+	if err != nil {
+		return "", err
+	}
+
+	err = gocty.FromCtyValue(value, &result)
+	return
+}
+
+func getAttr(value cty.Value, names ...string) (result cty.Value, err error) {
+	i := 0
+	defer func() {
+		recovered := recover()
+		switch v := recovered.(type) {
+		case nil:
+			return
+		case string:
+			err = fmt.Errorf(v)
+		case error:
+			err = v
+		default:
+			panic(v)
+		}
+		err = fmt.Errorf("getting attribute %q: %w", names[i], err)
+	}()
+
+	result = value
+
+	for ; i < len(names); i++ {
+		result = result.GetAttr(names[i])
+	}
+	return
 }

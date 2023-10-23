@@ -19,6 +19,7 @@ type rules struct {
 	PieceTypes      pieceTypesRules      `hcl:"piece_types,block"`
 	InitialState    initialStateRules    `hcl:"initial_state,block"`
 	StateValidators *stateValidatorRules `hcl:"state_validators,block"`
+	Turn            *turnRules           `hcl:"turn,block"`
 	Functions       callbackFunctionsRules
 }
 
@@ -66,9 +67,13 @@ type stateValidatorRules struct {
 	Body hcl.Body `hcl:",remain"`
 }
 
+type turnRules struct {
+	ChoiceGeneratorNames []string `hcl:"choice_generators,optional"`
+	ActionName           string   `hcl:"action,optional"`
+}
+
 type callbackFunctionsRules struct {
 	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
-	TurnFunc        function.Function            `mapstructure:"turn"`
 	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
 	StateValidators map[string]function.Function
 }

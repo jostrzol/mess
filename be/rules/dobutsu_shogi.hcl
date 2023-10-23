@@ -212,6 +212,59 @@ initial_state {
 }
 
 // ===== TURN ==================================================
+turn {
+  choice_generators = ["turn_choose_move_or_captured_piece", "turn_choose_empty_square"]
+  action            = "turn"
+}
+
+function "turn_choose_move_or_captured_piece" {
+  params = [options]
+  result = {
+    type = "composite"
+    choices = [
+      { type = "move" },
+      { type = "piece_type", options = captured_piece_types(game.current_player) },
+    ]
+  }
+}
+
+function "captured_piece_types" {
+  params = [player]
+  result = [for type, _ in player.captures : type]
+}
+
+function "turn_choose_empty_square" {
+  params = [options]
+  result = (options[0].type == "move"
+    ? { type = "unit" }
+    : { type = "square", options = empty_squares() }
+  )
+}
+
+composite_function "empty_squares" {
+  params = []
+  result = {
+    squares = concat([for x in range(board.width) :
+      [for y in range(board.height) : coords_to_square([x, y])]
+    ]...)
+    return = [for square in squares : square if piece_at(square) == null]
+  }
+}
+
+composite_function "turn" {
+  params = [options]
+  result = {
+    return = (options[0].type == "move"
+      ? make_move(options[0].move)
+      : convert_and_release(
+        game.current_player,
+        options[0].piece_type,
+        options[1].square
+      )
+    )
+  }
+}
+
 composite_function "turn" {
   params = []
   result = {
@@ -227,27 +280,6 @@ composite_function "choose_turn_action" {
     action_funcs = ["player_move", "place_capture"]
     choice       = choose(actions)
     _            = call(action_funcs[choice])
-  }
-}
-
-composite_function "place_capture" {
-  params = []
-  result = {
-    captures = [for type, count in game.current_player.captures : [type, count]]
-    types    = [for pair in captures : format("%s (count: %v)", pair[0], pair[1])]
-    type_idx = choose(types)
-    type     = captures[type_idx][0]
-    coords_list = concat(
-      [
-        for x in range(board.width)
-        : [for y in range(board.height) : [x, y]]
-      ]...
-    )
-    squares       = [for coords in coords_list : coords_to_square(coords)]
-    empty_squares = [for square in squares : square if piece_at(square) == null]
-    square_idx    = choose(empty_squares)
-    square        = empty_squares[square_idx]
-    _             = convert_and_release(game.current_player, type, square)
   }
 }
 

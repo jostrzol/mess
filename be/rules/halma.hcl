@@ -175,10 +175,20 @@ variables {
 }
 
 // ===== TURN ==================================================
-composite_function "turn" {
+turn {
+  choice_generators = ["turn_choose_move"]
+  action            = "turn"
+}
+
+function "turn_choose_move" {
   params = []
+  result = { type = "move", message = "Choose move" }
+}
+
+composite_function "turn" {
+  params = [options]
   result = {
-    return = player_move()
+    _ = make_move(options[0].move)
   }
 }
 

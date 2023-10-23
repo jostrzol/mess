@@ -295,6 +295,7 @@ composite_function "promote_choose_piece_type" {
       if !contains(["king", "pawn"], type.name)
     ]
     choice = {
+      message = "Promote to"
       type    = "piece_type"
       options = options
     }
@@ -307,9 +308,9 @@ composite_function "promote_choose_piece_type" {
 composite_function "promote" {
   params = [piece, src, dst, options]
   result = {
-    owner     = owner_of(piece)
-    type_name = options[0]
-    _         = place_new_piece(type_name, dst, owner.color)
+    owner      = owner_of(piece)
+    piece_type = options[0].piece_type
+    _          = place_new_piece(piece_type.name, dst, owner.color)
   }
 }
 
@@ -449,6 +450,7 @@ initial_state {
     F2 = "pawn"
     G2 = "pawn"
     H2 = "pawn"
+    H7 = "pawn"
   }
   black_pieces = {
     A8 = "rook"
@@ -458,7 +460,7 @@ initial_state {
     E8 = "king"
     F8 = "bishop"
     G8 = "knight"
-    H8 = "rook"
+    # H8 = "rook"
     A7 = "pawn"
     B7 = "pawn"
     C7 = "pawn"
@@ -466,18 +468,25 @@ initial_state {
     E7 = "pawn"
     F7 = "pawn"
     G7 = "pawn"
-    H7 = "pawn"
+    # H7 = "pawn"
   }
 }
 
 // ===== TURN ==================================================
-// This function is required and decides on the flow of a turn. The most basic
-// one just calls player_move(), which orders the player to make one valid move.
+turn {
+  choice_generators = ["turn_choose_move"]
+  action            = "turn"
+}
+
+function "turn_choose_move" {
+  params = []
+  result = { type = "move", message = "Choose move" }
+}
 
 composite_function "turn" {
-  params = []
+  params = [options]
   result = {
-    return = player_move()
+    _ = make_move(options[0].move)
   }
 }
 

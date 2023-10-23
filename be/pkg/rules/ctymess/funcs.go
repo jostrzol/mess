@@ -220,6 +220,23 @@ var FilterNulls = function.New(&function.Spec{
 	},
 })
 
+var PrintFunc = function.New(&function.Spec{
+	Description: "Prints the arguments",
+	VarParam: &function.Parameter{
+		Name:             "args",
+		Type:             cty.DynamicPseudoType,
+		AllowDynamicType: true,
+	},
+	Type: function.StaticReturnType(cty.DynamicPseudoType),
+	Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+		for _, arg := range args {
+			fmt.Printf("%v ", arg)
+		}
+		fmt.Println()
+		return cty.DynamicVal, nil
+	},
+})
+
 var StateMissingFunc = function.New(&function.Spec{
 	Description: "Placeholder - the game state is not built yet",
 	Params:      []function.Parameter{},
@@ -562,6 +579,34 @@ func ConvertAndReleaseFunc(state *mess.State) function.Function {
 			err = player.ConvertAndReleasePiece(pieceType, state.Board(), square)
 			if err != nil {
 				return cty.DynamicVal, fmt.Errorf("converting and releasing a piece: %w", err)
+			}
+
+			return cty.DynamicVal, nil
+		},
+	})
+}
+
+func MakeMoveFunc(state *mess.State) function.Function {
+	return function.New(&function.Spec{
+		Description: "Perform the given move",
+		Params: []function.Parameter{
+			{
+				Name: "move",
+				Type: Move,
+			},
+		},
+		Type: function.StaticReturnType(cty.DynamicPseudoType),
+		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
+			var move *mess.Move
+			var err error
+
+			if move, err = MoveFromCty(state, args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'move': %w", err)
+			}
+
+			err = move.Perform()
+			if err != nil {
+				return cty.DynamicVal, err
 			}
 
 			return cty.DynamicVal, nil

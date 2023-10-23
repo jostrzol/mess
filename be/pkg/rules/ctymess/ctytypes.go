@@ -33,12 +33,16 @@ var Turn = cty.Object(map[string]cty.Type{
 })
 
 var Move = cty.Object(map[string]cty.Type{
-	"name":   cty.String,
-	"player": Player,
-	"piece":  Piece,
-	"src":    cty.String,
-	"dst":    cty.String,
+	"name":    cty.String,
+	"player":  Player,
+	"piece":   Piece,
+	"src":     cty.String,
+	"dst":     cty.String,
+	"options": cty.List(Option),
 })
+
+var Option = cty.DynamicPseudoType
+var Choice = cty.DynamicPseudoType
 
 var Coords = Offset
 

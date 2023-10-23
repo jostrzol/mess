@@ -16,20 +16,20 @@ import (
 type controller struct {
 	state *mess.State
 	ctx   *hcl.EvalContext
-	rules *callbackFunctionsRules
+	rules *rules
 }
 
 func newController(state *mess.State, ctx *hcl.EvalContext, rules *rules) *controller {
 	return &controller{
 		state: state,
 		ctx:   ctx,
-		rules: &rules.Functions,
+		rules: rules,
 	}
 }
 
 func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
 	ctyState := c.refreshGameStateInContext()
-	resultCty, err := c.rules.PickWinnerFunc.Call([]cty.Value{ctyState})
+	resultCty, err := c.rules.Functions.PickWinnerFunc.Call([]cty.Value{ctyState})
 	if err != nil {
 		log.Printf("calling pick_winner user-defined function: %v", err)
 		return false, nil
@@ -67,14 +67,48 @@ func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
 	return true, state.Player(color)
 }
 
-func (c *controller) Turn(state *mess.State) error {
+func (c *controller) TurnChoices(state *mess.State) ([]mess.Choice, error) {
 	c.refreshGameStateInContext()
-	_, err := c.rules.TurnFunc.Call([]cty.Value{})
+
+	result := make([]mess.Choice, 0, len(c.rules.Turn.ChoiceGeneratorNames))
+	for _, funcName := range c.rules.Turn.ChoiceGeneratorNames {
+		choiceGeneratorFunc, ok := c.rules.Functions.CustomFuncs[funcName]
+		if !ok {
+			return nil, fmt.Errorf("user function %q not found", funcName)
+		}
+
+		choiceCty, err := choiceGeneratorFunc.Call([]cty.Value{})
+		if err != nil {
+			return nil, fmt.Errorf("calling turn choice generator %q: %v", funcName, err)
+		}
+
+		choice, err := ctymess.ChoiceFromCty(state, choiceCty)
+		if err != nil {
+			return nil, fmt.Errorf("parsing choice generator %q result: %v", funcName, err)
+		}
+
+		result = append(result, choice)
+	}
+	return result, nil
+}
+
+func (c *controller) Turn(_ *mess.State, options []mess.Option) error {
+	c.refreshGameStateInContext()
+	optionsCty := ctymess.OptionsToCty(options)
+
+	funcName := c.rules.Turn.ActionName
+	turnFunc, ok := c.rules.Functions.CustomFuncs[funcName]
+	if !ok {
+		return fmt.Errorf("user function %q not found", funcName)
+	}
+
+	_, err := turnFunc.Call([]cty.Value{optionsCty})
+
 	return err
 }
 
 func (c *controller) GetCustomFuncAsGenerator(name string) (mess.MoveGeneratorFunc, error) {
-	funcCty, ok := c.rules.CustomFuncs[name]
+	funcCty, ok := c.rules.Functions.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -98,7 +132,7 @@ func (c *controller) GetCustomFuncAsGenerator(name string) (mess.MoveGeneratorFu
 }
 
 func (c *controller) GetCustomFuncAsChoiceGenerator(name string) (mess.ChoiceGeneratorFunc, error) {
-	funcCty, ok := c.rules.CustomFuncs[name]
+	funcCty, ok := c.rules.Functions.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -126,7 +160,7 @@ func (c *controller) GetCustomFuncAsChoiceGenerator(name string) (mess.ChoiceGen
 }
 
 func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveActionFunc, error) {
-	funcCty, ok := c.rules.CustomFuncs[name]
+	funcCty, ok := c.rules.Functions.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
@@ -153,9 +187,9 @@ func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveActionFunc, er
 }
 
 func (c *controller) GetStateValidators() ([]mess.StateValidator, error) {
-	validators := make([]mess.StateValidator, 0, len(c.rules.StateValidators))
+	validators := make([]mess.StateValidator, 0, len(c.rules.Functions.StateValidators))
 
-	for validatorName, validatorCty := range c.rules.StateValidators {
+	for validatorName, validatorCty := range c.rules.Functions.StateValidators {
 		// copy is required, because else the validator closure
 		// would always take validator and name from the last c.StateValidators
 		// entry (the iterator reference changes as the loop iterates)
