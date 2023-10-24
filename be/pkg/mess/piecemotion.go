@@ -11,12 +11,12 @@ import (
 type Motion struct {
 	Name             string
 	MoveGenerator    MoveGeneratorFunc
-	ChoiceGenerators []ChoiceGeneratorFunc
+	ChoiceGenerators []MoveChoiceGeneratorFunc
 	Action           MoveActionFunc
 }
 
 type MoveGeneratorFunc = func(*Piece) []board.Square
-type ChoiceGeneratorFunc = func(*Piece, board.Square, board.Square) Choice
+type MoveChoiceGeneratorFunc = func(*Piece, board.Square, board.Square, []Option) Choice
 type MoveActionFunc = func(*Piece, board.Square, board.Square, []Option) error
 
 type chainMotions []Motion
@@ -30,20 +30,16 @@ func (g chainMotions) Generate(piece *Piece) []MoveGroup {
 		for _, destination := range destinations {
 			source := piece.Square()
 
-			var optionSets [][]Option
-			if len(motion.ChoiceGenerators) > 0 {
-				choices := make([]Choice, 0, len(motion.ChoiceGenerators))
-				for _, choiceGenerator := range motion.ChoiceGenerators {
-					choice := choiceGenerator(piece, source, destination)
-					choices = append(choices, choice)
+			var choiceGenerators []func([]Option) Choice
+			for _, generator := range motion.ChoiceGenerators {
+				generatorCopy := generator
+				generatorClosure := func(options []Option) Choice {
+					return generatorCopy(piece, source, destination, options)
 				}
-
-				optionSets = choicesToOptionSets(choices)
-			} else {
-				// One empty option set (no choices, action will be performed)
-				optionSets = [][]Option{{}}
+				choiceGenerators = append(choiceGenerators, generatorClosure)
 			}
 
+			optionSets := choiceGeneratorsToOptionSets(choiceGenerators)
 			resultMap[destination] = MoveGroup{
 				Name:       name,
 				Piece:      piece,

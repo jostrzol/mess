@@ -402,7 +402,7 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 				AllowDynamicType: true,
 			},
 		},
-		Type: function.StaticReturnType(cty.List(Move)),
+		Type: function.StaticReturnType(cty.List(MoveGroup)),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
 			var piece *mess.Piece
 			var err error
@@ -419,7 +419,7 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 				}
 			}
 
-			return listOrEmpty(Move, result), nil
+			return listOrEmpty(MoveGroup, result), nil
 		},
 	})
 }

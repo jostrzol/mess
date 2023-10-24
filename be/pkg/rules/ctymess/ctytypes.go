@@ -23,9 +23,17 @@ var Piece = cty.Object(map[string]cty.Type{
 	"square": cty.String,
 })
 
-var Record = cty.List(Move)
+var Record = cty.List(MoveGroup)
 
 var Turn = cty.Object(map[string]cty.Type{
+	"player": Player,
+	"piece":  Piece,
+	"src":    cty.String,
+	"dst":    cty.String,
+})
+
+var MoveGroup = cty.Object(map[string]cty.Type{
+	"name":   cty.String,
 	"player": Player,
 	"piece":  Piece,
 	"src":    cty.String,

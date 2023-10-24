@@ -284,7 +284,7 @@ composite_function "motion_line_straight" {
 // Promote - choice generator
 // Makes the player choose the target piece type (any except for king and pawn).
 composite_function "promote_choose_piece_type" {
-  params = [piece, src, dst]
+  params = [piece, src, dst, options]
   result = {
     owner     = owner_of(piece)
     forward_y = owner.forward_direction[1]
@@ -479,7 +479,7 @@ turn {
 }
 
 function "turn_choose_move" {
-  params = []
+  params = [options]
   result = { type = "move", message = "Choose move" }
 }
 

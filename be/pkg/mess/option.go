@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jostrzol/mess/pkg/board"
-	"github.com/jostrzol/mess/pkg/utils"
 )
 
 type Choice interface {
@@ -17,30 +16,46 @@ func (cb ChoiceMessage) Message() string {
 	return string(cb)
 }
 
-func choicesToOptionSets(choices []Choice) [][]Option {
-	optionSets := make([][]Option, len(choices))
-	for i, choice := range choices {
-		if choice == nil {
-			// One nil option set (action won't be performed)
-			return [][]Option{nil}
-		}
-		optionSets[i] = choice.GenerateOptions()
-	}
-	result := make([][]Option, 0)
-	for mi := utils.NewMultiindexLike(optionSets); !mi.IsEnd(); mi.Next() {
-		options := make([]Option, 0, len(choices))
-		for j, k := range mi.Current() {
-			options = append(options, optionSets[j][k])
-		}
-		result = append(result, options)
-	}
-	return result
-}
-
 type Option interface {
 	Message() string
 	Accept(visitor OptionVisitor)
 	String() string
+}
+
+type ChoiceGenerator = func([]Option) Choice
+
+func choiceGeneratorsToOptionSets(generators []ChoiceGenerator) [][]Option {
+	if len(generators) == 0 {
+		// One empty option set (no choices, action will be performed)
+		return [][]Option{{}}
+	}
+
+	var optionSets [][]Option
+	choice := generators[0]([]Option{})
+	if choice == nil {
+		// One nil option set (action won't be performed)
+		return [][]Option{nil}
+	}
+	for _, option := range choice.GenerateOptions() {
+		optionSets = append(optionSets, []Option{option})
+	}
+
+	for _, generator := range generators[1:] {
+		nextOptionSets := [][]Option{}
+		for _, options := range optionSets {
+			choice := generator(options)
+			if choice == nil {
+				continue
+			}
+			for _, option := range choice.GenerateOptions() {
+				nextOptions := append(options, option)
+				nextOptionSets = append(nextOptionSets, nextOptions)
+			}
+		}
+		optionSets = nextOptionSets
+	}
+
+	return optionSets
 }
 
 // Piece type choice

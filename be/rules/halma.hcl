@@ -181,7 +181,7 @@ turn {
 }
 
 function "turn_choose_move" {
-  params = []
+  params = [options]
   result = { type = "move", message = "Choose move" }
 }
 
