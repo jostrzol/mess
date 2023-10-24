@@ -28,6 +28,7 @@ type factory struct{ group OptionGroup }
 func (f *factory) VisitPieceTypeOption(_ *PieceTypeOption) { f.group = &PieceTypeOptionGroup{} }
 func (f *factory) VisitSquareOption(_ *SquareOption)       { f.group = &SquareOptionGroup{} }
 func (f *factory) VisitMoveOption(_ *MoveOption)           { f.group = &MoveOptionGroup{} }
+func (f *factory) VisitUnitOption(_ *UnitOption)           { f.group = &UnitOptionGroup{} }
 
 // Option groups
 
@@ -49,6 +50,12 @@ type MoveOptionGroup struct{ OptionGroupBase[*MoveOption] }
 
 func (mog *MoveOptionGroup) Accept(visitor OptionGroupVisitor) {
 	visitor.VisitMoveOptions(mog.Options)
+}
+
+type UnitOptionGroup struct{ OptionGroupBase[*UnitOption] }
+
+func (uog *UnitOptionGroup) Accept(visitor OptionGroupVisitor) {
+	visitor.VisitUnitOptions(uog.Options)
 }
 
 type OptionGroup interface {
@@ -75,4 +82,5 @@ type OptionGroupVisitor interface {
 	VisitPieceTypeOptions(options []*PieceTypeOption)
 	VisitSquareOptions(options []*SquareOption)
 	VisitMoveOptions(options []*MoveOption)
+	VisitUnitOptions(options []*UnitOption)
 }

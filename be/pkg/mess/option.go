@@ -140,10 +140,48 @@ func (mo *MoveOption) String() string {
 	return fmt.Sprintf("Move option: %v", mo.Move)
 }
 
+// Composite choice
+
+type CompositeChoice struct {
+	ChoiceMessage
+	Choices []Choice
+}
+
+func (cc *CompositeChoice) GenerateOptions() []Option {
+	var result []Option
+	for _, choice := range cc.Choices {
+		result = append(result, choice.GenerateOptions()...)
+	}
+	return result
+}
+
+// Unit choice
+
+type UnitChoice struct {
+	ChoiceMessage
+}
+
+func (uc *UnitChoice) GenerateOptions() []Option {
+	return []Option{&UnitOption{ChoiceMessage: uc.ChoiceMessage}}
+}
+
+type UnitOption struct {
+	ChoiceMessage
+}
+
+func (uo *UnitOption) Accept(visitor OptionVisitor) {
+	visitor.VisitUnitOption(uo)
+}
+
+func (uo *UnitOption) String() string {
+	return "Unit option"
+}
+
 // Option visitors
 
 type OptionVisitor interface {
 	VisitPieceTypeOption(option *PieceTypeOption)
 	VisitSquareOption(option *SquareOption)
 	VisitMoveOption(option *MoveOption)
+	VisitUnitOption(option *UnitOption)
 }

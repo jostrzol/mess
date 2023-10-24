@@ -20,7 +20,13 @@ func (t *interactor) selectOptionSet(optionSets [][]mess.Option) ([]mess.Option,
 
 		group := maps.Values(groups)[0]
 		if len(groups) > 1 {
-			panic("not implemented") // TODO: implement
+			fmt.Println("Choose action:")
+			messages := maps.Keys(groups)
+			message, err := t.selectString(messages)
+			if err != nil {
+				return nil, err
+			}
+			group = groups[message]
 		}
 
 		option, err := t.selectOption(group)
@@ -64,13 +70,21 @@ func (o *optionSelector) VisitPieceTypeOptions(options []*mess.PieceTypeOption) 
 
 func (o *optionSelector) VisitSquareOptions(options []*mess.SquareOption) {
 	var square board.Square
+
+	message := options[0].Message()
+	fmt.Printf("%s:\n", message)
 	square, o.err = o.interactor.selectSquare()
+	if o.err != nil {
+		return
+	}
+
 	for _, option := range options {
 		if square == option.Square {
 			o.result = option
-			break
+			return
 		}
 	}
+	o.err = fmt.Errorf("invalid option")
 }
 
 func (o *optionSelector) VisitMoveOptions(options []*mess.MoveOption) {
@@ -80,41 +94,30 @@ func (o *optionSelector) VisitMoveOptions(options []*mess.MoveOption) {
 	o.result = options[0]
 }
 
+func (o *optionSelector) VisitUnitOptions(options []*mess.UnitOption) {
+	o.result = options[0]
+}
+
 func selectWithNumber[T mess.Option](t *interactor, options []T) (mess.Option, error) {
 	optionsByString := make(map[string]T, 1)
 	for _, option := range options {
 		optionsByString[option.String()] = option
 	}
 
+	message := options[0].Message()
+	fmt.Printf("%s:\n", message)
+
 	optionStrings := maps.Keys(optionsByString)
-
-	println("Choose option:")
-	for i, optionString := range optionStrings {
-		fmt.Printf("%v. %v\n", i+1, optionString)
-	}
-	print("> ")
-	choiceStr, err := t.scan()
+	optionString, err := t.selectString(optionStrings)
 	if err != nil {
 		return nil, err
 	}
-
-	var i int
-	_, err = fmt.Sscanf(choiceStr, "%d", &i)
-	if err != nil {
-		return nil, err
-	}
-
-	if i < 1 || i > len(optionStrings) {
-		return nil, fmt.Errorf("invalid option")
-	}
-	optionString := optionStrings[i-1]
 
 	return optionsByString[optionString], nil
 }
 
 func (t *interactor) selectMove() (*mess.Move, error) {
 	println("Choose a square with your piece")
-	print("> ")
 	piece, err := t.selectOwnPiece()
 	if err != nil {
 		return nil, err
@@ -136,7 +139,6 @@ func (t *interactor) selectMove() (*mess.Move, error) {
 	}
 
 	println("Choose a destination square")
-	print("> ")
 	dst, err := t.selectSquare()
 	if err != nil {
 		return nil, err
@@ -183,4 +185,25 @@ func (t *interactor) selectSquare() (board.Square, error) {
 		return board.Square{}, fmt.Errorf("Square not on board")
 	}
 	return square, nil
+}
+
+func (t *interactor) selectString(strings []string) (string, error) {
+	for i, str := range strings {
+		fmt.Printf("%v. %v\n", i+1, str)
+	}
+	choiceStr, err := t.scan()
+	if err != nil {
+		return "", err
+	}
+
+	var i int
+	_, err = fmt.Sscanf(choiceStr, "%d", &i)
+	if err != nil {
+		return "", err
+	}
+
+	if i < 1 || i > len(strings) {
+		return "", fmt.Errorf("invalid option")
+	}
+	return strings[i-1], nil
 }

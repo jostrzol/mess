@@ -111,8 +111,11 @@ func (c *controller) Turn(_ *mess.State, options []mess.Option) error {
 	}
 
 	_, err := turnFunc.Call([]cty.Value{optionsCty})
+	if err != nil {
+		return fmt.Errorf("calling turn action function %q: %v", funcName, err)
+	}
 
-	return err
+	return nil
 }
 
 func (c *controller) GetCustomFuncAsGenerator(name string) (mess.MoveGeneratorFunc, error) {

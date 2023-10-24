@@ -109,7 +109,7 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err 
 	}
 	messageStr, err := getAttrAsString(value, "message")
 	if err != nil {
-		return nil, err
+		messageStr = ""
 	}
 
 	choiceMessage := mess.ChoiceMessage(messageStr)
@@ -137,10 +137,35 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err 
 		}
 		return &mess.PieceTypeChoice{ChoiceMessage: choiceMessage, PieceTypes: pieceTypes}, nil
 	case "square":
-		// TODO:
-		panic("TODO")
+		squaresCty, err := getAttr(value, "squares")
+		if err != nil {
+			return nil, err
+		}
+
+		squares, err := SquaresFromCty(squaresCty)
+
+		return &mess.SquareChoice{ChoiceMessage: choiceMessage, Squares: squares}, nil
 	case "move":
 		return &mess.MoveChoice{ChoiceMessage: choiceMessage}, nil
+	case "composite":
+		choicesCty, err := getAttr(value, "choices")
+		if err != nil {
+			return nil, err
+		}
+
+		choices := make([]mess.Choice, 0, choicesCty.LengthInt())
+		for i := choicesCty.ElementIterator(); i.Next(); {
+			_, choiceCty := i.Element()
+			choice, err := ChoiceFromCty(state, choiceCty)
+			if err != nil {
+				return nil, err
+			}
+			choices = append(choices, choice)
+		}
+
+		return &mess.CompositeChoice{ChoiceMessage: choiceMessage, Choices: choices}, nil
+	case "unit":
+		return &mess.UnitChoice{ChoiceMessage: choiceMessage}, nil
 	default:
 		return nil, fmt.Errorf("invalid choice type: %v", choiceType)
 	}
@@ -180,7 +205,7 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 	}
 	messageStr, err := getAttrAsString(value, "message")
 	if err != nil {
-		return nil, err
+		messageStr = ""
 	}
 	choiceMessage := mess.ChoiceMessage(messageStr)
 
@@ -218,6 +243,8 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 			return nil, err
 		}
 		return &mess.MoveOption{ChoiceMessage: choiceMessage, Move: move}, nil
+	case "unit":
+		return &mess.UnitOption{ChoiceMessage: choiceMessage}, nil
 	default:
 		return nil, fmt.Errorf("invalid choice type: %v", optionType)
 	}

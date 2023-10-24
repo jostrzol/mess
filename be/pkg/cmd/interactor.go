@@ -53,7 +53,7 @@ func (t *interactor) Run() (*mess.Player, error) {
 
 		err = t.game.Turn(options)
 		if err != nil {
-			return nil, fmt.Errorf("performing move: %v", err)
+			return nil, fmt.Errorf("executing turn action: %v", err)
 		}
 
 		t.game.EndTurn()
@@ -84,6 +84,7 @@ func (t *interactor) printBar() {
 }
 
 func (t *interactor) scan() (string, error) {
+	fmt.Print("> ")
 	if !t.scanner.Scan() {
 		if t.scanner.Err() == nil {
 			return "", ErrEOT

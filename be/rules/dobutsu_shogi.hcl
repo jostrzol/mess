@@ -222,8 +222,12 @@ function "turn_choose_move_or_captured_piece" {
   result = {
     type = "composite"
     choices = [
-      { type = "move" },
-      { type = "piece_type", options = captured_piece_types(game.current_player) },
+      { message = "Make a move", type = "move" },
+      {
+        message = "Place a captured piece",
+        type    = "piece_type",
+        options = captured_piece_types(game.current_player)
+      },
     ]
   }
 }
@@ -236,8 +240,8 @@ function "captured_piece_types" {
 function "turn_choose_empty_square" {
   params = [options]
   result = (options[0].type == "move"
-    ? { type = "unit" }
-    : { type = "square", options = empty_squares() }
+    ? { message = "", type = "unit", squares = null }
+    : { message = "Choose an empty square", type = "square", squares = empty_squares() }
   )
 }
 
@@ -258,18 +262,10 @@ composite_function "turn" {
       ? make_move(options[0].move)
       : convert_and_release(
         game.current_player,
-        options[0].piece_type,
+        options[0].piece_type.name,
         options[1].square
       )
     )
-  }
-}
-
-composite_function "turn" {
-  params = []
-  result = {
-    func = length(game.current_player.captures) == 0 ? "player_move" : "choose_turn_action"
-    _    = call(func)
   }
 }
 

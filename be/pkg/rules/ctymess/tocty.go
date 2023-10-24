@@ -78,6 +78,9 @@ func RecordToCty(record []mess.Turn) cty.Value {
 }
 
 func MoveToCty(move *mess.Move) cty.Value {
+	if move == nil {
+		return cty.NullVal(Move)
+	}
 	result := cty.ObjectVal(map[string]cty.Value{
 		"name":    cty.StringVal(move.Name),
 		"piece":   PieceToCty(move.Piece),
@@ -124,14 +127,14 @@ func PieceTypeToCty(pieceType *mess.PieceType) cty.Value {
 
 func OptionsToCty(options []mess.Option) cty.Value {
 	if options == nil {
-		return cty.NullVal(cty.List(Option))
+		return cty.NullVal(cty.Tuple([]cty.Type{Option}))
 	}
 
 	result := make([]cty.Value, 0, len(options))
 	for _, option := range options {
 		result = append(result, OptionToCty(option))
 	}
-	return listOrEmpty(cty.DynamicPseudoType, result)
+	return tupleOrEmpty(result)
 }
 
 func OptionToCty(option mess.Option) cty.Value {
@@ -154,6 +157,11 @@ func OptionToCty(option mess.Option) cty.Value {
 			"type":    cty.StringVal("move"),
 			"move":    MoveToCty(opt.Move),
 		})
+	case *mess.UnitOption:
+		return cty.ObjectVal(map[string]cty.Value{
+			"message": cty.StringVal(opt.Message()),
+			"type":    cty.StringVal("unit"),
+		})
 	default:
 		err := fmt.Errorf("invalid option type %T", option)
 		panic(err)
@@ -172,4 +180,11 @@ func listOrEmpty(listType cty.Type, slice []cty.Value) cty.Value {
 		return cty.ListValEmpty(listType)
 	}
 	return cty.ListVal(slice)
+}
+
+func tupleOrEmpty(slice []cty.Value) cty.Value {
+	if len(slice) == 0 {
+		return cty.EmptyTupleVal
+	}
+	return cty.TupleVal(slice)
 }
