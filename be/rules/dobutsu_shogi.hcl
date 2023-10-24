@@ -269,16 +269,6 @@ composite_function "turn" {
   }
 }
 
-composite_function "choose_turn_action" {
-  params = []
-  result = {
-    actions      = ["Move piece", "Place captured piece"]
-    action_funcs = ["player_move", "place_capture"]
-    choice       = choose(actions)
-    _            = call(action_funcs[choice])
-  }
-}
-
 // ===== GAME RESOLVING FUNCTIONS ==============================
 // Namely the function "pick_winner" and its helpers
 
