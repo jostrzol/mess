@@ -93,15 +93,15 @@ func OffsetMotion(t *testing.T, offsets ...board.Offset) mess.Motion {
 	}
 }
 
-func ChooseRandom(src rand.Source, moveGroup mess.MoveGroup) mess.Move {
+func ChooseRandom(src rand.Source, moveGroup mess.MoveGroup) *mess.Move {
 	moves := moveGroup.Moves()
 	chosen := int(src.Int63()) % len(moves)
 	return moves[chosen]
 }
 
-func MoveWithOptionTexts(optionTexts []string, moveGroup mess.MoveGroup) mess.Move {
+func MoveWithOptionTexts(optionTexts []string, moveGroup mess.MoveGroup) *mess.Move {
 	moves := moveGroup.Moves()
-	i := slices.IndexFunc(moves, func(move mess.Move) bool {
+	i := slices.IndexFunc(moves, func(move *mess.Move) bool {
 		return fmt.Sprintf("%v", optionTexts) == fmt.Sprintf("%v", move.Options)
 	})
 	if i == -1 {

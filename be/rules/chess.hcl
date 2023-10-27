@@ -450,7 +450,6 @@ initial_state {
     F2 = "pawn"
     G2 = "pawn"
     H2 = "pawn"
-    H7 = "pawn"
   }
   black_pieces = {
     A8 = "rook"
@@ -460,7 +459,7 @@ initial_state {
     E8 = "king"
     F8 = "bishop"
     G8 = "knight"
-    # H8 = "rook"
+    H8 = "rook"
     A7 = "pawn"
     B7 = "pawn"
     C7 = "pawn"
@@ -468,7 +467,7 @@ initial_state {
     E7 = "pawn"
     F7 = "pawn"
     G7 = "pawn"
-    # H7 = "pawn"
+    H7 = "pawn"
   }
 }
 
