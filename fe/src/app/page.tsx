@@ -1,8 +1,13 @@
 "use client";
 
+import {
+  defaultTheme,
+  Theme,
+  ThemeContext,
+  useTheme,
+} from "@/contexts/themeContext";
+import { GamePage } from "@/pages/game";
 import { useCookies } from "react-cookie";
-import { defaultTheme, Theme, ThemeContext, useTheme } from "@/contexts/themeContext";
-import {GamePage} from "@/pages/game";
 
 const Home = () => {
   const [cookies, setCookies, _] = useCookies(["theme"]);
@@ -14,7 +19,7 @@ const Home = () => {
   return (
     <ThemeContext.Provider value={theme}>
       <body className="bg-background text-txt">
-        <GamePage onThemeChange={onThemeChange}/>
+        <GamePage onThemeChange={onThemeChange} />
       </body>
     </ThemeContext.Provider>
   );

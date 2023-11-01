@@ -16,7 +16,7 @@ export interface ThemeColors {
   "txt-dim": string;
   "player-white": string;
   "player-black": string;
-  "danger": string;
+  danger: string;
   "danger-dim": string;
 }
 
@@ -61,7 +61,7 @@ type SetTheme = Dispatch<SetStateAction<Theme>>;
 export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const applyTheme = () => {
-    console.log(theme.colors)
+    console.log(theme.colors);
     const root = document.documentElement;
     Object.entries(theme.colors).forEach(([key, value]) => {
       const colorKey = `--theme-${key}`;

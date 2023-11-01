@@ -11,7 +11,9 @@ export interface Piece {
 
 export namespace Piece {
   export const hasValidMove = (piece: Piece, move: Square): boolean => {
-    const found = piece.validMoves.find((validMove) => Square.equals(validMove, move));
+    const found = piece.validMoves.find((validMove) =>
+      Square.equals(validMove, move),
+    );
     return found !== undefined;
   };
 }
