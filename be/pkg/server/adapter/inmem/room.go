@@ -1,4 +1,4 @@
-package repository
+package inmem
 
 import (
 	"fmt"
@@ -12,13 +12,13 @@ type RoomRepository struct {
 	rooms map[uuid.UUID]*room.Room
 }
 
-func New() *RoomRepository {
+func NewRoomRepository() *RoomRepository {
 	return &RoomRepository{rooms: make(map[uuid.UUID]*room.Room)}
 }
 
 func init() {
 	container.MustSingleton(container.Global, func() room.Repository {
-		return New()
+		return NewRoomRepository()
 	})
 }
 

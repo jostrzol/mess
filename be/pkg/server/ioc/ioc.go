@@ -3,15 +3,22 @@ package ioc
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golobby/container/v3"
+	"golang.org/x/exp/maps"
 )
 
-func MustResolve[T any]() *T {
-	var result *T
+func MustResolve[T any]() T {
+	var result T
 	container.MustResolve(container.Global, &result)
 	return result
 }
 
-func MustSingleton[T any]() {
+func MustSingleton[T any](instance T) {
+	container.MustSingletonLazy(container.Global, func() T {
+		return instance
+	})
+}
+
+func MustSingletonFill[T any]() {
 	container.MustSingletonLazy(container.Global, func() *T {
 		var result T
 		container.MustFill(container.Global, &result)
@@ -19,7 +26,7 @@ func MustSingleton[T any]() {
 	})
 }
 
-func MustSingletonAs[TSrc, TDst any]() {
+func MustSingletonFillAs[TSrc, TDst any]() {
 	container.MustSingletonLazy(container.Global, func() TDst {
 		var result TSrc
 		container.MustFill(container.Global, &result)
@@ -29,7 +36,7 @@ func MustSingletonAs[TSrc, TDst any]() {
 
 var HandlerInitializers []func(*gin.Engine)
 
-func MustHandler[T any](addHandlerFuncs ...func(*T, *gin.Engine)) {
+func MustHandlerFill[T any](addHandlerFuncs ...func(*T, *gin.Engine)) {
 	container.MustSingletonLazy(container.Global, func() *T {
 		var result T
 		container.MustFill(container.Global, &result)
@@ -37,9 +44,17 @@ func MustHandler[T any](addHandlerFuncs ...func(*T, *gin.Engine)) {
 	})
 
 	HandlerInitializers = append(HandlerInitializers, func(g *gin.Engine) {
-		handler := MustResolve[T]()
+		handler := MustResolve[*T]()
 		for _, addHandlerFunc := range addHandlerFuncs {
 			addHandlerFunc(handler, g)
 		}
 	})
+}
+
+func MakeChild(parent container.Container) container.Container {
+	child := container.New()
+	for ty, bindMap := range parent {
+		child[ty] = maps.Clone(bindMap)
+	}
+	return child
 }

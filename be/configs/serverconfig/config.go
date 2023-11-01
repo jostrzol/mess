@@ -1,18 +1,39 @@
 package serverconfig
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 
 	"github.com/spf13/viper"
 )
 
+const defaultSessionSecretLen = 64
+
 type Config struct {
-	IsProduction bool `mapstructure:"release"`
+	IsProduction  bool   `mapstructure:"release"`
+	SessionSecret string `mapstructure:"session_secret"`
+	Port          int    `mapstructure:"port"`
 }
 
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("release", false)
+	v.SetDefault("secret", generateSessionSecret())
+	v.SetDefault("port", 4000)
+}
+
+func generateSessionSecret() string {
+	result := make([]byte, defaultSessionSecretLen)
+	n, err := rand.Read(result)
+	if err != nil {
+		panic(err)
+	} else if n != defaultSessionSecretLen {
+		err := fmt.Errorf(
+			"can't generate session secret: read %v of %v bytes",
+			n, defaultSessionSecretLen)
+		panic(err)
+	}
+	return string(result)
 }
 
 func New() (*Config, error) {

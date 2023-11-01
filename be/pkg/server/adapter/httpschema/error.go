@@ -9,14 +9,14 @@ import (
 )
 
 type Error struct {
-	Status     int               `json:"status"`
-	Message    string            `json:"message"`
-	Validation []ValidationError `json:"validation,omitempty"`
+	Status     int
+	Message    string
+	Validation []ValidationError `json:",omitempty"`
 }
 
 type ValidationError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+	Field   string
+	Message string
 }
 
 func NewError(err error) *Error {

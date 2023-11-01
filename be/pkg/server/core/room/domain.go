@@ -21,10 +21,10 @@ func New() *Room {
 	return &Room{ID: uuid.New(), players: make(map[color.Color]uuid.UUID)}
 }
 
-func (r *Room) AddPlayer(playerID uuid.UUID) error {
+func (r *Room) AddPlayer(sessionID uuid.UUID) error {
 	for _, color := range color.ColorValues() {
 		if _, present := r.players[color]; !present {
-			r.players[color] = playerID
+			r.players[color] = sessionID
 			return nil
 		}
 	}

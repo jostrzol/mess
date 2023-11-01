@@ -2,14 +2,17 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"github.com/golobby/container/v3"
 	"github.com/jostrzol/mess/configs/serverconfig"
 	"github.com/jostrzol/mess/pkg/logger"
+	"github.com/jostrzol/mess/pkg/server/adapter/http"
 	_ "github.com/jostrzol/mess/pkg/server/adapter/http"
 	_ "github.com/jostrzol/mess/pkg/server/adapter/inmem"
 	"github.com/jostrzol/mess/pkg/server/ioc"
@@ -32,12 +35,16 @@ func main() {
 	g := gin.New()
 	g.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	g.Use(ginzap.RecoveryWithZap(logger, true))
+	store := memstore.NewStore([]byte(config.SessionSecret))
+	g.Use(sessions.Sessions(http.SessionKey, store))
 
-	container.MustSingleton(container.Global, func() *gin.Engine { return g })
+	ioc.MustSingleton(g)
 	for _, initializer := range ioc.HandlerInitializers {
 		initializer(g)
 	}
-	log.Fatal(g.Run(":4000"))
+
+	address := fmt.Sprintf(":%d", config.Port)
+	log.Fatal(g.Run(address))
 }
 
 func loadConfigAndLogger() (*serverconfig.Config, *zap.Logger) {
@@ -56,6 +63,10 @@ func loadConfigAndLogger() (*serverconfig.Config, *zap.Logger) {
 	} else if errConfig != nil {
 		logger.Fatal("", zap.Error(errConfig))
 	}
+
+	ioc.MustSingleton(config)
+	ioc.MustSingleton(logger)
+	ioc.MustSingleton(logger.Sugar())
 
 	return config, logger
 }

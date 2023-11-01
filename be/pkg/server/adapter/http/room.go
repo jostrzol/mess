@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/jostrzol/mess/pkg/server/adapter/httpschema"
 	"github.com/jostrzol/mess/pkg/server/core/room"
 	"github.com/jostrzol/mess/pkg/server/ioc"
@@ -16,21 +15,9 @@ type RoomHandler struct {
 
 func CreateRoom(h *RoomHandler, g *gin.Engine) {
 	g.POST("/rooms", func(c *gin.Context) {
-		var params struct {
-			PlayerID string `json:"PlayerID" binding:"uuid"`
-		}
-		err := c.ShouldBindQuery(&params)
-		if err != nil {
-			AbortWithError(c, err)
-			return
-		}
-		playerID, err := uuid.Parse(params.PlayerID)
-		if err != nil {
-			AbortWithError(c, err)
-			return
-		}
+		session := GetSessionData(c)
 
-		room, err := h.service.CreateRoom(playerID)
+		room, err := h.service.CreateRoom(session.ID)
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -41,5 +28,5 @@ func CreateRoom(h *RoomHandler, g *gin.Engine) {
 }
 
 func init() {
-	ioc.MustHandler[RoomHandler](CreateRoom)
+	ioc.MustHandlerFill[RoomHandler](CreateRoom)
 }
