@@ -1,6 +1,6 @@
-import { Board as BoardModel } from "@/app/model/board";
-import { Piece as PieceModel } from "@/app/model/piece";
-import { Square } from "@/app/model/square";
+import { Board as BoardModel } from "@/model/board";
+import { Piece as PieceModel } from "@/model/piece";
+import { Square } from "@/model/square";
 import { useState } from "react";
 import { Tile } from "./tile";
 

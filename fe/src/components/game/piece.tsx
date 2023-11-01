@@ -1,4 +1,4 @@
-import { Piece as PieceConfig } from "@/app/model/piece";
+import { Piece as PieceConfig } from "@/model/piece";
 import clsx from "clsx";
 import { ReactSVG } from "react-svg";
 

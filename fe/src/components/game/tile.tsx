@@ -1,5 +1,5 @@
-import { Color } from "@/app/model/color";
-import { Piece as PieceModel } from "@/app/model/piece";
+import { Color } from "@/model/color";
+import { Piece as PieceModel } from "@/model/piece";
 import clsx from "clsx";
 import { Piece } from "./piece";
 
