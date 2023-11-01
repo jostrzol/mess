@@ -3,12 +3,9 @@ import { ReactNode, useContext, useState } from "react";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { Theme, ThemeContext, themes } from "../contexts/themeContext";
 
-export interface MenuProps {
-  onThemeChange?: (theme: Theme) => void;
-}
-export const Menu = ({ onThemeChange }: MenuProps) => {
+export const Menu = () => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const currentTheme = useContext(ThemeContext);
+  const {theme, setTheme} = useContext(ThemeContext);
   return (
     <aside
       className={clsx(
@@ -39,10 +36,10 @@ export const Menu = ({ onThemeChange }: MenuProps) => {
         <div className="m-5">
           <MenuSection title="Theme">
             {Object.entries(themes).map(([name, colors]) => {
-              const isSelected = name == currentTheme.name;
+              const isSelected = name == theme.name;
               return (
                 <button
-                  onClick={() => onThemeChange?.({ name, colors })}
+                  onClick={() => setTheme({ name, colors })}
                   className={clsx(
                     "mb-2",
                     "bg-background",

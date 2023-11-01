@@ -1,11 +1,6 @@
 import Color from "color";
-import {
-  Dispatch,
-  SetStateAction,
-  createContext,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, createContext, useEffect } from "react";
+import {useCookies} from "react-cookie";
 import * as colors from "tailwindcss/colors";
 
 export interface ThemeColors {
@@ -54,12 +49,23 @@ export const defaultTheme: Theme = {
   name: "light",
   colors: themes["light"],
 };
-export const ThemeContext = createContext<Theme>(defaultTheme);
 
-type SetTheme = Dispatch<SetStateAction<Theme>>;
+type SetTheme = (theme: Theme) => void;
+type ThemeContextValue = {
+  theme: Theme;
+  setTheme: SetTheme;
+};
+export const ThemeContext = createContext<ThemeContextValue>(
+  null as unknown as ThemeContextValue,
+);
 
-export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
-  const [theme, setTheme] = useState<Theme>(initialTheme);
+export const useTheme = (): ThemeContextValue => {
+  const [cookies, setCookies, _] = useCookies(["theme"]);
+  const theme: Theme = cookies["theme"] ?? defaultTheme;
+  const setTheme = (theme: Theme) => {
+    setCookies("theme", theme, { maxAge: 60 * 60 * 24 * 365 * 10 });
+  };
+
   const applyTheme = () => {
     console.log(theme.colors);
     const root = document.documentElement;
@@ -70,5 +76,5 @@ export const useTheme = (initialTheme: Theme): [Theme, SetTheme] => {
     });
   };
   useEffect(applyTheme, [theme]);
-  return [theme, setTheme];
+  return {theme, setTheme}
 };
