@@ -1,6 +1,6 @@
 import Color from "color";
-import { Dispatch, SetStateAction, createContext, useEffect } from "react";
-import {useCookies} from "react-cookie";
+import { createContext, useEffect } from "react";
+import { useCookies } from "react-cookie";
 import * as colors from "tailwindcss/colors";
 
 export interface ThemeColors {
@@ -23,8 +23,8 @@ export interface Theme {
 export const themes = {
   light: {
     background: colors.slate[50],
-    primary: colors.blue[700],
-    "primary-dim": colors.blue[500],
+    primary: colors.slate[700],
+    "primary-dim": colors.slate[500],
     txt: colors.slate[900],
     "txt-dim": colors.slate[400],
     "player-white": colors.slate[50],
@@ -34,8 +34,8 @@ export const themes = {
   },
   dark: {
     background: colors.slate[950],
-    primary: colors.blue[700],
-    "primary-dim": colors.blue[500],
+    primary: colors.slate[700],
+    "primary-dim": colors.slate[500],
     txt: colors.slate[400],
     "txt-dim": colors.slate[600],
     "player-white": colors.slate[50],
@@ -76,5 +76,5 @@ export const useTheme = (): ThemeContextValue => {
     });
   };
   useEffect(applyTheme, [theme]);
-  return {theme, setTheme}
+  return { theme, setTheme };
 };

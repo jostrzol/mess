@@ -12,6 +12,8 @@
     "check-all": "yarn format-check && yarn lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.4.3",
+    "@tanstack/react-query-devtools": "^5.4.3",
     "@types/color": "^3.0.4",
     "clsx": "^2.0.0",
     "color": "^4.2.3",

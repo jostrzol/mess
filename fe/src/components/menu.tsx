@@ -1,7 +1,9 @@
+"use client";
+
 import clsx from "clsx";
 import { ReactNode, useContext, useState } from "react";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
-import { Theme, ThemeContext, themes } from "../contexts/themeContext";
+import { ThemeContext, themes } from "../contexts/themeContext";
 
 export const Menu = () => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
