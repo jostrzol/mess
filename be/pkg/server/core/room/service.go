@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 )
 
@@ -51,12 +50,4 @@ func (s *Service) GetRoom(roomID uuid.UUID) (*Room, error) {
 		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
 	}
 	return room, nil
-}
-
-func (s *Service) GetGameState(roomID uuid.UUID) (*mess.Game, error) {
-	room, err := s.repository.Get(roomID)
-	if err != nil {
-		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
-	}
-	return room.Game, nil
 }

@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { ReactNode, useContext, useState } from "react";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { ThemeContext } from "../contexts/themeContext";
+import { Logo } from "./logo";
 
 export const Menu = () => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
@@ -36,7 +37,20 @@ export const Menu = () => {
           "whitespace-nowrap",
         )}
       >
-        <div className="m-5">
+        <div className="m-5 flex flex-col gap-4">
+          <section
+            className={clsx(
+              "flex",
+              "m-2",
+              "py-2",
+              "px-3",
+              "bg-primary-dim/20",
+              "rounded-2xl",
+            )}
+          >
+            <Logo size={50} className={clsx("min-w-[50px]", "mr-2")} />
+            <h1>mess</h1>
+          </section>
           <MenuSection title="Theme">
             {Object.entries(themes).map(([name, colors]) => {
               const isSelected = name == theme.name;
@@ -85,6 +99,10 @@ export const Menu = () => {
           "h-full",
           "bg-background/80",
           "group",
+          "border-r-2",
+          "border-txt-dim",
+          "border-dashed",
+          "outline-none",
         )}
         onClick={() => setIsMenuExpanded(!isMenuExpanded)}
       >
@@ -96,7 +114,13 @@ export const Menu = () => {
             isMenuExpanded && "rotate-180",
           )}
         >
-          <div className={clsx("absolute", "group-hover:animate-ping-1")}>
+          <div
+            className={clsx(
+              "absolute",
+              "group-focus:animate-ping-1",
+              "group-hover:animate-ping-1",
+            )}
+          >
             <MdOutlineArrowForwardIos />
           </div>
           <MdOutlineArrowForwardIos />

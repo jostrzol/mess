@@ -6,11 +6,13 @@ import (
 )
 
 type Room struct {
-	ID uuid.UUID
+	ID      uuid.UUID
+	Players int
 }
 
 func NewRoom(room *room.Room) *Room {
 	return &Room{
-		ID: room.ID,
+		ID:      room.ID(),
+		Players: room.Players(),
 	}
 }

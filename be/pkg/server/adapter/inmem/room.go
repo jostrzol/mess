@@ -1,8 +1,6 @@
 package inmem
 
 import (
-	"fmt"
-
 	"github.com/golobby/container/v3"
 	"github.com/google/uuid"
 	"github.com/jostrzol/mess/pkg/server/core/room"
@@ -23,16 +21,14 @@ func init() {
 }
 
 func (r *RoomRepository) Save(room *room.Room) error {
-	r.rooms[room.ID] = room
+	r.rooms[room.ID()] = room
 	return nil
 }
 
 func (r *RoomRepository) Get(roomID uuid.UUID) (*room.Room, error) {
-	room, ok := r.rooms[roomID]
+	result, ok := r.rooms[roomID]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, room.ErrNotFound
 	}
-	return room, nil
+	return result, nil
 }
-
-var ErrNotFound = fmt.Errorf("room not found")

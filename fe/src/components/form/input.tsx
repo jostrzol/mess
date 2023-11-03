@@ -9,7 +9,6 @@ export const Input = ({
   return (
     <input
       className={clsx(
-        "m-2",
         "py-2",
         "px-3",
         "bg-transparent",

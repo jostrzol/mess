@@ -9,7 +9,6 @@ export const Button = ({
   return (
     <button
       className={clsx(
-        "m-2",
         "py-2",
         "px-3",
         "bg-primary-dim/20",

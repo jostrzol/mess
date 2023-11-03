@@ -11,19 +11,26 @@ import (
 )
 
 type Room struct {
-	ID      uuid.UUID
+	id      uuid.UUID
 	players map[color.Color]uuid.UUID
-	Rules   *string
-	Game    *mess.Game
+	rules   *string
+	game    *mess.Game
 }
 
 func New() *Room {
-	return &Room{ID: uuid.New(), players: make(map[color.Color]uuid.UUID)}
+	return &Room{id: uuid.New(), players: make(map[color.Color]uuid.UUID)}
+}
+
+func (r *Room) ID() uuid.UUID {
+	return r.id
 }
 
 func (r *Room) AddPlayer(sessionID uuid.UUID) error {
 	for _, color := range color.ColorValues() {
-		if _, present := r.players[color]; !present {
+		playerID, present := r.players[color]
+		if playerID == sessionID {
+			return nil
+		} else if !present {
 			r.players[color] = sessionID
 			return nil
 		}
@@ -31,15 +38,19 @@ func (r *Room) AddPlayer(sessionID uuid.UUID) error {
 	return ErrRoomFull
 }
 
+func (r *Room) Players() int {
+	return len(r.players)
+}
+
 func (r *Room) Start() error {
-	if r.Rules == nil {
+	if r.rules == nil {
 		return ErrNoRules
 	}
-	game, err := rules.DecodeRules(*r.Rules, true)
+	game, err := rules.DecodeRules(*r.rules, true)
 	if err != nil {
 		return fmt.Errorf("decoding rules: %w", err)
 	}
-	r.Game = game
+	r.game = game
 	return nil
 }
 

@@ -20,32 +20,31 @@ type ValidationError struct {
 }
 
 func NewError(err error) *Error {
-	errCurr := err
-	for errCurr != nil {
-		switch v := errCurr.(type) {
-		case usrerr.UserError:
-			return &Error{
-				Status:  http.StatusBadRequest,
-				Message: v.UserError(),
-			}
-		case validator.ValidationErrors:
-			validation := make([]ValidationError, 0, len(v))
-			for _, e := range v {
-				validation = append(validation, ValidationError{
-					Field:   e.Field(),
-					Message: e.Error(),
-				})
-			}
-			return &Error{
-				Status:     http.StatusUnprocessableEntity,
-				Message:    "unprocessable entity",
-				Validation: validation,
-			}
+	var uerr usrerr.UserError
+	var verrs validator.ValidationErrors
+	switch {
+	case errors.As(err, &uerr):
+		return &Error{
+			Status:  http.StatusBadRequest,
+			Message: uerr.UserError(),
 		}
-		errCurr = errors.Unwrap(errCurr)
-	}
-	return &Error{
-		Status:  http.StatusInternalServerError,
-		Message: "internal server error",
+	case errors.As(err, &verrs):
+		validation := make([]ValidationError, 0, len(verrs))
+		for _, verr := range verrs {
+			validation = append(validation, ValidationError{
+				Field:   verr.Field(),
+				Message: verr.Error(),
+			})
+		}
+		return &Error{
+			Status:     http.StatusUnprocessableEntity,
+			Message:    "unprocessable entity",
+			Validation: validation,
+		}
+	default:
+		return &Error{
+			Status:  http.StatusInternalServerError,
+			Message: "internal server error",
+		}
 	}
 }

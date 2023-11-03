@@ -1,103 +1,46 @@
 "use client";
 
-import { Board } from "@/components/game/board";
+import { joinRoom } from "@/api/room";
+import { Button } from "@/components/form/button";
+import { Loader } from "@/components/loader";
 import { Main } from "@/components/main";
-import { Piece as PieceConfig } from "@/model/piece";
-import { PieceType } from "@/model/pieceType";
-import { Square } from "@/model/square";
+import { useQuery } from "@tanstack/react-query";
 import { UUID } from "crypto";
+import { redirect } from "next/navigation";
 
-type GamePageParams = {
+type RoomPageParams = {
   params: {
     roomId: UUID;
-  }
+  };
 };
 
-const GamePage = ({params} : GamePageParams) => {
-  const pieceTypes = {
-    king: {
-      code: "king",
-      name: "King",
-      iconUri: "/pieces/king.svg",
-    },
-    queen: {
-      code: "queen",
-      name: "Queen",
-      iconUri: "/pieces/queen.svg",
-    },
-    rook: {
-      code: "rook",
-      name: "Rook",
-      iconUri: "/pieces/rook.svg",
-    },
-    bishop: {
-      code: "bishop",
-      name: "Bishop",
-      iconUri: "/pieces/bishop.svg",
-    },
-    knight: {
-      code: "knight",
-      name: "Knight",
-      iconUri: "/pieces/knight.svg",
-    },
-    pawn: {
-      code: "pawn",
-      name: "Pawn",
-      iconUri: "/pieces/pawn.svg",
-    },
-  } satisfies Record<string, PieceType>;
-  const makeMoves = (square: Square) => {
-    const offsets = [
-      [1, 1],
-      [0, 1],
-      [-1, 1],
-      [1, -1],
-      [0, -1],
-      [-1, -1],
-      [-1, 0],
-      [1, 0],
-    ];
-    return offsets
-      .map((offset): Square => [square[0] + offset[0], square[1] + offset[1]])
-      .filter((dest) => dest[0] >= 0 && dest[1] >= 0);
-  };
-  const pieces: PieceConfig[] = Object.values(pieceTypes).flatMap((type, i) => [
-    {
-      square: [3, i],
-      color: "black",
-      type,
-      validMoves: makeMoves([3, i]),
-    },
-    {
-      square: [4, i],
-      color: "black",
-      type,
-      validMoves: makeMoves([4, i]),
-    },
-    {
-      square: [5, i],
-      color: "white",
-      type,
-      validMoves: makeMoves([5, i]),
-    },
-    {
-      square: [6, i],
-      color: "white",
-      type,
-      validMoves: makeMoves([6, i]),
-    },
-  ]);
+const RoomPage = ({ params }: RoomPageParams) => {
+  const { data: room, isSuccess } = useQuery({
+    queryKey: ["room", params.roomId],
+    queryFn: () => joinRoom(params.roomId),
+  });
+  if (!isSuccess) {
+    return <Loader />;
+  }
   return (
     <Main>
-      <Board
-        pieces={pieces}
-        board={{
-          height: 8,
-          width: 8,
+      <form
+        className="w-60 flex flex-col items-stretch gap-4"
+        action={async () => {
+          redirect(`/rooms/${room.id}/game`);
         }}
-      />
+      >
+        <h1 className="text-center">Room</h1>
+        <div className="flex justify-between">
+          <p>Players</p>
+          <p>{`${room.players}/2`}</p>
+        </div>
+        <Button disabled={!room.isReady()} type="submit">
+          Start
+        </Button>
+      </form>
     </Main>
   );
 };
 
-export default GamePage;
+export default RoomPage;
