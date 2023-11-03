@@ -1,13 +1,14 @@
 "use client";
 
+import { themes } from "@/model/theme";
 import clsx from "clsx";
 import { ReactNode, useContext, useState } from "react";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
-import { ThemeContext, themes } from "../contexts/themeContext";
+import { ThemeContext } from "../contexts/themeContext";
 
 export const Menu = () => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const {theme, setTheme} = useContext(ThemeContext);
+  const { theme, setTheme } = useContext(ThemeContext);
   return (
     <aside
       className={clsx(
@@ -52,15 +53,15 @@ export const Menu = () => {
                 >
                   <span
                     className={clsx(
-                      "w-4",
-                      "h-4",
+                      "w-3",
+                      "h-3",
                       "inline-block",
                       "mr-2",
                       "rounded-full",
                       "border-2",
                       "translate-y-[2px]",
                       "transition-transform",
-                      isSelected && "scale-125",
+                      isSelected && "scale-150",
                     )}
                     style={{
                       backgroundColor: colors.background,

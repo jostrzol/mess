@@ -5,8 +5,15 @@ import { Main } from "@/components/main";
 import { Piece as PieceConfig } from "@/model/piece";
 import { PieceType } from "@/model/pieceType";
 import { Square } from "@/model/square";
+import { UUID } from "crypto";
 
-const GamePage = () => {
+type GamePageParams = {
+  params: {
+    roomId: UUID;
+  }
+};
+
+const GamePage = ({params} : GamePageParams) => {
   const pieceTypes = {
     king: {
       code: "king",

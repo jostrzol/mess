@@ -13,9 +13,24 @@ const RootPage = () => {
   const router = useRouter();
   return (
     <Main>
-      <div className={clsx("h-full", "flex", "max-w-lg", "flex-col", "items-stretch")}>
-        <div className={clsx("mx-auto", "flex-grow", "flex", "m-4")}>
-          <Image src="./favicon.svg" alt="logo" width={180} height={180} className={clsx()} />
+      <div
+        className={clsx(
+          "h-full",
+          "flex",
+          "max-w-lg",
+          "flex-col",
+          "items-stretch",
+        )}
+      >
+        <div className={clsx("mx-auto", "m-4", "flex-grow", "flex", "items-center")}>
+          <Image
+            src="./favicon.svg"
+            alt="logo"
+            width={180}
+            height={180}
+            priority={true}
+            className={clsx("h-fit")}
+          />
         </div>
         <Button onClick={() => router.push("/rooms/")}>New room</Button>
         <form
@@ -33,7 +48,7 @@ const RootPage = () => {
             Join room
           </Button>
         </form>
-        <div className={clsx("flex-grow", "h-36", "m-4")}/>
+        <div className={clsx("flex-grow", "h-36", "m-4")} />
       </div>
     </Main>
   );
