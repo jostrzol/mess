@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type LogoProps = {
   size: number;
@@ -8,7 +8,7 @@ type LogoProps = {
 };
 
 export const Logo = ({ size, className }: LogoProps) => {
-  const router = useRouter()
+  const router = useRouter();
   return (
     <Image
       src="./favicon.svg"

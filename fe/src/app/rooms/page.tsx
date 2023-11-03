@@ -1,8 +1,8 @@
 "use client";
 
-import {createRoom} from "@/api/room";
-import {useQuery} from "@tanstack/react-query";
-import {redirect} from "next/navigation";
+import { createRoom } from "@/api/room";
+import { useQuery } from "@tanstack/react-query";
+import { redirect } from "next/navigation";
 
 const CreateRoomPage = () => {
   const { data: room, isSuccess } = useQuery({

@@ -1,4 +1,4 @@
-import {Theme, defaultTheme} from "@/model/theme";
+import { Theme, defaultTheme } from "@/model/theme";
 import Color from "color";
 import { createContext, useEffect } from "react";
 import { useCookies } from "react-cookie";

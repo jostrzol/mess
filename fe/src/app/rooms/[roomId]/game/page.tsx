@@ -1,18 +1,18 @@
 "use client";
 
-import {Board} from "@/components/game/board";
-import {Piece as PieceConfig} from "@/model/piece";
-import {PieceType} from "@/model/pieceType";
-import {Square} from "@/model/square";
-import {UUID} from "crypto";
+import { Board } from "@/components/game/board";
+import { Piece as PieceConfig } from "@/model/piece";
+import { PieceType } from "@/model/pieceType";
+import { Square } from "@/model/square";
+import { UUID } from "crypto";
 
 type GamePageParams = {
   params: {
     roomId: UUID;
-  }
+  };
 };
 
-const GamePage = ({params} : GamePageParams) => {
+const GamePage = ({ params }: GamePageParams) => {
   const pieceTypes = {
     king: {
       code: "king",
@@ -90,10 +90,10 @@ const GamePage = ({params} : GamePageParams) => {
     <Board
       pieces={pieces}
       board={{
-      height: 8,
-      width: 8,
+        height: 8,
+        width: 8,
       }}
-      />
+    />
   );
 };
 

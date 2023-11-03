@@ -46,4 +46,3 @@ export const defaultTheme: Theme = {
   name: "light",
   colors: themes["light"],
 };
-

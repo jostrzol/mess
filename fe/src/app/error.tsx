@@ -1,6 +1,6 @@
 "use client"; // Error components must be Client Components
 
-import {Button} from "@/components/form/button";
+import { Button } from "@/components/form/button";
 import { Main } from "@/components/main";
 import { useEffect } from "react";
 
