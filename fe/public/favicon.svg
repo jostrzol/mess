@@ -1,9 +1,11 @@
-<svg viewBox="0 0 192.413 192.413" width="128px" height="128px" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
-  <defs>
-    <bx:grid x="0" y="0" width="5.0635" height="5.0635"></bx:grid>
-  </defs>
-  <ellipse style="stroke: rgba(0, 0, 0, 0);" cx="96.207" cy="96.207" rx="96.207" ry="96.207"></ellipse>
-  <path style="fill: rgb(255, 255, 255); stroke: rgb(255, 255, 255);" d="M 65.33 84.037 L 68.893 68.524 L 55.067 55.699 L 55.067 20.254 L 72.789 20.254 L 72.789 37.976 L 81.65 37.976 L 81.65 20.254 L 108.233 20.254 L 108.233 37.976 L 117.095 37.976 L 117.095 20.254 L 134.817 20.254 L 134.817 55.699 L 121.526 68.99 L 128.42 91.87 L 117.095 100.794 L 96.258 91.861 L 90.511 81.585 L 77.808 95.45 L 65.33 84.037 Z"></path>
-  <path style="fill: rgb(255, 255, 255); stroke: rgb(255, 255, 255);" d="M 46.357 161.784 L 61.827 114.387 L 77.941 127.885 L 90.511 114.02 L 96.459 124.357 L 117.095 133.017 L 130.727 126.071 L 143.678 162.032 L 46.357 161.784 Z"></path>
-  <path style="fill: rgb(255, 255, 255); stroke: rgb(255, 255, 255);" d="M 33.317 162.019 L 156.969 162.032 L 147.425 144.31 L 42.428 144.31 L 33.317 162.019 Z"></path>
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <ellipse style="fill: #000;" cx="22.5" cy="22.5" rx="22.5" ry="22.5" transform="matrix(1, 0, 0, 1, 3.552713678800501e-15, 1.7763568394002505e-15)"/>
+  <g fill="#fff" stroke="#000" style="opacity: 1; fill-opacity: 1; fill-rule: evenodd; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; stroke-miterlimit: 4; stroke-dasharray: none; stroke-opacity: 1; transform-origin: 22.5px 22.2px;" transform="matrix(0.996396958828, 0, 0, 0.996396958828, -0.046832002189, -0.133931997246)">
+    <path d="M 31 13.211 L 31 34.7 L 14 34.7 L 14 13.211 Z" style="stroke-linecap:butt;stroke-linejoin:miter"/>
+    <path d="M 11 10.211 L 11 5.211 L 15 5.211 L 15 7.211 L 20 7.211 L 20 5.211 L 25 5.211 L 25 7.211 L 30 7.211 L 30 5.211 L 34 5.211 L 34 10.211 L 31 13.411 L 14 13.411 L 11 10.211 Z" style="stroke-linecap:butt"/>
+    <path d="M 31 29.5 L 32.5 36.21 L 12.5 36.21 L 14 29.5" style=""/>
+    <path d="M 9.5 40.054 L 10.685 35.4 L 34.459 35.4 L 35.594 40.06 L 9.5 40.054 Z"/>
+  </g>
+  <path style="stroke: #000; fill: none; stroke-width: 5px;" d="M 10.101 16.479 L 18.927 26.598 L 25 21.044 L 36.525 28.464" transform="matrix(1, 0, 0, 1, 3.552713678800501e-15, 1.7763568394002505e-15)"/>
 </svg>
