@@ -14,7 +14,7 @@ import (
 // TODO: make this dynamic.
 const rulesFile = "./rules/chess.hcl"
 
-const NeededPlayers = 2
+const PlayersNeeded = 2
 
 type Room struct {
 	id      uuid.UUID
@@ -34,7 +34,7 @@ func (r *Room) AddPlayer(sessionID uuid.UUID) error {
 	for _, color := range color.ColorValues() {
 		playerID, present := r.players[color]
 		if playerID == sessionID {
-			return nil
+			return ErrAlreadyInRoom
 		} else if !present {
 			r.players[color] = sessionID
 			return nil
@@ -57,19 +57,16 @@ func (r *Room) IsStartable() bool {
 
 func (r *Room) assertStartable() error {
 	switch {
-	case len(r.players) != NeededPlayers:
+	case len(r.players) != PlayersNeeded:
 		return ErrNotEnoughPlayers
 	case r.IsStarted():
-		return ErrNotEnoughPlayers
+		return ErrAlreadyStarted
 	default:
 		return nil
 	}
 }
 
 func (r *Room) Start() error {
-	if r.IsStarted() {
-		return nil
-	}
 	if err := r.assertStartable(); err != nil {
 		return err
 	}
@@ -85,3 +82,4 @@ var ErrRoomFull = usrerr.Errorf("room full")
 var ErrNoRules = usrerr.Errorf("no rules file")
 var ErrNotEnoughPlayers = usrerr.Errorf("not enough players")
 var ErrAlreadyStarted = usrerr.Errorf("game is already started")
+var ErrAlreadyInRoom = usrerr.Errorf("player already in room")

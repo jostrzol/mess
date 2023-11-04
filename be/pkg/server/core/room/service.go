@@ -35,11 +35,11 @@ func (s *Service) JoinRoom(sessionID uuid.UUID, roomID uuid.UUID) (*Room, error)
 	}
 	err = room.AddPlayer(sessionID)
 	if err != nil {
-		return nil, fmt.Errorf("adding a player: %w", err)
+		return room, fmt.Errorf("adding a player: %w", err)
 	}
 	err = s.repository.Save(room)
 	if err != nil {
-		return nil, fmt.Errorf("saving new room: %w", err)
+		return room, fmt.Errorf("saving new room: %w", err)
 	}
 	return room, nil
 }
@@ -59,7 +59,7 @@ func (s *Service) StartGame(roomID uuid.UUID) (*Room, error) {
 	}
 	err = room.Start()
 	if err != nil {
-		return nil, err
+		return room, err
 	}
 	return room, nil
 }

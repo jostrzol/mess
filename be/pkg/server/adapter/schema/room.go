@@ -8,7 +8,7 @@ import (
 type Room struct {
 	ID            uuid.UUID
 	Players       int
-	NeededPlayers int
+	PlayersNeeded int
 	IsStartable   bool
 	IsStarted     bool
 }
@@ -17,7 +17,7 @@ func NewRoom(r *room.Room) *Room {
 	return &Room{
 		ID:            r.ID(),
 		Players:       len(r.Players()),
-		NeededPlayers: room.NeededPlayers,
+		PlayersNeeded: room.PlayersNeeded,
 		IsStartable:   r.IsStartable(),
 		IsStarted:     r.IsStarted(),
 	}

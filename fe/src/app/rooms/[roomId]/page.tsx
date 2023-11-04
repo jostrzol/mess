@@ -1,11 +1,10 @@
 "use client";
 
-import { joinRoom } from "@/api/room";
+import { joinRoom, startGame } from "@/api/room";
 import { ConnectionStatus } from "@/components/connectionStatus";
 import { Button } from "@/components/form/button";
-import { Loader } from "@/components/loader";
 import { RoomWsContext } from "@/contexts/roomWsContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 import { useContext, useEffect } from "react";
 import { RoomPageParams } from "./layout";
@@ -16,33 +15,42 @@ const RoomPage = ({ params }: RoomPageParams) => {
     queryKey: ["room", params.roomId],
     queryFn: () => joinRoom(params.roomId),
   });
+  const { mutate } = useMutation({
+    mutationKey: ["room", params.roomId],
+    mutationFn: () => startGame(params.roomId),
+    onSuccess: (room) => {
+      client.setQueryData(["room", params.roomId], room);
+    },
+  });
 
   const { lastEvent, readyState } = useContext(RoomWsContext);
   useEffect(() => {
-    if (lastEvent?.EventType === "RoomChanged") {
+    if (["RoomChanged", "GameStarted"].includes(lastEvent?.EventType ?? "")) {
       client.invalidateQueries({ queryKey: ["room", params.roomId] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent]);
 
   if (!isSuccess) {
-    return null
+    return null;
   }
+  if (room.isStarted) {
+    redirect(`/rooms/${room.id}/game`);
+  }
+
   return (
     <>
       <ConnectionStatus state={readyState} />
       <form
         className="w-60 flex flex-col items-stretch gap-4"
-        action={() => {
-          redirect(`/rooms/${room.id}/game`);
-        }}
+        action={() => mutate()}
       >
         <h1 className="text-center">Room</h1>
         <div className="flex justify-between">
           <p>Players</p>
-          <p>{`${room.players}/2`}</p>
+          <p>{`${room.players}/${room.playersNeeded}`}</p>
         </div>
-        <Button disabled={!room.isReady()} type="submit">
+        <Button disabled={!room.isStartable} type="submit">
           Start
         </Button>
       </form>
