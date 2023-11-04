@@ -8,6 +8,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/rules"
 	"github.com/jostrzol/mess/pkg/server/core/usrerr"
+	"golang.org/x/exp/maps"
 )
 
 type Room struct {
@@ -38,8 +39,8 @@ func (r *Room) AddPlayer(sessionID uuid.UUID) error {
 	return ErrRoomFull
 }
 
-func (r *Room) Players() int {
-	return len(r.players)
+func (r *Room) Players() []uuid.UUID {
+	return maps.Values(r.players)
 }
 
 func (r *Room) Start() error {

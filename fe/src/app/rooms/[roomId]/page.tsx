@@ -1,12 +1,13 @@
 "use client";
 
-import { joinRoom } from "@/api/room";
+import { joinRoom, useRoomWebsocket } from "@/api/room";
+import { ConnectionStatus } from "@/components/connectionStatus";
 import { Button } from "@/components/form/button";
 import { Loader } from "@/components/loader";
-import { Main } from "@/components/main";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { redirect } from "next/navigation";
+import { useEffect } from "react";
 
 type RoomPageParams = {
   params: {
@@ -15,18 +16,32 @@ type RoomPageParams = {
 };
 
 const RoomPage = ({ params }: RoomPageParams) => {
+  const client = useQueryClient()
   const { data: room, isSuccess } = useQuery({
     queryKey: ["room", params.roomId],
     queryFn: () => joinRoom(params.roomId),
   });
+
+  const { lastEvent, readyState } = useRoomWebsocket(
+    params.roomId,
+  );
+
+  useEffect(() => {
+    if (lastEvent?.EventType === "RoomChanged") {
+      client.invalidateQueries({queryKey: ["room", params.roomId]})
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastEvent]);
+
   if (!isSuccess) {
     return <Loader />;
   }
   return (
-    <Main>
+    <>
+      <ConnectionStatus state={readyState} />
       <form
         className="w-60 flex flex-col items-stretch gap-4"
-        action={async () => {
+        action={() => {
           redirect(`/rooms/${room.id}/game`);
         }}
       >
@@ -39,7 +54,7 @@ const RoomPage = ({ params }: RoomPageParams) => {
           Start
         </Button>
       </form>
-    </Main>
+    </>
   );
 };
 

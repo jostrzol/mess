@@ -13,6 +13,6 @@ type Room struct {
 func NewRoom(room *room.Room) *Room {
 	return &Room{
 		ID:      room.ID(),
-		Players: room.Players(),
+		Players: len(room.Players()),
 	}
 }

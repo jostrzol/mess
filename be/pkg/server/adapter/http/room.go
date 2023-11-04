@@ -18,13 +18,14 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin:     websocket.IsWebSocketUpgrade,
 }
 
-var sessionWebsocketKey = "websocket"
+const wsTimeout = time.Second
 
 type RoomHandler struct {
 	service    *room.Service       `container:"type"`
-	logger     *zap.SugaredLogger  `container:"type"`
+	logger     *zap.Logger         `container:"type"`
 	websockets *inmem.WsRepository `container:"type"`
 }
 
@@ -79,6 +80,18 @@ func JoinRoom(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
+		for _, playerID := range room.Players() {
+			if playerID != session.ID {
+				err := h.websockets.Send(playerID, &ws.RoomChanged{})
+				if err != nil {
+					h.logger.Error("sending room changed event",
+						zap.Stringer("target", playerID),
+						zap.Error(err))
+					return
+				}
+			}
+		}
+
 		c.JSON(http.StatusOK, httpschema.NewRoom(room))
 	})
 }
@@ -91,22 +104,27 @@ func HandleWebsocket(h *RoomHandler, g *gin.Engine) {
 			AbortWithError(c, err)
 			return
 		}
-		defer conn.Close()
-
-		channel := h.websockets.New(session.ID)
-
-		go func() {
-			channel := h.websockets.Get(session.ID)
-			defer close(channel)
-			for i := 0; i < 5; i++ {
-				channel <- &ws.RoomChanged{}
+		defer func() {
+			defer conn.Close()
+			h.logger.Info("closing websocket connection", zap.Stringer("session", session.ID))
+			err = conn.WriteControl(websocket.CloseMessage, []byte{}, time.Now().Add(wsTimeout))
+			if err != nil {
+				h.logger.Error("sending websocket close message", zap.Error(err))
+				return
 			}
 		}()
+
+		channel := h.websockets.New(session.ID)
+		conn.SetCloseHandler(func(code int, text string) error {
+			h.logger.Info("peer closed session channel, cleaning up", zap.Stringer("session", session.ID))
+			h.websockets.Close(session.ID)
+			return nil
+		})
 
 		for event, ok := <-channel; ok; event, ok = <-channel {
 			bytes, err := ws.Marshal(event)
 			if err != nil {
-				h.logger.Error("marshalling websocket message", zap.Error(err))
+				h.logger.Error("marshaling websocket message", zap.Error(err))
 				return
 			}
 
@@ -115,7 +133,6 @@ func HandleWebsocket(h *RoomHandler, g *gin.Engine) {
 				h.logger.Error("writing websocket message", zap.Error(err))
 				return
 			}
-			time.Sleep(time.Second)
 		}
 	})
 }

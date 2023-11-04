@@ -25,7 +25,15 @@ const config: Config = {
       danger: {
         DEFAULT: "rgb(var(--theme-danger) / <alpha-value>)",
         dim: "rgb(var(--theme-danger-dim) / <alpha-value>)",
-      }
+      },
+      warn: {
+        DEFAULT: "rgb(var(--theme-warn) / <alpha-value>)",
+        dim: "rgb(var(--theme-warn-dim) / <alpha-value>)",
+      },
+      success: {
+        DEFAULT: "rgb(var(--theme-success) / <alpha-value>)",
+        dim: "rgb(var(--theme-success-dim) / <alpha-value>)",
+      },
     },
     extend: {
       animation: {

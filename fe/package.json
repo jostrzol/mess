@@ -22,7 +22,8 @@
     "react-cookie": "^6.1.1",
     "react-dom": "^18",
     "react-icons": "^4.11.0",
-    "react-svg": "^16.1.28"
+    "react-svg": "^16.1.28",
+    "react-use-websocket": "^4.5.0"
   },
   "devDependencies": {
     "@types/node": "^20",

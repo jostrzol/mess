@@ -2,6 +2,8 @@ import { Room } from "@/model/room";
 import { UUID } from "crypto";
 import { url } from "./url";
 import { throwIfError } from "./utils";
+import {io} from "socket.io-client";
+import useWebSocket from "react-use-websocket";
 
 interface RoomDto {
   ID: UUID;
@@ -15,7 +17,6 @@ const toModel = (room: RoomDto): Room => {
 export const createRoom = async (): Promise<Room> => {
   const res = await fetch(url("rooms"), {
     method: "POST",
-    cache: "no-store",
     credentials: "include",
   });
   await throwIfError(res);
@@ -31,4 +32,21 @@ export const joinRoom = async (id: UUID): Promise<Room> => {
 
   const obj: RoomDto = await res.json();
   return toModel(obj);
+};
+
+interface RoomChanged {
+  EventType: "RoomChanged"
+}
+
+interface Moved {
+  EventType: "Moved"
+}
+
+type Event = RoomChanged | Moved
+
+export const useRoomWebsocket = (roomId: UUID)  => {
+  const url_ = url("rooms/:id/websocket", { params: { id: roomId }, schema: "ws" });
+  const {lastJsonMessage, ...rest} = useWebSocket(url_)
+  const lastEvent = lastJsonMessage as Event | null
+  return {lastEvent, ...rest}
 };

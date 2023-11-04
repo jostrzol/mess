@@ -1,17 +1,19 @@
-const address = "http://localhost:4000";
+const address = "localhost:4000";
 
 type Query = { [key: string]: any };
 type Params = Query;
 type Options = {
   params?: Params;
   query?: Query;
+  schema?: "http" | "ws";
 };
 
 export const url = (path: string, options?: Options): string => {
-  let url = new URL(address);
+  const {params = {}, query = {}, schema = "http"} = options ?? {}
+
+  let url = new URL(`${schema}://${address}`);
 
   const pathParts = path.split("/");
-  const params = options?.params || {};
   const injectedPathParts = pathParts.map((part) => {
     if (!part.startsWith(":")) {
       return part;
@@ -24,7 +26,7 @@ export const url = (path: string, options?: Options): string => {
   });
   url.pathname = injectedPathParts.join("/");
 
-  Object.entries(options?.query || {}).forEach(([key, value]) => {
+  Object.entries(query).forEach(([key, value]) => {
     url.searchParams.set(key, value);
   });
 

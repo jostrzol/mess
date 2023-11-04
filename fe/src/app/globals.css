@@ -21,3 +21,13 @@ h1 {
     --opponent-color: rgb(var(--theme-player-white));
   }
 }
+
+@layer components {
+  .tooltip {
+    @apply pointer-events-none opacity-0 absolute;
+  }
+
+  .has-tooltip:hover .tooltip {
+    @apply opacity-100 z-50;
+  }
+}
