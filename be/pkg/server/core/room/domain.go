@@ -11,10 +11,10 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// TODO: make this dynamic
+// TODO: make this dynamic.
 const rulesFile = "./rules/chess.hcl"
 
-const playersNeeded = 2
+const NeededPlayers = 2
 
 type Room struct {
 	id      uuid.UUID
@@ -57,7 +57,7 @@ func (r *Room) IsStartable() bool {
 
 func (r *Room) assertStartable() error {
 	switch {
-	case len(r.players) != playersNeeded:
+	case len(r.players) != NeededPlayers:
 		return ErrNotEnoughPlayers
 	case r.IsStarted():
 		return ErrNotEnoughPlayers

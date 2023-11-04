@@ -6,17 +6,19 @@ import (
 )
 
 type Room struct {
-	ID          uuid.UUID
-	Players     int
-	IsStartable bool
-	IsStarted   bool
+	ID            uuid.UUID
+	Players       int
+	NeededPlayers int
+	IsStartable   bool
+	IsStarted     bool
 }
 
-func NewRoom(room *room.Room) *Room {
+func NewRoom(r *room.Room) *Room {
 	return &Room{
-		ID:          room.ID(),
-		Players:     len(room.Players()),
-		IsStartable: room.IsStartable(),
-		IsStarted:   room.IsStarted(),
+		ID:            r.ID(),
+		Players:       len(r.Players()),
+		NeededPlayers: room.NeededPlayers,
+		IsStartable:   r.IsStartable(),
+		IsStarted:     r.IsStarted(),
 	}
 }
