@@ -51,16 +51,27 @@ func (r *Room) IsStarted() bool {
 	return r.game != nil
 }
 
-func (r *Room) IsEnoughPlayers() bool {
-	return len(r.players) == playersNeeded
+func (r *Room) IsStartable() bool {
+	return r.assertStartable() == nil
+}
+
+func (r *Room) assertStartable() error {
+	switch {
+	case len(r.players) != playersNeeded:
+		return ErrNotEnoughPlayers
+	case r.IsStarted():
+		return ErrNotEnoughPlayers
+	default:
+		return nil
+	}
 }
 
 func (r *Room) Start() error {
-	if r.game != nil {
+	if r.IsStarted() {
 		return nil
 	}
-	if !r.IsEnoughPlayers() {
-		return ErrNotEnoughPlayers
+	if err := r.assertStartable(); err != nil {
+		return err
 	}
 	game, err := rules.DecodeRules(rulesFile, true)
 	if err != nil {
@@ -73,3 +84,4 @@ func (r *Room) Start() error {
 var ErrRoomFull = usrerr.Errorf("room full")
 var ErrNoRules = usrerr.Errorf("no rules file")
 var ErrNotEnoughPlayers = usrerr.Errorf("not enough players")
+var ErrAlreadyStarted = usrerr.Errorf("game is already started")
