@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/jostrzol/mess/pkg/server/adapter/httpschema"
+	"github.com/jostrzol/mess/pkg/server/adapter/schema"
 	"github.com/jostrzol/mess/pkg/server/core/room"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 )
@@ -25,7 +25,7 @@ func CreateRoom(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
-		c.JSON(http.StatusOK, httpschema.NewRoom(room))
+		c.JSON(http.StatusOK, schema.NewRoom(room))
 	})
 }
 
@@ -45,7 +45,7 @@ func GetRoom(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
-		c.JSON(http.StatusOK, httpschema.NewRoom(room))
+		c.JSON(http.StatusOK, schema.NewRoom(room))
 	})
 }
 
@@ -66,9 +66,9 @@ func JoinRoom(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
-		h.wsHandler.sendToOpponents(room, session.ID, &httpschema.RoomChanged{})
+		h.wsHandler.sendToOpponents(room, session.ID, &schema.RoomChanged{})
 
-		c.JSON(http.StatusOK, httpschema.NewRoom(room))
+		c.JSON(http.StatusOK, schema.NewRoom(room))
 	})
 }
 
@@ -89,9 +89,9 @@ func StartGame(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
-		h.wsHandler.sendToOpponents(room, session.ID, &httpschema.GameStarted{})
+		h.wsHandler.sendToOpponents(room, session.ID, &schema.GameStarted{})
 
-		c.JSON(http.StatusOK, httpschema.NewRoom(room))
+		c.JSON(http.StatusOK, schema.NewRoom(room))
 	})
 }
 

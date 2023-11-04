@@ -1,4 +1,4 @@
-package httpschema
+package schema
 
 import (
 	"encoding/json"

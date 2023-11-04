@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/jostrzol/mess/pkg/server/adapter/httpschema"
 	"github.com/jostrzol/mess/pkg/server/adapter/inmem"
+	"github.com/jostrzol/mess/pkg/server/adapter/schema"
 	"github.com/jostrzol/mess/pkg/server/core/room"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 	"go.uber.org/zap"
@@ -55,7 +55,7 @@ func (h *WsHandler) handle(c *gin.Context) error {
 	})
 
 	for event, ok := <-channel; ok; event, ok = <-channel {
-		bytes, err := httpschema.MarshalEvent(event)
+		bytes, err := schema.MarshalEvent(event)
 		if err != nil {
 			h.logger.Error("marshaling websocket message", zap.Error(err))
 			continue
@@ -70,7 +70,7 @@ func (h *WsHandler) handle(c *gin.Context) error {
 	return nil
 }
 
-func (h *WsHandler) sendToOpponents(room *room.Room, mySessionID uuid.UUID, event httpschema.Event) {
+func (h *WsHandler) sendToOpponents(room *room.Room, mySessionID uuid.UUID, event schema.Event) {
 	for _, playerID := range room.Players() {
 		if playerID != mySessionID {
 			err := h.websockets.Send(playerID, event)
