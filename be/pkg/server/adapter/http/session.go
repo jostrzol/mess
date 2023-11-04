@@ -6,24 +6,21 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/google/uuid"
+	"github.com/jostrzol/mess/pkg/server/adapter/httpschema"
 )
 
 const SessionKey = "session"
 
 const sessionDataKey = "data"
 
-type SessionData struct {
-	ID uuid.UUID
-}
-
-func newSessionData() *SessionData {
-	return &SessionData{
+func newSessionData() *httpschema.SessionData {
+	return &httpschema.SessionData{
 		ID: uuid.New(),
 	}
 }
 
-func GetSessionData(session sessions.Session) *SessionData {
-	data, ok := session.Get(sessionDataKey).(*SessionData)
+func GetSessionData(session sessions.Session) *httpschema.SessionData {
+	data, ok := session.Get(sessionDataKey).(*httpschema.SessionData)
 	if !ok {
 		data = newSessionData()
 		session.Set(sessionDataKey, data)
@@ -36,5 +33,5 @@ func GetSessionData(session sessions.Session) *SessionData {
 }
 
 func init() {
-	gob.Register(&SessionData{})
+	gob.Register(&httpschema.SessionData{})
 }

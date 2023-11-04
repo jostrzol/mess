@@ -1,4 +1,4 @@
-package ws
+package httpschema
 
 import (
 	"encoding/json"
@@ -6,19 +6,23 @@ import (
 )
 
 type Event interface {
-	eventType() string
+	EventType() string
 }
 
 type RoomChanged struct{}
 
-func (e *RoomChanged) eventType() string { return "RoomChanged" }
+func (e *RoomChanged) EventType() string { return "RoomChanged" }
 
-func Marshal(event Event) ([]byte, error) {
+type GameStarted struct{}
+
+func (e *GameStarted) EventType() string { return "GameStarted" }
+
+func MarshalEvent(event Event) ([]byte, error) {
 	obj := struct {
 		Data      Event `json:",omitempty"`
 		EventType string
 	}{
-		EventType: event.eventType(),
+		EventType: event.EventType(),
 	}
 	val := reflect.Indirect(reflect.ValueOf(event))
 	if val.NumField() != 0 {

@@ -6,18 +6,18 @@ import (
 
 	"github.com/golobby/container/v3"
 	"github.com/google/uuid"
-	"github.com/jostrzol/mess/pkg/server/adapter/ws"
+	"github.com/jostrzol/mess/pkg/server/adapter/httpschema"
 	"go.uber.org/zap"
 )
 
 type WsRepository struct {
-	channels map[uuid.UUID]chan<- (ws.Event)
+	channels map[uuid.UUID]chan<- (httpschema.Event)
 	logger   *zap.Logger `container:"type"`
 	mutex    sync.Mutex
 }
 
 func NewWsRepository() *WsRepository {
-	repo := WsRepository{channels: make(map[uuid.UUID]chan<- (ws.Event))}
+	repo := WsRepository{channels: make(map[uuid.UUID]chan<- (httpschema.Event))}
 	container.MustFill(container.Global, &repo)
 	return &repo
 }
@@ -28,7 +28,7 @@ func init() {
 	})
 }
 
-func (r *WsRepository) New(sessionID uuid.UUID) <-chan (ws.Event) {
+func (r *WsRepository) New(sessionID uuid.UUID) <-chan (httpschema.Event) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	old, ok := r.channels[sessionID]
@@ -36,13 +36,13 @@ func (r *WsRepository) New(sessionID uuid.UUID) <-chan (ws.Event) {
 		r.logger.Warn("closing old websocket channel", zap.Stringer("session", sessionID))
 		close(old)
 	}
-	channel := make(chan (ws.Event))
+	channel := make(chan (httpschema.Event))
 	r.channels[sessionID] = channel
 	return channel
 }
 
-func (r *WsRepository) Send(sessionID uuid.UUID, event ws.Event) error {
-	var c chan<- (ws.Event)
+func (r *WsRepository) Send(sessionID uuid.UUID, event httpschema.Event) error {
+	var c chan<- (httpschema.Event)
 	func() {
 		r.mutex.Lock()
 		defer r.mutex.Unlock()

@@ -11,10 +11,14 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+// TODO: make this dynamic
+const rulesFile = "./rules/chess.hcl"
+
+const playersNeeded = 2
+
 type Room struct {
 	id      uuid.UUID
 	players map[color.Color]uuid.UUID
-	rules   *string
 	game    *mess.Game
 }
 
@@ -43,11 +47,22 @@ func (r *Room) Players() []uuid.UUID {
 	return maps.Values(r.players)
 }
 
+func (r *Room) IsStarted() bool {
+	return r.game != nil
+}
+
+func (r *Room) IsEnoughPlayers() bool {
+	return len(r.players) == playersNeeded
+}
+
 func (r *Room) Start() error {
-	if r.rules == nil {
-		return ErrNoRules
+	if r.game != nil {
+		return nil
 	}
-	game, err := rules.DecodeRules(*r.rules, true)
+	if !r.IsEnoughPlayers() {
+		return ErrNotEnoughPlayers
+	}
+	game, err := rules.DecodeRules(rulesFile, true)
 	if err != nil {
 		return fmt.Errorf("decoding rules: %w", err)
 	}
@@ -57,3 +72,4 @@ func (r *Room) Start() error {
 
 var ErrRoomFull = usrerr.Errorf("room full")
 var ErrNoRules = usrerr.Errorf("no rules file")
+var ErrNotEnoughPlayers = usrerr.Errorf("not enough players")

@@ -51,3 +51,15 @@ func (s *Service) GetRoom(roomID uuid.UUID) (*Room, error) {
 	}
 	return room, nil
 }
+
+func (s *Service) StartGame(roomID uuid.UUID) (*Room, error) {
+	room, err := s.repository.Get(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+	err = room.Start()
+	if err != nil {
+		return nil, err
+	}
+	return room, nil
+}
