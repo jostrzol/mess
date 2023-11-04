@@ -13,8 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jostrzol/mess/configs/serverconfig"
 	"github.com/jostrzol/mess/pkg/logger"
-	"github.com/jostrzol/mess/pkg/server/adapter/http"
-	_ "github.com/jostrzol/mess/pkg/server/adapter/http"
+	"github.com/jostrzol/mess/pkg/server/adapter/handler"
+	_ "github.com/jostrzol/mess/pkg/server/adapter/handler"
 	_ "github.com/jostrzol/mess/pkg/server/adapter/inmem"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 	"go.uber.org/zap"
@@ -41,7 +41,7 @@ func main() {
 	g.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	g.Use(ginzap.RecoveryWithZap(logger, true))
 	store := memstore.NewStore([]byte(config.SessionSecret))
-	g.Use(sessions.Sessions(http.SessionKey, store))
+	g.Use(sessions.Sessions(handler.SessionKey, store))
 
 	ioc.MustSingleton(g)
 	for _, initializer := range ioc.HandlerInitializers {
