@@ -26,7 +26,7 @@ const RoomPage = ({ params }: RoomPageParams) => {
   }, [lastEvent]);
 
   if (!isSuccess) {
-    return <Loader />;
+    return null
   }
   return (
     <>

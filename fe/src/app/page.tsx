@@ -1,8 +1,11 @@
 "use client";
 
+import {createRoom} from "@/api/room";
 import { Button } from "@/components/form/button";
 import { Input } from "@/components/form/input";
+import {Loader} from "@/components/loader";
 import { Logo } from "@/components/logo";
+import {useMutation} from "@tanstack/react-query";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,6 +13,11 @@ import { useState } from "react";
 const RootPage = () => {
   const [roomId, setRoomId] = useState("");
   const router = useRouter();
+  const {mutate, isPending} = useMutation({
+    mutationKey: ["rooms"],
+    mutationFn: createRoom,
+    onSuccess: (room) => router.push(`/rooms/${room.id}`),
+  })
   return (
     <div
       className={clsx(
@@ -26,7 +34,7 @@ const RootPage = () => {
       >
         <Logo size={180} />
       </div>
-      <Button onClick={() => router.push("/rooms/")}>New room</Button>
+      <Button disabled={isPending} onClick={() => mutate()}>New room</Button>
       <form
         className={clsx("flex", "gap-4")}
         onSubmit={(e) => {
@@ -38,7 +46,7 @@ const RootPage = () => {
           onChange={(e) => setRoomId(e.target.value)}
           placeholder="Room id"
         />
-        <Button disabled={roomId === ""} type="submit">
+        <Button disabled={isPending || roomId === ""} type="submit">
           Join room
         </Button>
       </form>
