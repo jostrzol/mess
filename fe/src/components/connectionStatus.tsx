@@ -18,7 +18,10 @@ export const ConnectionStatus = ({
     [ReadyState.OPEN]: ["Connection open", colors.success],
     [ReadyState.CLOSING]: ["Closing connection", colors.warn],
     [ReadyState.CLOSED]: ["Connection closed", colors.danger],
-    [ReadyState.UNINSTANTIATED]: ["Connection uninstantiated", colors["txt-dim"]],
+    [ReadyState.UNINSTANTIATED]: [
+      "Connection uninstantiated",
+      colors["txt-dim"],
+    ],
   }[state];
   return (
     <div

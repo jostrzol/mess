@@ -9,7 +9,7 @@ type Options = {
 };
 
 export const url = (path: string, options?: Options): string => {
-  const {params = {}, query = {}, schema = "http"} = options ?? {}
+  const { params = {}, query = {}, schema = "http" } = options ?? {};
 
   let url = new URL(`${schema}://${address}`);
 

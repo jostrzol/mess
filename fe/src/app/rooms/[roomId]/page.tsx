@@ -1,36 +1,28 @@
 "use client";
 
-import { joinRoom, useRoomWebsocket } from "@/api/room";
+import { joinRoom } from "@/api/room";
 import { ConnectionStatus } from "@/components/connectionStatus";
 import { Button } from "@/components/form/button";
 import { Loader } from "@/components/loader";
+import { RoomWsContext } from "@/contexts/roomWsContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { UUID } from "crypto";
 import { redirect } from "next/navigation";
-import { useEffect } from "react";
-
-type RoomPageParams = {
-  params: {
-    roomId: UUID;
-  };
-};
+import { useContext, useEffect } from "react";
+import { RoomPageParams } from "./layout";
 
 const RoomPage = ({ params }: RoomPageParams) => {
-  const client = useQueryClient()
+  const client = useQueryClient();
   const { data: room, isSuccess } = useQuery({
     queryKey: ["room", params.roomId],
     queryFn: () => joinRoom(params.roomId),
   });
 
-  const { lastEvent, readyState } = useRoomWebsocket(
-    params.roomId,
-  );
-
+  const { lastEvent, readyState } = useContext(RoomWsContext);
   useEffect(() => {
     if (lastEvent?.EventType === "RoomChanged") {
-      client.invalidateQueries({queryKey: ["room", params.roomId]})
+      client.invalidateQueries({ queryKey: ["room", params.roomId] });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent]);
 
   if (!isSuccess) {

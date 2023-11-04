@@ -8,9 +8,7 @@ type ThemeContextValue = {
   theme: Theme;
   setTheme: SetTheme;
 };
-export const ThemeContext = createContext<ThemeContextValue>(
-  null as unknown as ThemeContextValue,
-);
+export const ThemeContext = createContext<ThemeContextValue>(null!);
 
 export const useTheme = (): ThemeContextValue => {
   const [cookies, setCookies, _] = useCookies(["theme"]);

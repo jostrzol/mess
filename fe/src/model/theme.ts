@@ -34,7 +34,7 @@ export const themes = {
     "danger-dim": colors.rose[400],
     warn: colors.amber[500],
     "warn-dim": colors.amber[300],
-    "success": colors.lime[400],
+    success: colors.lime[400],
     "success-dim": colors.lime[200],
   },
   dark: {
@@ -49,7 +49,7 @@ export const themes = {
     "danger-dim": colors.rose[800],
     warn: colors.amber[500],
     "warn-dim": colors.amber[300],
-    "success": colors.lime[400],
+    success: colors.lime[400],
     "success-dim": colors.lime[200],
   },
 } satisfies Record<string, ThemeColors>;

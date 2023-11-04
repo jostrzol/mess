@@ -4,15 +4,9 @@ import { Board } from "@/components/game/board";
 import { Piece as PieceConfig } from "@/model/piece";
 import { PieceType } from "@/model/pieceType";
 import { Square } from "@/model/square";
-import { UUID } from "crypto";
+import { RoomPageParams } from "../layout";
 
-type GamePageParams = {
-  params: {
-    roomId: UUID;
-  };
-};
-
-const GamePage = ({ params }: GamePageParams) => {
+const GamePage = ({ params }: RoomPageParams) => {
   const pieceTypes = {
     king: {
       code: "king",

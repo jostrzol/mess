@@ -1,9 +1,8 @@
 import { Room } from "@/model/room";
 import { UUID } from "crypto";
+import useWebSocket from "react-use-websocket";
 import { url } from "./url";
 import { throwIfError } from "./utils";
-import {io} from "socket.io-client";
-import useWebSocket from "react-use-websocket";
 
 interface RoomDto {
   ID: UUID;
@@ -35,18 +34,21 @@ export const joinRoom = async (id: UUID): Promise<Room> => {
 };
 
 interface RoomChanged {
-  EventType: "RoomChanged"
+  EventType: "RoomChanged";
 }
 
 interface Moved {
-  EventType: "Moved"
+  EventType: "Moved";
 }
 
-type Event = RoomChanged | Moved
+type Event = RoomChanged | Moved;
 
-export const useRoomWebsocket = (roomId: UUID)  => {
-  const url_ = url("rooms/:id/websocket", { params: { id: roomId }, schema: "ws" });
-  const {lastJsonMessage, ...rest} = useWebSocket(url_)
-  const lastEvent = lastJsonMessage as Event | null
-  return {lastEvent, ...rest}
+export const useRoomWebsocket = (roomId: UUID) => {
+  const url_ = url("rooms/:id/websocket", {
+    params: { id: roomId },
+    schema: "ws",
+  });
+  const { lastJsonMessage, ...rest } = useWebSocket(url_);
+  const lastEvent = lastJsonMessage as Event | null;
+  return { lastEvent, ...rest };
 };
