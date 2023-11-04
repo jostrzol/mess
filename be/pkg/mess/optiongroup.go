@@ -1,10 +1,42 @@
 package mess
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type OptionGroups = map[string]OptionGroup
 
-func GroupOptions(optionSets [][]Option, i int) OptionGroups {
+func FilterOptions(
+	optionSets [][]Option,
+	predicate func(map[string]OptionGroup) (Option, error),
+) ([][]Option, error) {
+	if len(optionSets) == 0 {
+		return [][]Option{}, nil
+	} else if len(optionSets) == 1 && len(optionSets[0]) == 0 {
+		return [][]Option{optionSets[0]}, nil
+	}
+
+	for i := 0; i < len(optionSets[0]); i++ {
+		groups := groupOptions(optionSets, i)
+
+		option, err := predicate(groups)
+		if err != nil {
+			return nil, err
+		}
+
+		newOptionSets := make([][]Option, 0)
+		for _, options := range optionSets {
+			if options[i] == option {
+				newOptionSets = append(newOptionSets, options)
+			}
+		}
+		optionSets = newOptionSets
+	}
+
+	return optionSets, nil
+}
+
+func groupOptions(optionSets [][]Option, i int) OptionGroups {
 	result := make(OptionGroups)
 	for _, options := range optionSets {
 		option := options[i]

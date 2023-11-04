@@ -9,38 +9,23 @@ import (
 )
 
 func (t *interactor) selectOptionSet(optionSets [][]mess.Option) ([]mess.Option, error) {
-	if len(optionSets) == 0 {
-		return []mess.Option{}, nil
-	} else if len(optionSets) == 1 && len(optionSets[0]) == 0 {
-		return optionSets[0], nil
-	}
-
-	for i := 0; i < len(optionSets[0]); i++ {
-		groups := mess.GroupOptions(optionSets, i)
-
-		group := maps.Values(groups)[0]
-		if len(groups) > 1 {
-			fmt.Println("Choose action:")
-			messages := maps.Keys(groups)
-			message, err := t.selectString(messages)
-			if err != nil {
-				return nil, err
+	optionSets, err := mess.FilterOptions(optionSets,
+		func(groups map[string]mess.OptionGroup) (mess.Option, error) {
+			group := maps.Values(groups)[0]
+			if len(groups) > 1 {
+				fmt.Println("Choose action:")
+				messages := maps.Keys(groups)
+				message, err := t.selectString(messages)
+				if err != nil {
+					return nil, err
+				}
+				group = groups[message]
 			}
-			group = groups[message]
-		}
 
-		option, err := t.selectOption(group)
-		if err != nil {
-			return nil, err
-		}
-
-		newOptionSets := make([][]mess.Option, 0)
-		for _, options := range optionSets {
-			if options[i] == option {
-				newOptionSets = append(newOptionSets, options)
-			}
-		}
-		optionSets = newOptionSets
+			return t.selectOption(group)
+		})
+	if err != nil {
+		return nil, err
 	}
 
 	if len(optionSets) != 1 {
