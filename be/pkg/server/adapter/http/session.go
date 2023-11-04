@@ -2,12 +2,10 @@ package http
 
 import (
 	"encoding/gob"
+	"fmt"
 
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jostrzol/mess/pkg/server/ioc"
-	"go.uber.org/zap"
 )
 
 const SessionKey = "session"
@@ -24,17 +22,14 @@ func newSessionData() *SessionData {
 	}
 }
 
-func GetSessionData(c *gin.Context) *SessionData {
-	session := sessions.Default(c)
+func GetSessionData(session sessions.Session) *SessionData {
 	data, ok := session.Get(sessionDataKey).(*SessionData)
 	if !ok {
 		data = newSessionData()
 		session.Set(sessionDataKey, data)
 		err := session.Save()
 		if err != nil {
-			log := ioc.MustResolve[*zap.SugaredLogger]()
-			log.Errorf("saving session data", zap.Error(err))
-			return nil
+			panic(fmt.Errorf("saving session data: %w", err))
 		}
 	}
 	return data
