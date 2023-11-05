@@ -11,9 +11,9 @@ type State struct {
 }
 
 type Piece struct {
-	PieceType PieceType
-	Color     string
-	Square    Square
+	Type   PieceType
+	Color  string
+	Square Square
 }
 
 type PieceType struct {
@@ -32,9 +32,9 @@ func piecesFromDomain(pieces []*mess.Piece) []Piece {
 	result := make([]Piece, 0, len(pieces))
 	for _, piece := range pieces {
 		result = append(result, Piece{
-			PieceType: pieceTypeFromDomain(piece.Type()),
-			Color:     piece.Color().String(),
-			Square:    squareFromDomain(piece.Square()),
+			Type:   pieceTypeFromDomain(piece.Type()),
+			Color:  piece.Color().String(),
+			Square: squareFromDomain(piece.Square()),
 		})
 	}
 	return result

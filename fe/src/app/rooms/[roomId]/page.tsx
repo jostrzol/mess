@@ -1,7 +1,7 @@
 "use client";
 
-import { joinRoom, startGame } from "@/api/room";
-import { ConnectionStatus } from "@/components/connectionStatus";
+import { startGame } from "@/api/game";
+import { joinRoom } from "@/api/room";
 import { Button } from "@/components/form/button";
 import { RoomWsContext } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,9 +23,12 @@ const RoomPage = ({ params }: RoomPageParams) => {
     },
   });
 
-  const { lastEvent, readyState } = useContext(RoomWsContext);
+  const { lastEvent } = useContext(RoomWsContext);
   useEffect(() => {
-    if (["RoomChanged", "GameStarted"].includes(lastEvent?.EventType ?? "")) {
+    if (
+      lastEvent?.EventType === "RoomChanged" ||
+      lastEvent?.EventType === "GameStarted"
+    ) {
       client.invalidateQueries({ queryKey: ["room", params.roomId] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,7 +43,6 @@ const RoomPage = ({ params }: RoomPageParams) => {
 
   return (
     <>
-      <ConnectionStatus state={readyState} />
       <form
         className="w-60 flex flex-col items-stretch gap-4"
         action={() => mutate()}

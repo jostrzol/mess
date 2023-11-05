@@ -3,24 +3,8 @@ import { UUID } from "crypto";
 import useWebSocket from "react-use-websocket";
 import { url } from "./url";
 import { throwIfError } from "./utils";
-
-interface RoomDto {
-  ID: UUID;
-  Players: number;
-  PlayersNeeded: number;
-  IsStartable: boolean;
-  IsStarted: boolean;
-}
-
-const toModel = (room: RoomDto): Room => {
-  return {
-    id: room.ID,
-    players: room.Players,
-    playersNeeded: room.PlayersNeeded,
-    isStartable: room.IsStartable,
-    isStarted: room.IsStarted,
-  };
-};
+import {RoomDto, roomToModel} from "./schema/room";
+import {Event} from "./schema/event";
 
 export const createRoom = async (): Promise<Room> => {
   const res = await fetch(url("rooms"), {
@@ -30,7 +14,7 @@ export const createRoom = async (): Promise<Room> => {
   await throwIfError(res);
 
   const obj: RoomDto = await res.json();
-  return toModel(obj);
+  return roomToModel(obj);
 };
 
 export const joinRoom = async (id: UUID): Promise<Room> => {
@@ -39,27 +23,8 @@ export const joinRoom = async (id: UUID): Promise<Room> => {
   await throwIfError(res);
 
   const obj: RoomDto = await res.json();
-  return toModel(obj);
+  return roomToModel(obj);
 };
-
-export const startGame = async (id: UUID): Promise<Room> => {
-  const url_ = url("rooms/:id/game", { params: { id: id } });
-  const res = await fetch(url_, { method: "PUT", credentials: "include" });
-  await throwIfError(res);
-
-  const obj: RoomDto = await res.json();
-  return toModel(obj);
-};
-
-interface RoomChanged {
-  EventType: "RoomChanged";
-}
-
-interface GameStarted {
-  EventType: "GameStarted";
-}
-
-type Event = RoomChanged | GameStarted;
 
 export const useRoomWebsocket = (roomId: UUID) => {
   const url_ = url("rooms/:id/websocket", {

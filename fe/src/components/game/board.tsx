@@ -23,11 +23,13 @@ export const Board = ({ board, pieces }: BoardProps) => {
     >
       {[...Array(board.height).keys()].flatMap((_, j) =>
         [...Array(board.width).keys()].map((_, i) => {
-          const square = Square.toString([i, j]);
+          const y = board.height - 1 - j
+          const x = board.width - 1 - i
+          const square = Square.toString([x, y]);
           return (
             <Tile
               key={square}
-              color={(i + j) % 2 == 0 ? "white" : "black"}
+              color={(x + y) % 2 == 0 ? "white" : "black"}
               piece={piecesMap[square]}
               onPieceHovered={(piece) => setHoveredPiece(piece)}
               onPieceUnhovered={(piece) =>
@@ -35,7 +37,7 @@ export const Board = ({ board, pieces }: BoardProps) => {
               }
               isMoveProjected={
                 (hoveredPiece || false) &&
-                PieceModel.hasValidMove(hoveredPiece, [i, j])
+                PieceModel.hasValidMove(hoveredPiece, [x, y])
               }
             />
           );
