@@ -75,7 +75,13 @@ func (s *Service) GetGameState(roomID uuid.UUID, sessionID uuid.UUID) (*State, e
 		return nil, fmt.Errorf("getting game: %w", err)
 	}
 
+	optionTree, err := game.TurnOptions()
+	if err != nil {
+		return nil, fmt.Errorf("generating turn options: %w", err)
+	}
+
 	return &State{
-		Board: game.Board(),
+		Board:      game.Board(),
+		OptionTree: optionTree,
 	}, nil
 }

@@ -14,24 +14,24 @@ type GameSuite struct {
 }
 
 func (s *GameSuite) TestStartGame() {
-	// Given
+	// given
 	room := s.Client().createFilledRoom()
 
-	// When
+	// when
 	room = s.Client().startGame(room.ID)
 
-	// Then
+	// then
 	s.True(room.IsStarted)
 }
 
 func (s *GameSuite) TestGetGameState() {
-	// Given
+	// given
 	room := s.Client().createFilledRoom()
 
-	// And
+	// and
 	room = s.Client().startGame(room.ID)
 
-	// Expect
+	// expect
 	s.Client().getGameState(room.ID)
 }
 
@@ -51,8 +51,8 @@ func (c *GameClient) startGame(roomID uuid.UUID) (room schema.Room) {
 	return
 }
 
-func (c *GameClient) getGameState(roomID uuid.UUID) (room schema.Room) {
-	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game", nil, &room)
+func (c *GameClient) getGameState(roomID uuid.UUID) (state schema.State) {
+	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game", nil, &state)
 	return
 }
 

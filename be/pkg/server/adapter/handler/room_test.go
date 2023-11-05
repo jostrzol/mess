@@ -14,25 +14,40 @@ type RoomSuite struct {
 }
 
 func (s *RoomSuite) TestCreateRoom() {
+	// expect
 	s.Client().createRoom()
 }
 
 func (s *RoomSuite) TestJoinRoomSameClient() {
+	// given
 	room := s.Client().createRoom()
+
+	// when
 	room = s.Client().joinRoom(room.ID)
+
+	// then
 	s.Equal(1, room.Players)
 }
 
 func (s *RoomSuite) TestJoinRoomDifferentClient() {
+	// given
 	room := s.Client().createRoom()
 
+	// and
 	c2 := s.NewClient()
+
+	// when
 	room = c2.joinRoom(room.ID)
+
+	// then
 	s.Equal(2, room.Players)
 }
 
 func (s *RoomSuite) TestGetRoom() {
+	// given
 	room := s.Client().createRoom()
+
+	// expect
 	s.Client().getRoom(room.ID)
 }
 

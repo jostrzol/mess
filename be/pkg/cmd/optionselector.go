@@ -73,13 +73,13 @@ func (o *optionSelector) VisitMoveNode(options map[*mess.MoveOption]mess.OptionT
 	if o.err != nil {
 		return
 	}
-	option, node := utils.FirstEntry(options)
+	option, node := utils.SingleEntry(options)
 	option.Move = move
 	o.result = &selected{option, node}
 }
 
 func (o *optionSelector) VisitUnitNode(options map[*mess.UnitOption]mess.OptionTree) {
-	option, node := utils.FirstEntry(options)
+	option, node := utils.SingleEntry(options)
 	o.result = &selected{option, node}
 }
 
@@ -88,7 +88,7 @@ func (o *optionSelector) VisitMessageNode(options map[string]mess.OptionTree) {
 	case 0:
 		// o.result == null => move should be performed without action
 	case 1:
-		_, node := utils.FirstEntry(options)
+		_, node := utils.SingleEntry(options)
 		node.Accept(o)
 	default:
 		fmt.Println("Choose action:")
