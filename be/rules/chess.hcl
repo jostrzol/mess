@@ -437,7 +437,7 @@ initial_state {
     A1 = "rook"
     B1 = "knight"
     C1 = "bishop"
-    H3 = "queen"
+    D1 = "queen"
     E1 = "king"
     F1 = "bishop"
     G1 = "knight"
@@ -465,8 +465,8 @@ initial_state {
     C7 = "pawn"
     D7 = "pawn"
     E7 = "pawn"
-    F6 = "pawn"
-    G5 = "pawn"
+    F7 = "pawn"
+    G7 = "pawn"
     H7 = "pawn"
   }
 }

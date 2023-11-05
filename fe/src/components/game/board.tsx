@@ -24,7 +24,7 @@ export const Board = ({ board, pieces }: BoardProps) => {
       {[...Array(board.height).keys()].flatMap((_, j) =>
         [...Array(board.width).keys()].map((_, i) => {
           const y = board.height - 1 - j
-          const x = board.width - 1 - i
+          const x = i
           const square = Square.toString([x, y]);
           return (
             <Tile
