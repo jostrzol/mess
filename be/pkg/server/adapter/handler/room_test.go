@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type JSON = handlertest.JSON
 type RoomSuite struct {
 	handlertest.HandlerSuite[RoomClient]
 }

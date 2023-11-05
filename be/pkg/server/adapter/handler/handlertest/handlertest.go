@@ -8,7 +8,10 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jostrzol/mess/configs/serverconfig"
@@ -17,7 +20,19 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func SetupRouter() *gin.Engine {
+type HandlerSuite[T Client] struct {
+	suite.Suite
+	defaultClient *T
+	g             *gin.Engine
+}
+
+func (s *HandlerSuite[T]) SetupTest() {
+	s.g = setupRouter()
+	s.defaultClient = s.NewClient()
+	setupDir()
+}
+
+func setupRouter() *gin.Engine {
 	config := &serverconfig.Config{
 		IsProduction:  false,
 		SessionSecret: "secret",
@@ -32,15 +47,16 @@ func SetupRouter() *gin.Engine {
 	return ioc.MustResolve[*gin.Engine]()
 }
 
-type HandlerSuite[T Client] struct {
-	suite.Suite
-	defaultClient *T
-	g             *gin.Engine
-}
-
-func (s *HandlerSuite[T]) SetupTest() {
-	s.g = SetupRouter()
-	s.defaultClient = s.NewClient()
+// setupDir changes working directory to module's root.
+// It is necessary, so that we can load rules correctly.
+// TODO: remove when rules are handled dynamically.
+func setupDir() {
+	_, file, _, _ := runtime.Caller(0)
+	root := filepath.Join(filepath.Dir(file), "../../../../..")
+	err := os.Chdir(root)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *HandlerSuite[T]) Client() *T {
@@ -57,6 +73,7 @@ func (s *HandlerSuite[T]) NewClient() *T {
 
 type Client interface {
 	initClient(*httpClient)
+	client() *httpClient
 }
 
 type BaseClient struct {
@@ -65,6 +82,17 @@ type BaseClient struct {
 
 func (c *BaseClient) initClient(httpClient *httpClient) {
 	c.httpClient = httpClient
+}
+
+func (c *BaseClient) client() *httpClient {
+	return c.httpClient
+}
+
+func CloneWithEmptyJar[T Client](c T) T {
+	result := c
+	newClient := result.client().cloneWithEmptyJar()
+	result.initClient(newClient)
+	return result
 }
 
 type httpClient struct {
@@ -79,6 +107,10 @@ func newHTTPClient(suite *suite.Suite, g *gin.Engine) *httpClient {
 		panic(err)
 	}
 	return &httpClient{Suite: suite, g: g, jar: jar}
+}
+
+func (c *httpClient) cloneWithEmptyJar() *httpClient {
+	return newHTTPClient(c.Suite, c.g)
 }
 
 func (c *httpClient) ServeHTTPOkAs(method string, url string, body JSON, result interface{}) {
