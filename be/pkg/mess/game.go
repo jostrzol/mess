@@ -16,13 +16,12 @@ func (g *Game) PickWinner() (bool, *Player) {
 	return g.controller.PickWinner(g.State)
 }
 
-func (g *Game) TurnOptions() ([][]Option, error) {
+func (g *Game) TurnOptions() (OptionTree, error) {
 	choiceGenerators, err := g.controller.TurnChoiceGenerators(g.State)
 	if err != nil {
 		return nil, err
 	}
-	optionSets := choiceGeneratorsToOptionSets(choiceGenerators)
-	return optionSets, nil
+	return MakeOptionTree(choiceGenerators), nil
 }
 
 func (g *Game) Turn(options []Option) error {

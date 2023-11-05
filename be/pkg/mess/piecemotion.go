@@ -39,14 +39,14 @@ func (g chainMotions) Generate(piece *Piece) []MoveGroup {
 				choiceGenerators = append(choiceGenerators, generatorClosure)
 			}
 
-			optionSets := choiceGeneratorsToOptionSets(choiceGenerators)
+			decitionTree := MakeOptionTree(choiceGenerators)
 			resultMap[destination] = MoveGroup{
 				Name:       name,
 				Piece:      piece,
 				From:       source,
 				To:         destination,
 				action:     motion.Action,
-				optionSets: optionSets,
+				optionTree: decitionTree,
 			}
 		}
 	}
@@ -60,48 +60,43 @@ type MoveGroup struct {
 	From       brd.Square
 	To         brd.Square
 	action     MoveActionFunc
-	optionSets [][]Option
+	optionTree OptionTree
 }
 
-func (mg MoveGroup) Length() int {
-	return len(mg.optionSets)
-}
-
-func (mg MoveGroup) OptionSets() [][]Option {
-	return mg.optionSets
+func (mg MoveGroup) OptionTree() OptionTree {
+	return mg.optionTree
 }
 
 func (mg MoveGroup) Moves() []*Move {
-	moves := make([]*Move, 0, len(mg.optionSets))
-	for _, options := range mg.optionSets {
+	optionSets := AllOptions(mg.optionTree)
+	moves := make([]*Move, 0, len(optionSets))
+	for _, options := range optionSets {
 		moves = append(moves, mg.Move(options))
 	}
 	return moves
 }
 
 func (mg MoveGroup) Single() *Move {
-	if mg.Length() != 1 {
-		err := fmt.Errorf("expected move group length of 1, got: %v", mg.Length())
+	optionSets := AllOptions(mg.optionTree)
+	if len(optionSets) != 1 {
+		err := fmt.Errorf("expected move group length of 1, got: %v", len(optionSets))
 		panic(err)
 	}
-	return mg.Move(mg.optionSets[0])
+	return mg.Move(optionSets[0])
 }
 
 func (mg MoveGroup) FilterMoves(predicate func(*Move) bool) MoveGroup {
-	validOptionSets := make([][]Option, 0, len(mg.optionSets))
-	for _, options := range mg.optionSets {
+	newOptionTree := FilterOptionTree(mg.optionTree, func(options []Option) bool {
 		move := mg.Move(options)
-		if predicate(move) {
-			validOptionSets = append(validOptionSets, options)
-		}
-	}
+		return predicate(move)
+	})
 	return MoveGroup{
 		Name:       mg.Name,
 		Piece:      mg.Piece,
 		From:       mg.From,
 		To:         mg.To,
 		action:     mg.action,
-		optionSets: validOptionSets,
+		optionTree: newOptionTree,
 	}
 }
 

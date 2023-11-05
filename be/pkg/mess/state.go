@@ -119,7 +119,7 @@ func (s *State) generateValidMoves() {
 
 		moveGroup = moveGroup.FilterMoves(s.validateMove)
 
-		if moveGroup.Length() != 0 {
+		if len(moveGroup.Moves()) > 0 {
 			result = append(result, moveGroup)
 		}
 	}

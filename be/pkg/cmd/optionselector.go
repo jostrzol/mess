@@ -5,38 +5,28 @@ import (
 
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/utils"
 	"golang.org/x/exp/maps"
 )
 
-func (t *interactor) selectOptionSet(optionSets [][]mess.Option) ([]mess.Option, error) {
-	optionSets, err := mess.FilterOptions(optionSets,
-		func(groups map[string]mess.OptionGroup) (mess.Option, error) {
-			group := maps.Values(groups)[0]
-			if len(groups) > 1 {
-				fmt.Println("Choose action:")
-				messages := maps.Keys(groups)
-				message, err := t.selectString(messages)
-				if err != nil {
-					return nil, err
-				}
-				group = groups[message]
-			}
-
-			return t.selectOption(group)
-		})
-	if err != nil {
-		return nil, err
+func (t *interactor) selectOptions(optionTree mess.OptionTree) (result []mess.Option, err error) {
+	selected := &selected{node: optionTree}
+	for selected.node != nil {
+		selected, err = t.selectOption(optionTree)
+		if err != nil {
+			return
+		} else if selected == nil {
+			// selected == null => move should be performed without action
+			return nil, nil
+		}
+		result = append(result, selected.option)
 	}
-
-	if len(optionSets) != 1 {
-		return nil, fmt.Errorf("expected exactly 1 option after selection, got: %v", len(optionSets))
-	}
-	return optionSets[0], nil
+	return
 }
 
-func (t *interactor) selectOption(group mess.OptionGroup) (mess.Option, error) {
+func (t *interactor) selectOption(optionTree mess.OptionTree) (*selected, error) {
 	selector := &optionSelector{interactor: t}
-	group.Accept(selector)
+	optionTree.Accept(selector)
 	if selector.err != nil {
 		return nil, selector.err
 	}
@@ -45,60 +35,95 @@ func (t *interactor) selectOption(group mess.OptionGroup) (mess.Option, error) {
 
 type optionSelector struct {
 	interactor *interactor
-	result     mess.Option
+	result     *selected
 	err        error
 }
 
-func (o *optionSelector) VisitPieceTypeOptions(options []*mess.PieceTypeOption) {
+type selected struct {
+	option mess.Option
+	node   mess.OptionTree
+}
+
+func (o *optionSelector) VisitPieceTypeNode(options map[*mess.PieceTypeOption]mess.OptionTree) {
 	o.result, o.err = selectWithNumber(o.interactor, options)
 }
 
-func (o *optionSelector) VisitSquareOptions(options []*mess.SquareOption) {
+func (o *optionSelector) VisitSquareNode(options map[*mess.SquareOption]mess.OptionTree) {
 	var square board.Square
 
-	message := options[0].Message()
+	message := maps.Keys(options)[0].Message()
 	fmt.Printf("%s:\n", message)
 	square, o.err = o.interactor.selectSquare()
 	if o.err != nil {
 		return
 	}
 
-	for _, option := range options {
+	for option, node := range options {
 		if square == option.Square {
-			o.result = option
+			o.result = &selected{option, node}
 			return
 		}
 	}
 	o.err = fmt.Errorf("invalid option")
 }
 
-func (o *optionSelector) VisitMoveOptions(options []*mess.MoveOption) {
+func (o *optionSelector) VisitMoveNode(options map[*mess.MoveOption]mess.OptionTree) {
 	var move *mess.Move
 	move, o.err = o.interactor.selectMove()
-	options[0].Move = move
-	o.result = options[0]
+	if o.err != nil {
+		return
+	}
+	option, node := utils.FirstEntry(options)
+	option.Move = move
+	o.result = &selected{option, node}
 }
 
-func (o *optionSelector) VisitUnitOptions(options []*mess.UnitOption) {
-	o.result = options[0]
+func (o *optionSelector) VisitUnitNode(options map[*mess.UnitOption]mess.OptionTree) {
+	option, node := utils.FirstEntry(options)
+	o.result = &selected{option, node}
 }
 
-func selectWithNumber[T mess.Option](t *interactor, options []T) (mess.Option, error) {
-	optionsByString := make(map[string]T, 1)
-	for _, option := range options {
-		optionsByString[option.String()] = option
+func (o *optionSelector) VisitMessageNode(options map[string]mess.OptionTree) {
+	switch len(options) {
+	case 0:
+		// o.result == null => move should be performed without action
+	case 1:
+		_, node := utils.FirstEntry(options)
+		node.Accept(o)
+	default:
+		fmt.Println("Choose action:")
+		messages, nodes := utils.Entries(options)
+		i, err := o.interactor.selectString(messages)
+		if err != nil {
+			o.err = err
+			return
+		}
+		nodes[i].Accept(o)
+	}
+}
+
+type Option = interface {
+	comparable
+	mess.Option
+}
+
+func selectWithNumber[T Option](t *interactor, options map[T]mess.OptionTree) (*selected, error) {
+	optionsByString := make(map[string]*selected, 1)
+	var message string
+	for option, node := range options {
+		optionsByString[option.String()] = &selected{option, node}
+		message = option.Message()
 	}
 
-	message := options[0].Message()
 	fmt.Printf("%s:\n", message)
 
 	optionStrings := maps.Keys(optionsByString)
-	optionString, err := t.selectString(optionStrings)
+	i, err := t.selectString(optionStrings)
 	if err != nil {
 		return nil, err
 	}
 
-	return optionsByString[optionString], nil
+	return optionsByString[optionStrings[i]], nil
 }
 
 func (t *interactor) selectMove() (*mess.Move, error) {
@@ -133,7 +158,7 @@ func (t *interactor) selectMove() (*mess.Move, error) {
 		return nil, fmt.Errorf("invalid move")
 	}
 
-	options, err := t.selectOptionSet(moveGroup.OptionSets())
+	options, err := t.selectOptions(moveGroup.OptionTree())
 	if err != nil {
 		return nil, err
 	}
@@ -172,23 +197,23 @@ func (t *interactor) selectSquare() (board.Square, error) {
 	return square, nil
 }
 
-func (t *interactor) selectString(strings []string) (string, error) {
+func (t *interactor) selectString(strings []string) (int, error) {
 	for i, str := range strings {
 		fmt.Printf("%v. %v\n", i+1, str)
 	}
 	choiceStr, err := t.scan()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	var i int
 	_, err = fmt.Sscanf(choiceStr, "%d", &i)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if i < 1 || i > len(strings) {
-		return "", fmt.Errorf("invalid option")
+		return 0, fmt.Errorf("invalid option")
 	}
-	return strings[i-1], nil
+	return i - 1, nil
 }

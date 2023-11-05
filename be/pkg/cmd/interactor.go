@@ -32,12 +32,12 @@ func (t *interactor) Run() (*mess.Player, error) {
 
 	t.printState()
 	for !isFinished {
-		optionSets, err := t.game.TurnOptions()
+		optionTree, err := t.game.TurnOptions()
 		if err != nil {
 			return nil, err
 		}
 
-		options, err := t.selectOptionSet(optionSets)
+		options, err := t.selectOptions(optionTree)
 		if errors.Is(err, ErrCancel) {
 			t.printMessage("Move cancelled")
 			t.printState()
