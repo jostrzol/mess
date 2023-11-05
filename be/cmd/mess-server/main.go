@@ -4,16 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
-	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/jostrzol/mess/configs/serverconfig"
 	"github.com/jostrzol/mess/pkg/logger"
-	"github.com/jostrzol/mess/pkg/server/adapter/handler"
 	_ "github.com/jostrzol/mess/pkg/server/adapter/handler"
 	_ "github.com/jostrzol/mess/pkg/server/adapter/inmem"
 	"github.com/jostrzol/mess/pkg/server/ioc"
@@ -21,38 +15,15 @@ import (
 )
 
 func main() {
-	config, logger := loadConfigAndLogger()
+	config := loadConfig()
 
-	if !config.IsProduction {
-		logger.Info("configuration loaded", zap.Any("config", config))
-	}
-
-	mode := gin.DebugMode
-	if config.IsProduction {
-		mode = gin.ReleaseMode
-	}
-	gin.SetMode(mode)
-
-	g := gin.New()
-	c := cors.DefaultConfig()
-	c.AllowOrigins = []string{"http://localhost:3000"}
-	c.AllowCredentials = true
-	g.Use(cors.New(c))
-	g.Use(ginzap.Ginzap(logger, time.RFC3339, true))
-	g.Use(ginzap.RecoveryWithZap(logger, true))
-	store := memstore.NewStore([]byte(config.SessionSecret))
-	g.Use(sessions.Sessions(handler.SessionKey, store))
-
-	ioc.MustSingleton(g)
-	for _, initializer := range ioc.HandlerInitializers {
-		initializer(g)
-	}
+	g := ioc.MustResolve[*gin.Engine]()
 
 	address := fmt.Sprintf(":%d", config.Port)
 	log.Fatal(g.Run(address))
 }
 
-func loadConfigAndLogger() (*serverconfig.Config, *zap.Logger) {
+func loadConfig() *serverconfig.Config {
 	config, errConfig := serverconfig.New()
 	isProduction := false
 	if config != nil {
@@ -69,9 +40,13 @@ func loadConfigAndLogger() (*serverconfig.Config, *zap.Logger) {
 		logger.Fatal("", zap.Error(errConfig))
 	}
 
+	if !config.IsProduction {
+		logger.Info("configuration loaded", zap.Any("config", config))
+	}
+
 	ioc.MustSingleton(config)
 	ioc.MustSingleton(logger)
 	ioc.MustSingleton(logger.Sugar())
 
-	return config, logger
+	return config
 }
