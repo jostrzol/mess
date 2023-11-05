@@ -11,7 +11,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// TODO: make this dynamic.
+// TODO: Make this dynamic.
 const rulesFile = "./rules/chess.hcl"
 
 const PlayersNeeded = 2
@@ -66,7 +66,7 @@ func (r *Room) assertStartable() error {
 	}
 }
 
-func (r *Room) Start() error {
+func (r *Room) StartGame() error {
 	if err := r.assertStartable(); err != nil {
 		return err
 	}
@@ -78,8 +78,16 @@ func (r *Room) Start() error {
 	return nil
 }
 
+func (r *Room) Game() (*mess.Game, error) {
+	if !r.IsStarted() {
+		return nil, ErrNotStarted
+	}
+	return r.game, nil
+}
+
 var ErrRoomFull = usrerr.Errorf("room full")
 var ErrNoRules = usrerr.Errorf("no rules file")
 var ErrNotEnoughPlayers = usrerr.Errorf("not enough players")
 var ErrAlreadyStarted = usrerr.Errorf("game is already started")
 var ErrAlreadyInRoom = usrerr.Errorf("player already in room")
+var ErrNotStarted = usrerr.Errorf("game not started")

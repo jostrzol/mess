@@ -26,7 +26,7 @@ func CreateRoom(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
-		c.JSON(http.StatusOK, schema.NewRoom(room))
+		c.JSON(http.StatusOK, schema.RoomFromDomain(room))
 	})
 }
 
@@ -46,7 +46,7 @@ func GetRoom(h *RoomHandler, g *gin.Engine) {
 			return
 		}
 
-		c.JSON(http.StatusOK, schema.NewRoom(room))
+		c.JSON(http.StatusOK, schema.RoomFromDomain(room))
 	})
 }
 
@@ -72,33 +72,7 @@ func JoinRoom(h *RoomHandler, g *gin.Engine) {
 			h.wsHandler.sendToOpponents(r, session.ID, &schema.RoomChanged{})
 		}
 
-		c.JSON(http.StatusOK, schema.NewRoom(r))
-	})
-}
-
-func StartGame(h *RoomHandler, g *gin.Engine) {
-	g.PUT("/rooms/:id/game", func(c *gin.Context) {
-		session := GetSessionData(sessions.Default(c))
-		id := c.Param("id")
-
-		roomID, err := parseUUID(id)
-		if err != nil {
-			AbortWithError(c, err)
-			return
-		}
-
-		r, err := h.service.StartGame(roomID)
-		switch {
-		case errors.Is(err, room.ErrAlreadyStarted):
-			break
-		case err != nil:
-			AbortWithError(c, err)
-			return
-		default:
-			h.wsHandler.sendToOpponents(r, session.ID, &schema.GameStarted{})
-		}
-
-		c.JSON(http.StatusOK, schema.NewRoom(r))
+		c.JSON(http.StatusOK, schema.RoomFromDomain(r))
 	})
 }
 
@@ -118,6 +92,5 @@ func init() {
 		GetRoom,
 		JoinRoom,
 		HandleWebsocket,
-		StartGame,
 	)
 }

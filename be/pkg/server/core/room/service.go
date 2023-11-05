@@ -57,9 +57,25 @@ func (s *Service) StartGame(roomID uuid.UUID) (*Room, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
 	}
-	err = room.Start()
+	err = room.StartGame()
 	if err != nil {
 		return room, err
 	}
 	return room, nil
+}
+
+func (s *Service) GetGameState(roomID uuid.UUID, sessionID uuid.UUID) (*State, error) {
+	room, err := s.repository.Get(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+
+	game, err := room.Game()
+	if err != nil {
+		return nil, fmt.Errorf("getting game: %w", err)
+	}
+
+	return &State{
+		Board: game.Board(),
+	}, nil
 }

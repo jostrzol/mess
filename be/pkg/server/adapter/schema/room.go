@@ -13,7 +13,7 @@ type Room struct {
 	IsStarted     bool
 }
 
-func NewRoom(r *room.Room) *Room {
+func RoomFromDomain(r *room.Room) *Room {
 	return &Room{
 		ID:            r.ID(),
 		Players:       len(r.Players()),
