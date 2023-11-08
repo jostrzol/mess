@@ -4,6 +4,5 @@ import "github.com/jostrzol/mess/pkg/mess"
 
 type State struct {
 	Board      *mess.PieceBoard
-	OptionTree mess.OptionTree
-	ValidMoves []mess.MoveGroup
+	OptionTree *mess.OptionNode
 }
