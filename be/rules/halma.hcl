@@ -176,19 +176,19 @@ variables {
 
 // ===== TURN ==================================================
 turn {
-  choice_generators = ["turn_choose_move"]
-  action            = "turn"
+  choice_function = "turn_choose_move"
+  action          = "turn"
 }
 
 function "turn_choose_move" {
-  params = [options]
+  params = []
   result = { type = "move", message = "Choose move" }
 }
 
 composite_function "turn" {
   params = [options]
   result = {
-    _ = make_move(options[0].move)
+    _ = make_move(options[0].move, slice(options, 1, length(options)))
   }
 }
 
