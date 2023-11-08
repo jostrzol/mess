@@ -7,16 +7,20 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func optionNodesFromDomain(nodes []*mess.OptionNode) (result []OptionNode) {
+func optionNodesFromDomain(nodes []*mess.OptionNode) []*OptionNode {
+	result := make([]*OptionNode, 0, len(nodes))
 	for _, node := range nodes {
-		result = append(result, optionNodeFromDomain(node))
+		nodeMarshalled := optionNodeFromDomain(node)
+		if nodeMarshalled != nil {
+			result = append(result, nodeMarshalled)
+		}
 	}
-	return
+	return result
 }
 
-func optionNodeFromDomain(node *mess.OptionNode) OptionNode {
+func optionNodeFromDomain(node *mess.OptionNode) *OptionNode {
 	if node == nil {
-		return OptionNode{}
+		return nil
 	}
 	var marshaler optionTreeMarshaler
 	node.Accept(&marshaler)
@@ -26,12 +30,12 @@ func optionNodeFromDomain(node *mess.OptionNode) OptionNode {
 type OptionNode struct {
 	Type    string
 	Message string
-	Data    []OptionNodeDatum
+	Data    []OptionNodeDatum `json:",omitempty"`
 }
 
 type OptionNodeDatum struct {
 	Data     interface{}
-	Children []OptionNode
+	Children []*OptionNode `json:",omitempty"`
 }
 
 func (d OptionNodeDatum) MarshalJSON() ([]byte, error) {
@@ -45,7 +49,7 @@ func (d OptionNodeDatum) MarshalJSON() ([]byte, error) {
 }
 
 type optionTreeMarshaler struct {
-	result OptionNode
+	result *OptionNode
 }
 
 func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.PieceTypeOptionNodeData) {
@@ -58,7 +62,7 @@ func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.P
 			Children: children,
 		})
 	}
-	o.result = OptionNode{Type: "PieceType", Message: message, Data: dataMarshalled}
+	o.result = &OptionNode{Type: "PieceType", Message: message, Data: dataMarshalled}
 }
 
 func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.SquareOptionNodeData) {
@@ -71,7 +75,7 @@ func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.Squa
 			Children: children,
 		})
 	}
-	o.result = OptionNode{Type: "Square", Message: message, Data: dataMarshalled}
+	o.result = &OptionNode{Type: "Square", Message: message, Data: dataMarshalled}
 }
 
 func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOptionNodeData) {
@@ -84,7 +88,7 @@ func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOp
 			Children: children,
 		})
 	}
-	o.result = OptionNode{Type: "Move", Message: message, Data: dataMarshalled}
+	o.result = &OptionNode{Type: "Move", Message: message, Data: dataMarshalled}
 }
 
 func (o *optionTreeMarshaler) VisitUnitNodeData(message string, data mess.UnitOptionNodeData) {
@@ -93,5 +97,5 @@ func (o *optionTreeMarshaler) VisitUnitNodeData(message string, data mess.UnitOp
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{Children: children})
 	}
-	o.result = OptionNode{Type: "Unit", Message: message, Data: dataMarshalled}
+	o.result = &OptionNode{Type: "Unit", Message: message, Data: dataMarshalled}
 }
