@@ -83,5 +83,6 @@ func (s *Service) GetGameState(roomID uuid.UUID, sessionID uuid.UUID) (*State, e
 	return &State{
 		Board:      game.Board(),
 		OptionTree: optionTree,
+		ValidMoves: game.ValidMoves(),
 	}, nil
 }

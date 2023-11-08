@@ -13,7 +13,7 @@ type Piece struct {
 	owner  *Player
 	board  *PieceBoard
 	square brd.Square
-	moves  []MoveGroup
+	moves  []*MoveGroup
 }
 
 func NewPiece(pieceType *PieceType, owner *Player) *Piece {
@@ -91,7 +91,7 @@ func (p *Piece) GetCapturedBy(player *Player) error {
 	return nil
 }
 
-func (p *Piece) Moves() []MoveGroup {
+func (p *Piece) Moves() []*MoveGroup {
 	if p.moves == nil {
 		p.generateMoves()
 	}

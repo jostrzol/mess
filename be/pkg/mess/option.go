@@ -1,153 +1,152 @@
 package mess
 
-import (
-	"fmt"
-
-	"github.com/jostrzol/mess/pkg/board"
-)
-
-type Choice interface {
-	Message() string
-	GenerateOptions() []Option
+type Choice struct {
+	Message     string
+	NextChoices []*Choice
+	Generator   ChoiceGenerator
 }
-type ChoiceMessage string
 
-func (cb ChoiceMessage) Message() string {
-	return string(cb)
+type ChoiceGenerator interface {
+	GenerateOptions() IOptionNodeData
+}
+
+func (c *Choice) GenerateOptions() *OptionNode {
+	if c == nil {
+		return nil
+	}
+
+	optionData := c.Generator.GenerateOptions()
+	var children []*OptionNode
+	for _, choice := range c.NextChoices {
+		children = append(children, choice.GenerateOptions())
+	}
+	if children != nil {
+		optionData.setLeavesChildren(children)
+	}
+	return &OptionNode{
+		Message: c.Message,
+		Data:    optionData,
+	}
+}
+
+type OptionNode struct {
+	Message string
+	Data    IOptionNodeData
+}
+
+func EmptyOptionNode() *OptionNode {
+	return &OptionNode{
+		Message: "<empty>",
+		Data:    nil,
+	}
+}
+
+type Route = []Option
+
+func (n *OptionNode) Accept(visitor OptionNodeDataVisitor) {
+	n.Data.accept(n.Message, visitor)
+}
+
+func (n *OptionNode) AllRoutes() <-chan Route {
+	result := make(chan Route)
+	go func() {
+		n.FilterRoutes(func(route Route) bool {
+			result <- route
+			return false
+		})
+		close(result)
+	}()
+	return result
+}
+
+func (n *OptionNode) FilterRoutes(predicate func(Route) bool) *OptionNode {
+	if n == nil {
+		if predicate(nil) {
+			return nil
+		}
+		return EmptyOptionNode()
+	}
+	return n.filterRoutes(nil, predicate)
+}
+
+func (n *OptionNode) filterRoutes(parentRoute Route, predicate func(Route) bool) *OptionNode {
+	if n.Data == nil {
+		return EmptyOptionNode()
+	}
+	newData := n.Data.filter(parentRoute, predicate)
+
+	return &OptionNode{
+		Message: n.Message,
+		Data:    newData,
+	}
+}
+
+type IOptionNodeData interface {
+	accept(message string, visitor OptionNodeDataVisitor)
+	setLeavesChildren(children []*OptionNode)
+	filter(parentRoute Route, predicate func(Route) bool) IOptionNodeData
+	len() int
+}
+
+type OptionNodeData[T Option] []OptionNodeDatum[T]
+
+func (d OptionNodeData[T]) setLeavesChildren(children []*OptionNode) {
+	for _, datum := range d {
+		if datum.Children == nil {
+			datum.Children = children
+		} else {
+			for _, child := range datum.Children {
+				child.Data.setLeavesChildren(children)
+			}
+		}
+	}
+}
+
+func (d OptionNodeData[T]) filter(parentRoute Route, predicate func(Route) bool) (result OptionNodeData[T]) {
+	for _, datum := range d {
+		route := append(parentRoute, datum.Option)
+		if datum.Children != nil {
+			var newChildren []*OptionNode
+			for _, child := range datum.Children {
+				newChild := child.filterRoutes(route, predicate)
+				newChildren = append(newChildren, newChild)
+			}
+			if newChildren != nil {
+				result = append(result, OptionNodeDatum[T]{Option: datum.Option, Children: newChildren})
+			}
+		} else if predicate(route) {
+			result = append(result, datum)
+		}
+	}
+	return
+}
+
+func (d OptionNodeData[T]) len() int {
+	return len(d)
+}
+
+type IOptionNodeDatum interface {
+	IOption() Option
+	IChildren() []*OptionNode
+}
+
+type OptionNodeDatum[T Option] struct {
+	Option   T
+	Children []*OptionNode
+}
+
+func (d OptionNodeDatum[T]) IOption() Option {
+	return d.Option
+}
+
+func (d OptionNodeDatum[T]) IChildren() []*OptionNode {
+	return d.Children
+}
+
+func (d OptionNodeDatum[T]) String() string {
+	return d.Option.String()
 }
 
 type Option interface {
-	Message() string
-	Accept(visitor OptionVisitor)
 	String() string
-}
-
-type ChoiceGenerator = func([]Option) Choice
-
-// Piece type choice
-
-type PieceTypeChoice struct {
-	ChoiceMessage
-	PieceTypes []*PieceType
-}
-
-func (ptc *PieceTypeChoice) GenerateOptions() []Option {
-	result := make([]Option, len(ptc.PieceTypes))
-	for i, pieceType := range ptc.PieceTypes {
-		result[i] = &PieceTypeOption{ptc.ChoiceMessage, pieceType}
-	}
-	return result
-}
-
-type PieceTypeOption struct {
-	ChoiceMessage
-	PieceType *PieceType
-}
-
-func (pto *PieceTypeOption) Accept(visitor OptionVisitor) {
-	visitor.VisitPieceTypeOption(pto)
-}
-
-func (pto *PieceTypeOption) String() string {
-	return pto.PieceType.name
-}
-
-// Square choice
-
-type SquareChoice struct {
-	ChoiceMessage
-	Squares []board.Square
-}
-
-func (sc *SquareChoice) GenerateOptions() []Option {
-	result := make([]Option, len(sc.Squares))
-	for i, square := range sc.Squares {
-		result[i] = &SquareOption{sc.ChoiceMessage, square}
-	}
-	return result
-}
-
-type SquareOption struct {
-	ChoiceMessage
-	Square board.Square
-}
-
-func (so *SquareOption) Accept(visitor OptionVisitor) {
-	visitor.VisitSquareOption(so)
-}
-
-func (so *SquareOption) String() string {
-	return so.Square.String()
-}
-
-// Move choice
-
-type MoveChoice struct {
-	ChoiceMessage
-}
-
-func (mc *MoveChoice) GenerateOptions() []Option {
-	return []Option{&MoveOption{ChoiceMessage: mc.ChoiceMessage}}
-}
-
-type MoveOption struct {
-	ChoiceMessage
-	Move *Move
-}
-
-func (mo *MoveOption) Accept(visitor OptionVisitor) {
-	visitor.VisitMoveOption(mo)
-}
-
-func (mo *MoveOption) String() string {
-	if mo.Move == nil {
-		return "Move option (undecided)"
-	}
-	return fmt.Sprintf("Move option: %v", mo.Move)
-}
-
-// Composite choice
-
-type CompositeChoice struct {
-	ChoiceMessage
-	Choices []Choice
-}
-
-func (cc *CompositeChoice) GenerateOptions() []Option {
-	var result []Option
-	for _, choice := range cc.Choices {
-		result = append(result, choice.GenerateOptions()...)
-	}
-	return result
-}
-
-// Unit choice
-
-type UnitChoice struct {
-	ChoiceMessage
-}
-
-func (uc *UnitChoice) GenerateOptions() []Option {
-	return []Option{&UnitOption{ChoiceMessage: uc.ChoiceMessage}}
-}
-
-type UnitOption struct {
-	ChoiceMessage
-}
-
-func (uo *UnitOption) Accept(visitor OptionVisitor) {
-	visitor.VisitUnitOption(uo)
-}
-
-func (uo *UnitOption) String() string {
-	return "Unit option"
-}
-
-// Option visitors
-
-type OptionVisitor interface {
-	VisitPieceTypeOption(option *PieceTypeOption)
-	VisitSquareOption(option *SquareOption)
-	VisitMoveOption(option *MoveOption)
-	VisitUnitOption(option *UnitOption)
 }

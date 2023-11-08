@@ -6,27 +6,32 @@ import (
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/utils"
-	"golang.org/x/exp/maps"
 )
 
-func (t *interactor) selectOptions(optionTree mess.OptionTree) (result []mess.Option, err error) {
-	selected := &selected{node: optionTree}
-	for selected.node != nil {
-		selected, err = t.selectOption(optionTree)
+func (t *interactor) selectOptions(optionTree *mess.OptionNode) (result []mess.Option, err error) {
+	currentNode := optionTree
+	for currentNode != nil {
+		var datum mess.IOptionNodeDatum
+		datum, err = t.selectDatum(currentNode)
 		if err != nil {
 			return
-		} else if selected == nil {
+		} else if datum == nil {
 			// selected == null => move should be performed without action
 			return nil, nil
 		}
-		result = append(result, selected.option)
+
+		currentNode, err = t.selectChild(datum.IChildren())
+		if err != nil {
+			return
+		}
+		result = append(result, datum.IOption())
 	}
 	return
 }
 
-func (t *interactor) selectOption(optionTree mess.OptionTree) (*selected, error) {
+func (t *interactor) selectDatum(node *mess.OptionNode) (mess.IOptionNodeDatum, error) {
 	selector := &optionSelector{interactor: t}
-	optionTree.Accept(selector)
+	node.Accept(selector)
 	if selector.err != nil {
 		return nil, selector.err
 	}
@@ -35,71 +40,39 @@ func (t *interactor) selectOption(optionTree mess.OptionTree) (*selected, error)
 
 type optionSelector struct {
 	interactor *interactor
-	result     *selected
+	result     mess.IOptionNodeDatum
 	err        error
 }
 
-type selected struct {
-	option mess.Option
-	node   mess.OptionTree
+func (o *optionSelector) VisitPieceTypeNodeData(message string, data mess.PieceTypeOptionNodeData) {
+	fmt.Printf("%s:\n", message)
+	o.result, o.err = selectStringer(o.interactor, data.OptionNodeData)
 }
 
-func (o *optionSelector) VisitPieceTypeNode(options map[*mess.PieceTypeOption]mess.OptionTree) {
-	o.result, o.err = selectWithNumber(o.interactor, options)
-}
-
-func (o *optionSelector) VisitSquareNode(options map[*mess.SquareOption]mess.OptionTree) {
+func (o *optionSelector) VisitSquareNodeData(message string, data mess.SquareOptionNodeData) {
 	var square board.Square
 
-	message := maps.Keys(options)[0].Message()
 	fmt.Printf("%s:\n", message)
 	square, o.err = o.interactor.selectSquare()
 	if o.err != nil {
 		return
 	}
 
-	for option, node := range options {
-		if square == option.Square {
-			o.result = &selected{option, node}
+	for _, datum := range data.OptionNodeData {
+		if square == datum.Option.Square {
+			o.result = datum
 			return
 		}
 	}
 	o.err = fmt.Errorf("invalid option")
 }
 
-func (o *optionSelector) VisitMoveNode(options map[*mess.MoveOption]mess.OptionTree) {
-	var move *mess.Move
-	move, o.err = o.interactor.selectMove()
-	if o.err != nil {
-		return
-	}
-	option, node := utils.SingleEntry(options)
-	option.Move = move
-	o.result = &selected{option, node}
+func (o *optionSelector) VisitMoveNodeData(_ string, data mess.MoveOptionNodeData) {
+	o.result, o.err = o.interactor.selectMove(data)
 }
 
-func (o *optionSelector) VisitUnitNode(options map[*mess.UnitOption]mess.OptionTree) {
-	option, node := utils.SingleEntry(options)
-	o.result = &selected{option, node}
-}
-
-func (o *optionSelector) VisitMessageNode(options map[string]mess.OptionTree) {
-	switch len(options) {
-	case 0:
-		// o.result == null => move should be performed without action
-	case 1:
-		_, node := utils.SingleEntry(options)
-		node.Accept(o)
-	default:
-		fmt.Println("Choose action:")
-		messages, nodes := utils.Entries(options)
-		i, err := o.interactor.selectString(messages)
-		if err != nil {
-			o.err = err
-			return
-		}
-		nodes[i].Accept(o)
-	}
+func (o *optionSelector) VisitUnitNodeData(_ string, data mess.UnitOptionNodeData) {
+	o.result = utils.Single(data.OptionNodeData)
 }
 
 type Option = interface {
@@ -107,36 +80,39 @@ type Option = interface {
 	mess.Option
 }
 
-func selectWithNumber[T Option](t *interactor, options map[T]mess.OptionTree) (*selected, error) {
-	optionsByString := make(map[string]*selected, 1)
-	var message string
-	for option, node := range options {
-		optionsByString[option.String()] = &selected{option, node}
-		message = option.Message()
+func (t *interactor) selectChild(children []*mess.OptionNode) (*mess.OptionNode, error) {
+	switch len(children) {
+	case 0:
+		// result == nil => move should be performed without action
+		return nil, nil
+	case 1:
+		return utils.Single(children), nil
+	default:
+		fmt.Println("Choose action:")
+		var messages []string
+		for _, child := range children {
+			messages = append(messages, child.Message)
+		}
+		i, err := t.selectString(messages)
+		if err != nil {
+			return nil, err
+		}
+		return children[i], nil
 	}
-
-	fmt.Printf("%s:\n", message)
-
-	optionStrings := maps.Keys(optionsByString)
-	i, err := t.selectString(optionStrings)
-	if err != nil {
-		return nil, err
-	}
-
-	return optionsByString[optionStrings[i]], nil
 }
 
-func (t *interactor) selectMove() (*mess.Move, error) {
+func (t *interactor) selectMove(data mess.MoveOptionNodeData) (*mess.OptionNodeDatum[mess.MoveOption], error) {
 	println("Choose a square with your piece")
 	piece, err := t.selectOwnPiece()
 	if err != nil {
 		return nil, err
 	}
 
-	validForPiece := make(map[board.Square]mess.MoveGroup, 0)
-	for _, moveGroup := range t.game.ValidMoves() {
+	validForPiece := make(map[board.Square]mess.OptionNodeDatum[mess.MoveOption], 0)
+	for _, datum := range data.OptionNodeData {
+		moveGroup := datum.Option.MoveGroup
 		if moveGroup.Piece == piece {
-			validForPiece[moveGroup.To] = moveGroup
+			validForPiece[moveGroup.To] = datum
 		}
 	}
 
@@ -144,8 +120,8 @@ func (t *interactor) selectMove() (*mess.Move, error) {
 		return nil, ErrNoMoves
 	}
 	println("Valid destinations:")
-	for _, validMove := range validForPiece {
-		fmt.Printf("-> %v\n", &validMove.To)
+	for _, datum := range validForPiece {
+		fmt.Printf("-> %v\n", &datum.Option.MoveGroup.To)
 	}
 
 	println("Choose a destination square")
@@ -153,18 +129,12 @@ func (t *interactor) selectMove() (*mess.Move, error) {
 	if err != nil {
 		return nil, err
 	}
-	moveGroup, ok := validForPiece[dst]
+	datum, ok := validForPiece[dst]
 	if !ok {
 		return nil, fmt.Errorf("invalid move")
 	}
 
-	options, err := t.selectOptions(moveGroup.OptionTree())
-	if err != nil {
-		return nil, err
-	}
-	move := moveGroup.Move(options)
-
-	return move, nil
+	return &datum, nil
 }
 
 func (t *interactor) selectOwnPiece() (*mess.Piece, error) {
@@ -195,6 +165,21 @@ func (t *interactor) selectSquare() (board.Square, error) {
 		return board.Square{}, fmt.Errorf("Square not on board")
 	}
 	return square, nil
+}
+
+func selectStringer[T fmt.Stringer](t *interactor, options []T) (T, error) {
+	optionStrings := make([]string, len(options))
+	for i, option := range options {
+		optionStrings[i] = option.String()
+	}
+
+	i, err := t.selectString(optionStrings)
+	if err != nil {
+		var zero T
+		return zero, err
+	}
+
+	return options[i], nil
 }
 
 func (t *interactor) selectString(strings []string) (int, error) {

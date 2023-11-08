@@ -213,36 +213,33 @@ initial_state {
 
 // ===== TURN ==================================================
 turn {
-  choice_generators = ["turn_choose_move_or_captured_piece", "turn_choose_empty_square"]
-  action            = "turn"
+  choice_function = "turn_choices"
+  action          = "turn"
 }
 
-function "turn_choose_move_or_captured_piece" {
-  params = [options]
-  result = {
-    type = "composite"
-    choices = [
-      { message = "Make a move", type = "move" },
-      {
-        message = "Place a captured piece",
-        type    = "piece_type",
-        options = captured_piece_types(game.current_player)
-      },
-    ]
-  }
+function "turn_choices" {
+  params = []
+  result = [
+    {
+      message = "Make a move"
+      type    = "move"
+    },
+    {
+      message = "Place a captured piece"
+      type    = "piece_type"
+      options = captured_piece_types(game.current_player)
+      next_choices = [{
+        message = "Choose an empty square"
+        type    = "square"
+        squares = empty_squares()
+      }]
+    },
+  ]
 }
 
 function "captured_piece_types" {
   params = [player]
   result = [for type, _ in player.captures : type]
-}
-
-function "turn_choose_empty_square" {
-  params = [options]
-  result = (options[0].type == "move"
-    ? { message = "", type = "unit", squares = null }
-    : { message = "Choose an empty square", type = "square", squares = empty_squares() }
-  )
 }
 
 composite_function "empty_squares" {

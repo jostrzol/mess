@@ -64,6 +64,6 @@ func (t *PieceType) AddMotion(motion Motion) {
 	t.motions = append(t.motions, motion)
 }
 
-func (t *PieceType) moves(piece *Piece) []MoveGroup {
+func (t *PieceType) moves(piece *Piece) []*MoveGroup {
 	return t.motions.Generate(piece)
 }

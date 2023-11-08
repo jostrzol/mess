@@ -67,37 +67,26 @@ func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
 	return true, state.Player(color)
 }
 
-func (c *controller) TurnChoiceGenerators(state *mess.State) ([]mess.ChoiceGenerator, error) {
+func (c *controller) TurnChoice(state *mess.State) (*mess.Choice, error) {
 	c.refreshGameStateInContext()
 
-	result := make([]mess.ChoiceGenerator, 0, len(c.rules.Turn.ChoiceGeneratorNames))
-	for _, funcName := range c.rules.Turn.ChoiceGeneratorNames {
-		choiceGeneratorFunc, ok := c.rules.Functions.CustomFuncs[funcName]
-		if !ok {
-			return nil, fmt.Errorf("user function %q not found", funcName)
-		}
-
-		generator := func(options []mess.Option) mess.Choice {
-			optionsCty := ctymess.OptionsToCty(options)
-
-			choiceCty, err := choiceGeneratorFunc.Call([]cty.Value{optionsCty})
-			if err != nil {
-				fmt.Printf("error calling turn choice generator %q: %v\n", funcName, err)
-				return nil
-			}
-
-			choice, err := ctymess.ChoiceFromCty(state, choiceCty)
-			if err != nil {
-				fmt.Printf("error parsing choice generator %q result: %v\n", funcName, err)
-				return nil
-			}
-
-			return choice
-		}
-
-		result = append(result, generator)
+	funcName := c.rules.Turn.ChoiceFunctionName
+	choiceGeneratorFunc, ok := c.rules.Functions.CustomFuncs[funcName]
+	if !ok {
+		return nil, fmt.Errorf("user function %q not found", funcName)
 	}
-	return result, nil
+
+	choiceCty, err := choiceGeneratorFunc.Call([]cty.Value{})
+	if err != nil {
+		return nil, fmt.Errorf("calling turn choice function %q: %w", funcName, err)
+	}
+
+	choice, err := ctymess.ChoiceFromCty(state, choiceCty)
+	if err != nil {
+		return nil, fmt.Errorf("parsing choice function %q result: %w", funcName, err)
+	}
+
+	return choice, nil
 }
 
 func (c *controller) Turn(_ *mess.State, options []mess.Option) error {
@@ -142,28 +131,27 @@ func (c *controller) GetCustomFuncAsGenerator(name string) (mess.MoveGeneratorFu
 	}, nil
 }
 
-func (c *controller) GetCustomFuncAsChoiceGenerator(name string) (mess.MoveChoiceGeneratorFunc, error) {
+func (c *controller) GetCustomFuncAsChoiceFunction(name string) (mess.MoveChoiceFunc, error) {
 	funcCty, ok := c.rules.Functions.CustomFuncs[name]
 	if !ok {
 		return nil, fmt.Errorf("user function %q not found", name)
 	}
 
-	return func(piece *mess.Piece, from, to board.Square, options []mess.Option) mess.Choice {
+	return func(piece *mess.Piece, from, to board.Square) *mess.Choice {
 		pieceCty := ctymess.PieceToCty(piece)
 		fromCty := ctymess.SquareToCty(from)
 		toCty := ctymess.SquareToCty(to)
-		optionsCty := ctymess.OptionsToCty(options)
 
 		c.refreshGameStateInContext()
-		result, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty, optionsCty})
+		result, err := funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
 		if err != nil {
-			fmt.Printf("error calling choice generator %q: %v\n", name, err)
+			fmt.Printf("error calling choice function %q: %v\n", name, err)
 			return nil
 		}
 
 		choice, err := ctymess.ChoiceFromCty(c.state, result)
 		if err != nil {
-			fmt.Printf("error parsing choice generator %q result: %v\n", name, err)
+			fmt.Printf("error parsing choice function %q result: %v\n", name, err)
 			return nil
 		}
 
@@ -184,15 +172,11 @@ func (c *controller) GetCustomFuncAsAction(name string) (mess.MoveActionFunc, er
 
 		var err error
 		c.refreshGameStateInContext()
-		if len(optionSet) > 0 {
-			optionsCty := ctymess.OptionsToCty(optionSet)
-			_, err = funcCty.Call([]cty.Value{pieceCty, fromCty, toCty, optionsCty})
-		} else {
-			_, err = funcCty.Call([]cty.Value{pieceCty, fromCty, toCty})
-		}
+		optionsCty := ctymess.OptionsToCty(optionSet)
+		_, err = funcCty.Call([]cty.Value{pieceCty, fromCty, toCty, optionsCty})
 
 		if err != nil {
-			return fmt.Errorf("calling motion action %q for: %v", name, err)
+			return fmt.Errorf("calling motion action %q: %v", name, err)
 		}
 		return nil
 	}, nil

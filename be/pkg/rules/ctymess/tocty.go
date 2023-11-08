@@ -139,28 +139,24 @@ func OptionsToCty(options []mess.Option) cty.Value {
 
 func OptionToCty(option mess.Option) cty.Value {
 	switch opt := option.(type) {
-	case *mess.PieceTypeOption:
+	case mess.PieceTypeOption:
 		return cty.ObjectVal(map[string]cty.Value{
-			"message":    cty.StringVal(opt.Message()),
 			"type":       cty.StringVal("piece_type"),
 			"piece_type": PieceTypeToCty(opt.PieceType),
 		})
-	case *mess.SquareOption:
+	case mess.SquareOption:
 		return cty.ObjectVal(map[string]cty.Value{
-			"message": cty.StringVal(opt.Message()),
-			"type":    cty.StringVal("square"),
-			"square":  SquareToCty(opt.Square),
+			"type":   cty.StringVal("square"),
+			"square": SquareToCty(opt.Square),
 		})
-	case *mess.MoveOption:
+	case mess.MoveOption:
 		return cty.ObjectVal(map[string]cty.Value{
-			"message": cty.StringVal(opt.Message()),
-			"type":    cty.StringVal("move"),
-			"move":    MoveToCty(opt.Move),
+			"type": cty.StringVal("move"),
+			"move": MoveGroupToCty(opt.MoveGroup),
 		})
-	case *mess.UnitOption:
+	case mess.UnitOption:
 		return cty.ObjectVal(map[string]cty.Value{
-			"message": cty.StringVal(opt.Message()),
-			"type":    cty.StringVal("unit"),
+			"type": cty.StringVal("unit"),
 		})
 	default:
 		err := fmt.Errorf("invalid option type %T", option)

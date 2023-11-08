@@ -98,7 +98,34 @@ func PieceTypeFromCty(state *mess.State, value cty.Value) (*mess.PieceType, erro
 	return nil, fmt.Errorf("piece type of name %q not found", pieceTypeName)
 }
 
-func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err error) {
+func ChoicesFromCty(state *mess.State, value cty.Value) (choices []*mess.Choice, err error) {
+	if value.IsNull() {
+		return nil, nil
+	}
+
+	value = tupleToList(value)
+	if err != nil {
+		return nil, err
+	}
+
+	if !value.Type().IsListType() {
+		return nil, fmt.Errorf("expected list type, found %v", value.Type().FriendlyName())
+	}
+
+	result := make([]*mess.Choice, 0, value.LengthInt())
+	it := value.ElementIterator()
+	for it.Next() {
+		index, value := it.Element()
+		option, err := ChoiceFromCty(state, value)
+		if err != nil {
+			return nil, fmt.Errorf("converting element [%d]: %w", index.AsBigFloat(), err)
+		}
+		result = append(result, option)
+	}
+	return result, nil
+}
+
+func ChoiceFromCty(state *mess.State, value cty.Value) (choice *mess.Choice, err error) {
 	if value.IsNull() {
 		return nil, nil
 	}
@@ -107,13 +134,20 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err 
 	if err != nil {
 		return nil, err
 	}
-	messageStr, err := getAttrAsString(value, "message")
+	message, err := getAttrAsString(value, "message")
 	if err != nil {
-		messageStr = ""
+		message = ""
+	}
+	nextChoicesCty, err := getAttr(value, "next_choices")
+	if err != nil {
+		nextChoicesCty = cty.NullVal(cty.DynamicPseudoType)
+	}
+	nextChoices, err := ChoicesFromCty(state, nextChoicesCty)
+	if err != nil {
+		return nil, err
 	}
 
-	choiceMessage := mess.ChoiceMessage(messageStr)
-
+	var choiceGenerator mess.ChoiceGenerator
 	switch choiceType {
 	case "piece_type":
 		pieceTypeNamesCty, err := getAttr(value, "options")
@@ -135,7 +169,7 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err 
 			}
 			pieceTypes[i] = pieceType
 		}
-		return &mess.PieceTypeChoice{ChoiceMessage: choiceMessage, PieceTypes: pieceTypes}, nil
+		choiceGenerator = &mess.PieceTypeChoiceGenerator{PieceTypes: pieceTypes}
 	case "square":
 		squaresCty, err := getAttr(value, "squares")
 		if err != nil {
@@ -143,32 +177,23 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice mess.Choice, err 
 		}
 
 		squares, err := SquaresFromCty(squaresCty)
-
-		return &mess.SquareChoice{ChoiceMessage: choiceMessage, Squares: squares}, nil
-	case "move":
-		return &mess.MoveChoice{ChoiceMessage: choiceMessage}, nil
-	case "composite":
-		choicesCty, err := getAttr(value, "choices")
 		if err != nil {
 			return nil, err
 		}
 
-		choices := make([]mess.Choice, 0, choicesCty.LengthInt())
-		for i := choicesCty.ElementIterator(); i.Next(); {
-			_, choiceCty := i.Element()
-			choice, err := ChoiceFromCty(state, choiceCty)
-			if err != nil {
-				return nil, err
-			}
-			choices = append(choices, choice)
-		}
-
-		return &mess.CompositeChoice{ChoiceMessage: choiceMessage, Choices: choices}, nil
+		choiceGenerator = &mess.SquareChoiceGenerator{Squares: squares}
+	case "move":
+		choiceGenerator = &mess.MoveChoiceGenerator{State: state}
 	case "unit":
-		return &mess.UnitChoice{ChoiceMessage: choiceMessage}, nil
+		choiceGenerator = &mess.UnitChoiceGenerator{}
 	default:
 		return nil, fmt.Errorf("invalid choice type: %v", choiceType)
 	}
+	return &mess.Choice{
+		Message:     message,
+		NextChoices: nextChoices,
+		Generator:   choiceGenerator,
+	}, nil
 }
 
 func OptionsFromCty(state *mess.State, value cty.Value) (options []mess.Option, err error) {
@@ -203,11 +228,6 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 	if err != nil {
 		return nil, err
 	}
-	messageStr, err := getAttrAsString(value, "message")
-	if err != nil {
-		messageStr = ""
-	}
-	choiceMessage := mess.ChoiceMessage(messageStr)
 
 	switch optionType {
 	case "piece_type":
@@ -220,7 +240,7 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &mess.PieceTypeOption{ChoiceMessage: choiceMessage, PieceType: pieceType}, nil
+		return mess.PieceTypeOption{PieceType: pieceType}, nil
 	case "square":
 		squareCty, err := getAttr(value, "square")
 		if err != nil {
@@ -231,23 +251,50 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &mess.SquareOption{ChoiceMessage: choiceMessage, Square: square}, nil
+		return mess.SquareOption{Square: square}, nil
 	case "move":
 		moveCty, err := getAttr(value, "move")
 		if err != nil {
 			return nil, err
 		}
 
-		move, err := MoveFromCty(state, moveCty)
+		moveGroup, err := MoveGroupFromCty(state, moveCty)
 		if err != nil {
 			return nil, err
 		}
-		return &mess.MoveOption{ChoiceMessage: choiceMessage, Move: move}, nil
+		return mess.MoveOption{MoveGroup: moveGroup}, nil
 	case "unit":
-		return &mess.UnitOption{ChoiceMessage: choiceMessage}, nil
+		return mess.UnitOption{}, nil
 	default:
 		return nil, fmt.Errorf("invalid choice type: %v", optionType)
 	}
+}
+
+func MoveGroupFromCty(state *mess.State, value cty.Value) (*mess.MoveGroup, error) {
+	srcCty, err := getAttr(value, "src")
+	if err != nil {
+		return nil, err
+	}
+	src, err := SquareFromCty(srcCty)
+	if err != nil {
+		return nil, err
+	}
+
+	dstCty, err := getAttr(value, "dst")
+	if err != nil {
+		return nil, err
+	}
+	dst, err := SquareFromCty(dstCty)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, mg := range state.ValidMoves() {
+		if mg.From == src && mg.To == dst {
+			return mg, nil
+		}
+	}
+	return nil, fmt.Errorf("move not valid")
 }
 
 func MoveFromCty(state *mess.State, value cty.Value) (*mess.Move, error) {

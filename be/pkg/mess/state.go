@@ -15,7 +15,7 @@ type State struct {
 	record            []Turn
 	isRecording       bool
 	validators        chainStateValidators
-	validMoves        []MoveGroup
+	validMoves        []*MoveGroup
 	turnNumber        int
 	isGeneratingMoves bool
 	pieceTypes        map[string]*PieceType
@@ -100,7 +100,7 @@ func (s *State) AddStateValidator(validator StateValidator) {
 	s.validators = append(s.validators, validator)
 }
 
-func (s *State) ValidMoves() []MoveGroup {
+func (s *State) ValidMoves() []*MoveGroup {
 	if s.validMoves == nil {
 		s.generateValidMoves()
 	}
@@ -112,7 +112,7 @@ func (s *State) generateValidMoves() {
 	defer func() { s.isGeneratingMoves = false }()
 
 	moveGroups := s.currentPlayer.Moves()
-	result := make([]MoveGroup, 0, len(moveGroups))
+	result := make([]*MoveGroup, 0, len(moveGroups))
 	for len(moveGroups) != 0 {
 		moveGroup := moveGroups[0]
 		moveGroups = moveGroups[1:]

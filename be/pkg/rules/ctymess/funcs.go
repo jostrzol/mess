@@ -415,7 +415,7 @@ func ValidMovesForFunc(state *mess.State) function.Function {
 			result := make([]cty.Value, 0)
 			for _, moveGroup := range state.ValidMoves() {
 				if moveGroup.Piece == piece {
-					result = append(result, MoveGroupToCty(&moveGroup))
+					result = append(result, MoveGroupToCty(moveGroup))
 				}
 			}
 
@@ -592,19 +592,27 @@ func MakeMoveFunc(state *mess.State) function.Function {
 		Params: []function.Parameter{
 			{
 				Name: "move",
-				Type: Move,
+				Type: MoveGroup,
+			},
+			{
+				Name: "options",
+				Type: cty.List(Option),
 			},
 		},
 		Type: function.StaticReturnType(cty.DynamicPseudoType),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			var move *mess.Move
+			var moveGroup *mess.MoveGroup
+			var options []mess.Option
 			var err error
 
-			if move, err = MoveFromCty(state, args[0]); err != nil {
+			if moveGroup, err = MoveGroupFromCty(state, args[0]); err != nil {
+				return cty.DynamicVal, fmt.Errorf("argument 'move': %w", err)
+			}
+			if options, err = OptionsFromCty(state, args[1]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'move': %w", err)
 			}
 
-			err = move.Perform()
+			err = moveGroup.Move(options).Perform()
 			if err != nil {
 				return cty.DynamicVal, err
 			}

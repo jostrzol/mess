@@ -9,44 +9,38 @@ import (
 )
 
 type Motion struct {
-	Name             string
-	MoveGenerator    MoveGeneratorFunc
-	ChoiceGenerators []MoveChoiceGeneratorFunc
-	Action           MoveActionFunc
+	Name          string
+	MoveGenerator MoveGeneratorFunc
+	ChoiceFunc    MoveChoiceFunc
+	Action        MoveActionFunc
 }
 
 type MoveGeneratorFunc = func(*Piece) []board.Square
-type MoveChoiceGeneratorFunc = func(*Piece, board.Square, board.Square, []Option) Choice
+type MoveChoiceFunc = func(*Piece, board.Square, board.Square) *Choice
 type MoveActionFunc = func(*Piece, board.Square, board.Square, []Option) error
 
 type chainMotions []Motion
 
-func (g chainMotions) Generate(piece *Piece) []MoveGroup {
-	resultMap := make(map[brd.Square]MoveGroup, 0)
+func (g chainMotions) Generate(piece *Piece) []*MoveGroup {
+	resultMap := make(map[brd.Square]*MoveGroup, 0)
 	for _, motion := range g {
 		name := motion.Name
+		source := piece.Square()
 		destinations := motion.MoveGenerator(piece)
 
 		for _, destination := range destinations {
-			source := piece.Square()
-
-			var choiceGenerators []func([]Option) Choice
-			for _, generator := range motion.ChoiceGenerators {
-				generatorCopy := generator
-				generatorClosure := func(options []Option) Choice {
-					return generatorCopy(piece, source, destination, options)
-				}
-				choiceGenerators = append(choiceGenerators, generatorClosure)
+			var optionTree *OptionNode
+			if motion.ChoiceFunc != nil {
+				choice := motion.ChoiceFunc(piece, source, destination)
+				optionTree = choice.GenerateOptions()
 			}
-
-			decitionTree := MakeOptionTree(choiceGenerators)
-			resultMap[destination] = MoveGroup{
+			resultMap[destination] = &MoveGroup{
 				Name:       name,
 				Piece:      piece,
-				From:       source,
+				From:       piece.Square(),
 				To:         destination,
 				action:     motion.Action,
-				optionTree: decitionTree,
+				optionTree: optionTree,
 			}
 		}
 	}
@@ -60,37 +54,35 @@ type MoveGroup struct {
 	From       brd.Square
 	To         brd.Square
 	action     MoveActionFunc
-	optionTree OptionTree
+	optionTree *OptionNode
 }
 
-func (mg MoveGroup) OptionTree() OptionTree {
+func (mg *MoveGroup) OptionTree() *OptionNode {
 	return mg.optionTree
 }
 
-func (mg MoveGroup) Moves() []*Move {
-	optionSets := AllOptions(mg.optionTree)
-	moves := make([]*Move, 0, len(optionSets))
-	for _, options := range optionSets {
-		moves = append(moves, mg.Move(options))
+func (mg *MoveGroup) Moves() (result []*Move) {
+	for route := range mg.optionTree.AllRoutes() {
+		result = append(result, mg.Move(route))
 	}
-	return moves
+	return
 }
 
-func (mg MoveGroup) Single() *Move {
-	optionSets := AllOptions(mg.optionTree)
-	if len(optionSets) != 1 {
-		err := fmt.Errorf("expected move group length of 1, got: %v", len(optionSets))
+func (mg *MoveGroup) Single() *Move {
+	moves := mg.Moves()
+	if len(moves) != 1 {
+		err := fmt.Errorf("expected move group length of 1, got: %v", len(moves))
 		panic(err)
 	}
-	return mg.Move(optionSets[0])
+	return moves[0]
 }
 
-func (mg MoveGroup) FilterMoves(predicate func(*Move) bool) MoveGroup {
-	newOptionTree := FilterOptionTree(mg.optionTree, func(options []Option) bool {
+func (mg *MoveGroup) FilterMoves(predicate func(*Move) bool) *MoveGroup {
+	newOptionTree := mg.optionTree.FilterRoutes(func(options []Option) bool {
 		move := mg.Move(options)
 		return predicate(move)
 	})
-	return MoveGroup{
+	return &MoveGroup{
 		Name:       mg.Name,
 		Piece:      mg.Piece,
 		From:       mg.From,
@@ -100,7 +92,7 @@ func (mg MoveGroup) FilterMoves(predicate func(*Move) bool) MoveGroup {
 	}
 }
 
-func (mg MoveGroup) Move(options []Option) *Move {
+func (mg *MoveGroup) Move(options []Option) *Move {
 	return &Move{
 		Name:    mg.Name,
 		Piece:   mg.Piece,
@@ -109,6 +101,10 @@ func (mg MoveGroup) Move(options []Option) *Move {
 		Options: options,
 		action:  mg.action,
 	}
+}
+
+func (mg *MoveGroup) String() string {
+	return fmt.Sprintf("%v->%v", mg.From, mg.To)
 }
 
 type Move struct {

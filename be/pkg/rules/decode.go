@@ -44,9 +44,9 @@ type symbols struct {
 }
 
 type motionRules struct {
-	GeneratorName        string   `hcl:"generator"`
-	ChoiceGeneratorNames []string `hcl:"choice_generators,optional"`
-	ActionName           string   `hcl:"action,optional"`
+	GeneratorName      string `hcl:"generator"`
+	ChoiceFunctionName string `hcl:"choice_function,optional"`
+	ActionName         string `hcl:"action,optional"`
 }
 
 type initialStateRules struct {
@@ -68,8 +68,8 @@ type stateValidatorRules struct {
 }
 
 type turnRules struct {
-	ChoiceGeneratorNames []string `hcl:"choice_generators,optional"`
-	ActionName           string   `hcl:"action,optional"`
+	ChoiceFunctionName string `hcl:"choice_function,optional"`
+	ActionName         string `hcl:"action,optional"`
 }
 
 type callbackFunctionsRules struct {

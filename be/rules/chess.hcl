@@ -86,17 +86,17 @@ piece_types {
       black = "♟"
     }
     motion {
-      generator         = "motion_forward_straight"
-      choice_generators = ["promote_choose_piece_type"]
-      action            = "promote"
+      generator       = "motion_forward_straight"
+      choice_function = "promote_choose_piece_type"
+      action          = "promote"
     }
     motion {
       generator = "motion_forward_straight_double"
     }
     motion {
-      generator         = "motion_forward_diagonal"
-      choice_generators = ["promote_choose_piece_type"]
-      action            = "promote"
+      generator       = "motion_forward_diagonal"
+      choice_function = "promote_choose_piece_type"
+      action          = "promote"
     }
     motion {
       generator = "motion_en_passant"
@@ -284,7 +284,7 @@ composite_function "motion_line_straight" {
 // Promote - choice generator
 // Makes the player choose the target piece type (any except for king and pawn).
 composite_function "promote_choose_piece_type" {
-  params = [piece, src, dst, options]
+  params = [piece, src, dst]
   result = {
     owner     = owner_of(piece)
     forward_y = owner.forward_direction[1]
@@ -309,14 +309,14 @@ composite_function "promote" {
   params = [piece, src, dst, options]
   result = {
     owner      = owner_of(piece)
-    piece_type = options[0].piece_type
-    _          = place_new_piece(piece_type.name, dst, owner.color)
+    piece_type = length(options) == 0 ? null : options[0].piece_type
+    _          = piece_type == null ? null : place_new_piece(piece_type.name, dst, owner.color)
   }
 }
 
 // Captures an opposing pawn after an en passant.
 composite_function "capture_en_passant" {
-  params = [piece, src, dst]
+  params = [piece, src, dst, options]
   result = {
     backward      = [for dpos in owner_of(piece).forward_direction : -1 * dpos]
     target_square = get_square_relative(dst, backward)
@@ -327,7 +327,7 @@ composite_function "capture_en_passant" {
 
 // Displaces the rook to the appropriate square after castling.
 composite_function "displace_rook_after_castling" {
-  params = [piece, src, dst]
+  params = [piece, src, dst, options]
   result = {
     src_pos   = square_to_coords(src)
     dst_pos   = square_to_coords(dst)
@@ -437,7 +437,7 @@ initial_state {
     A1 = "rook"
     B1 = "knight"
     C1 = "bishop"
-    D1 = "queen"
+    H3 = "queen"
     E1 = "king"
     F1 = "bishop"
     G1 = "knight"
@@ -465,27 +465,27 @@ initial_state {
     C7 = "pawn"
     D7 = "pawn"
     E7 = "pawn"
-    F7 = "pawn"
-    G7 = "pawn"
+    F6 = "pawn"
+    G5 = "pawn"
     H7 = "pawn"
   }
 }
 
 // ===== TURN ==================================================
 turn {
-  choice_generators = ["turn_choose_move"]
-  action            = "turn"
+  choice_function = "turn_choose_move"
+  action          = "turn"
 }
 
 function "turn_choose_move" {
-  params = [options]
+  params = []
   result = { type = "move", message = "Choose move" }
 }
 
 composite_function "turn" {
   params = [options]
   result = {
-    _ = make_move(options[0].move)
+    _ = make_move(options[0].move, slice(options, 1, length(options)))
   }
 }
 

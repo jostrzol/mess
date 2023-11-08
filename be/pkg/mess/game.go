@@ -16,12 +16,12 @@ func (g *Game) PickWinner() (bool, *Player) {
 	return g.controller.PickWinner(g.State)
 }
 
-func (g *Game) TurnOptions() (OptionTree, error) {
-	choiceGenerators, err := g.controller.TurnChoiceGenerators(g.State)
+func (g *Game) TurnOptions() (*OptionNode, error) {
+	choice, err := g.controller.TurnChoice(g.State)
 	if err != nil {
 		return nil, err
 	}
-	return MakeOptionTree(choiceGenerators), nil
+	return choice.GenerateOptions(), nil
 }
 
 func (g *Game) Turn(options []Option) error {
@@ -30,6 +30,6 @@ func (g *Game) Turn(options []Option) error {
 
 type Controller interface {
 	PickWinner(state *State) (bool, *Player)
-	TurnChoiceGenerators(state *State) ([]ChoiceGenerator, error)
+	TurnChoice(state *State) (*Choice, error)
 	Turn(state *State, options []Option) error
 }
