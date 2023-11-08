@@ -22,7 +22,7 @@ type PieceTypeChoiceGenerator struct {
 func (c *PieceTypeChoiceGenerator) GenerateOptions() IOptionNodeData {
 	result := make(OptionNodeData[PieceTypeOption], len(c.PieceTypes))
 	for i, pieceType := range c.PieceTypes {
-		result[i] = OptionNodeDatum[PieceTypeOption]{
+		result[i] = &OptionNodeDatum[PieceTypeOption]{
 			Option:   PieceTypeOption{pieceType},
 			Children: nil,
 		}
@@ -59,7 +59,7 @@ type SquareChoiceGenerator struct {
 func (c *SquareChoiceGenerator) GenerateOptions() IOptionNodeData {
 	result := make(OptionNodeData[SquareOption], len(c.Squares))
 	for i, square := range c.Squares {
-		result[i] = OptionNodeDatum[SquareOption]{
+		result[i] = &OptionNodeDatum[SquareOption]{
 			Option:   SquareOption{square},
 			Children: nil,
 		}
@@ -97,7 +97,7 @@ func (c *MoveChoiceGenerator) GenerateOptions() IOptionNodeData {
 	validMoves := c.State.ValidMoves()
 	result := make(OptionNodeData[MoveOption], 0, len(validMoves))
 	for _, moveGroup := range validMoves {
-		result = append(result, OptionNodeDatum[MoveOption]{
+		result = append(result, &OptionNodeDatum[MoveOption]{
 			Option:   MoveOption{moveGroup},
 			Children: []*OptionNode{moveGroup.optionTree},
 		})
@@ -131,7 +131,7 @@ type UnitChoiceGenerator struct {
 func (c *UnitChoiceGenerator) GenerateOptions() IOptionNodeData {
 	return UnitOptionNodeData{
 		OptionNodeData[UnitOption]{
-			OptionNodeDatum[UnitOption]{
+			&OptionNodeDatum[UnitOption]{
 				Option:   UnitOption{},
 				Children: nil,
 			},

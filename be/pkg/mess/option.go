@@ -41,8 +41,6 @@ func EmptyOptionNode() *OptionNode {
 	}
 }
 
-type Route = []Option
-
 func (n *OptionNode) Accept(visitor OptionNodeDataVisitor) {
 	n.Data.accept(n.Message, visitor)
 }
@@ -88,7 +86,7 @@ type IOptionNodeData interface {
 	len() int
 }
 
-type OptionNodeData[T Option] []OptionNodeDatum[T]
+type OptionNodeData[T Option] []*OptionNodeDatum[T]
 
 func (d OptionNodeData[T]) setLeavesChildren(children []*OptionNode) {
 	for _, datum := range d {
@@ -112,7 +110,7 @@ func (d OptionNodeData[T]) filter(parentRoute Route, predicate func(Route) bool)
 				newChildren = append(newChildren, newChild)
 			}
 			if newChildren != nil {
-				result = append(result, OptionNodeDatum[T]{Option: datum.Option, Children: newChildren})
+				result = append(result, &OptionNodeDatum[T]{Option: datum.Option, Children: newChildren})
 			}
 		} else if predicate(route) {
 			result = append(result, datum)
@@ -127,7 +125,7 @@ func (d OptionNodeData[T]) len() int {
 
 type IOptionNodeDatum interface {
 	IOption() Option
-	IChildren() []*OptionNode
+	NonEmptyChildren() []*OptionNode
 }
 
 type OptionNodeDatum[T Option] struct {
@@ -135,18 +133,28 @@ type OptionNodeDatum[T Option] struct {
 	Children []*OptionNode
 }
 
-func (d OptionNodeDatum[T]) IOption() Option {
+func (d *OptionNodeDatum[T]) IOption() Option {
 	return d.Option
 }
 
-func (d OptionNodeDatum[T]) IChildren() []*OptionNode {
-	return d.Children
+func (d *OptionNodeDatum[T]) NonEmptyChildren() (result []*OptionNode) {
+	if d == nil {
+		return
+	}
+	for _, child := range d.Children {
+		if child != nil && child.Data.len() > 0 {
+			result = append(result, child)
+		}
+	}
+	return
 }
 
-func (d OptionNodeDatum[T]) String() string {
+func (d *OptionNodeDatum[T]) String() string {
 	return d.Option.String()
 }
 
 type Option interface {
 	String() string
 }
+
+type Route = []Option

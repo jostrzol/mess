@@ -146,7 +146,7 @@ composite_function "motion_forward_straight" {
 
 // Exchanges a piece for a hen.
 composite_function "promote" {
-  params = [piece, src, dst]
+  params = [piece, src, dst, options]
   result = {
     owner     = owner_of(piece)
     forward_y = owner.forward_direction[1]
@@ -163,17 +163,7 @@ composite_function "promote" {
 // Validators receive 1 parameter - the last move and return true if the state
 // is valid or false otherwise.
 
-state_validators {
-  // Checks if the current player's king is not standing on an attacked square
-  function "is_king_safe" {
-    params = [move]
-    result = all([
-      for piece in move.player.pieces
-      : !is_attacked_by(opponent_color(piece.color), piece.square)
-      if piece.type == "king"
-    ]...)
-  }
-}
+// No state validators in Dobutsu Shogi.
 
 // ===== HELPER FUNCTIONS ======================================
 // Checks if square is occupied by a piece of a given color
@@ -219,22 +209,27 @@ turn {
 
 function "turn_choices" {
   params = []
-  result = [
-    {
-      message = "Make a move"
-      type    = "move"
-    },
-    {
-      message = "Place a captured piece"
-      type    = "piece_type"
-      options = captured_piece_types(game.current_player)
-      next_choices = [{
-        message = "Choose an empty square"
-        type    = "square"
-        squares = empty_squares()
-      }]
-    },
-  ]
+  result = {
+    type = "unit"
+    next_choices = [
+      {
+        message      = "Make a move"
+        type         = "move"
+        options      = []
+        next_choices = []
+      },
+      {
+        message = "Place a captured piece"
+        type    = "piece_type"
+        options = captured_piece_types(game.current_player)
+        next_choices = [{
+          message = "Choose an empty square"
+          type    = "square"
+          squares = empty_squares()
+        }]
+      },
+    ]
+  }
 }
 
 function "captured_piece_types" {
@@ -255,12 +250,12 @@ composite_function "empty_squares" {
 composite_function "turn" {
   params = [options]
   result = {
-    return = (options[0].type == "move"
-      ? make_move(options[0].move)
+    return = (options[1].type == "move"
+      ? make_move(options[1].move, slice(options, 2, length(options)))
       : convert_and_release(
         game.current_player,
-        options[0].piece_type.name,
-        options[1].square
+        options[1].piece_type.name,
+        options[2].square
       )
     )
   }

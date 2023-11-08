@@ -20,7 +20,7 @@ func (t *interactor) selectOptions(optionTree *mess.OptionNode) (result []mess.O
 			return nil, nil
 		}
 
-		currentNode, err = t.selectChild(datum.IChildren())
+		currentNode, err = t.selectChild(datum.NonEmptyChildren())
 		if err != nil {
 			return
 		}
@@ -108,7 +108,7 @@ func (t *interactor) selectMove(data mess.MoveOptionNodeData) (*mess.OptionNodeD
 		return nil, err
 	}
 
-	validForPiece := make(map[board.Square]mess.OptionNodeDatum[mess.MoveOption], 0)
+	validForPiece := make(map[board.Square]*mess.OptionNodeDatum[mess.MoveOption], 0)
 	for _, datum := range data.OptionNodeData {
 		moveGroup := datum.Option.MoveGroup
 		if moveGroup.Piece == piece {
@@ -134,7 +134,7 @@ func (t *interactor) selectMove(data mess.MoveOptionNodeData) (*mess.OptionNodeD
 		return nil, fmt.Errorf("invalid move")
 	}
 
-	return &datum, nil
+	return datum, nil
 }
 
 func (t *interactor) selectOwnPiece() (*mess.Piece, error) {
