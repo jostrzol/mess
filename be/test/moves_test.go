@@ -299,7 +299,7 @@ func TestMoves(t *testing.T) {
 
 			moveGroups := game.ValidMoves()
 			for from, matcher := range matchers {
-				var foundMoves []mess.MoveGroup
+				var foundMoves []*mess.MoveGroup
 				for _, moveGroup := range moveGroups {
 					if moveGroup.From.String() == from {
 						foundMoves = append(foundMoves, moveGroup)

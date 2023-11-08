@@ -61,7 +61,7 @@ func (n *OptionNode) AllRoutes() <-chan Route {
 
 func (n *OptionNode) FilterRoutes(predicate func(Route) bool) *OptionNode {
 	if n == nil {
-		if predicate(nil) {
+		if predicate(Route{}) {
 			return nil
 		}
 		return EmptyOptionNode()

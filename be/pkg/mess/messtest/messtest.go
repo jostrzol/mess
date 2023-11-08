@@ -22,7 +22,7 @@ func MovesMatcher(piece *mess.Piece, destinations ...string) MovesMatcherS {
 	return MovesMatcherS{Piece: piece, Destinations: destinations}
 }
 
-func MovesMatch(t *testing.T, moves []mess.MoveGroup, matchers ...MovesMatcherS) {
+func MovesMatch(t *testing.T, moves []*mess.MoveGroup, matchers ...MovesMatcherS) {
 	anyNotFound := false
 	var msg strings.Builder
 	msg.WriteString(fmt.Sprintf("matching moves (%v) to (%v):\n", moves, matchers))
@@ -51,7 +51,7 @@ func MovesMatch(t *testing.T, moves []mess.MoveGroup, matchers ...MovesMatcherS)
 
 	if len(moves) > 0 {
 		for _, move := range moves {
-			msg.WriteString(fmt.Sprintf("UNEXPECTED:\t%v,\n", &move))
+			msg.WriteString(fmt.Sprintf("UNEXPECTED:\t%v,\n", move))
 		}
 	}
 
@@ -93,13 +93,13 @@ func OffsetMotion(t *testing.T, offsets ...board.Offset) mess.Motion {
 	}
 }
 
-func ChooseRandom(src rand.Source, moveGroup mess.MoveGroup) *mess.Move {
+func ChooseRandom(src rand.Source, moveGroup *mess.MoveGroup) *mess.Move {
 	moves := moveGroup.Moves()
 	chosen := int(src.Int63()) % len(moves)
 	return moves[chosen]
 }
 
-func MoveWithOptionTexts(optionTexts []string, moveGroup mess.MoveGroup) *mess.Move {
+func MoveWithOptionTexts(optionTexts []string, moveGroup *mess.MoveGroup) *mess.Move {
 	moves := moveGroup.Moves()
 	i := slices.IndexFunc(moves, func(move *mess.Move) bool {
 		return fmt.Sprintf("%v", optionTexts) == fmt.Sprintf("%v", move.Options)
