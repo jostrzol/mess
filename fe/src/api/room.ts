@@ -1,10 +1,10 @@
 import { Room } from "@/model/room";
 import { UUID } from "crypto";
 import useWebSocket from "react-use-websocket";
+import { Event } from "./schema/event";
+import { RoomDto, roomToModel } from "./schema/room";
 import { url } from "./url";
 import { throwIfError } from "./utils";
-import {RoomDto, roomToModel} from "./schema/room";
-import {Event} from "./schema/event";
 
 export const createRoom = async (): Promise<Room> => {
   const res = await fetch(url("rooms"), {

@@ -1,19 +1,21 @@
-import { Color } from "@/model/color";
-import { Piece as PieceModel } from "@/model/piece";
+import { Color } from "@/model/game/color";
+import { Piece } from "@/model/game/piece";
 import clsx from "clsx";
-import { Piece } from "./piece";
+import * as component from "./piece";
 
 export type TileProps = {
   color: Color;
-  piece?: PieceModel;
-  onPieceHovered?: (piece: PieceModel) => any;
-  onPieceUnhovered?: (piece: PieceModel) => any;
+  piece?: Piece;
+  canMove: boolean;
+  onPieceHovered?: (piece: Piece) => any;
+  onPieceUnhovered?: (piece: Piece) => any;
   isMoveProjected?: boolean;
 };
 
 export const Tile = ({
   color,
   piece,
+  canMove,
   onPieceHovered,
   onPieceUnhovered,
   isMoveProjected = false,
@@ -26,7 +28,7 @@ export const Tile = ({
         color == "white" ? "bg-player-white" : "bg-player-black",
         "rounded-2xl",
         "relative",
-        piece && "hover:cursor-pointer",
+        piece && canMove && "hover:cursor-pointer",
       )}
       style={{
         overflowClipMargin: "content-box",
@@ -44,18 +46,18 @@ export const Tile = ({
           "w-4",
           "h-4",
           "rounded-full",
-          piece ? "bg-danger/90" : "bg-primary/90",
+          piece ? "bg-danger/90" : "bg-success-strong/90",
           "transition-opacity",
           isMoveProjected || "opacity-0",
           "pointer-events-none",
         )}
       />
       <div
-        className={clsx("hover:scale-110", "transition-transform")}
+        className={clsx(canMove && "hover:scale-110", "transition-transform")}
         onPointerEnter={() => piece && onPieceHovered?.(piece)}
         onPointerLeave={() => piece && onPieceUnhovered?.(piece)}
       >
-        {piece && <Piece piece={piece} />}
+        {piece && <component.Piece piece={piece} />}
       </div>
       {/* Needed to make the parent div expand.
       Coulnd't get it to work without the image */}

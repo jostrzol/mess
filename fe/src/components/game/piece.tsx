@@ -1,9 +1,9 @@
-import { Piece as PieceConfig } from "@/model/piece";
+import * as model from "@/model/game/piece";
 import clsx from "clsx";
 import { ReactSVG } from "react-svg";
 
 export interface PieceProps {
-  piece: PieceConfig;
+  piece: model.Piece;
 }
 
 export const Piece = ({ piece }: PieceProps) => {

@@ -27,12 +27,12 @@ func optionNodeFromDomain(node *mess.OptionNode) *OptionNode {
 type OptionNode struct {
 	Type    string
 	Message string
-	Data    []OptionNodeDatum `json:",omitempty"`
+	Data    []OptionNodeDatum
 }
 
 type OptionNodeDatum struct {
 	Option   interface{}
-	Children []*OptionNode `json:",omitempty"`
+	Children []*OptionNode
 }
 
 type PieceTypeOption PieceType

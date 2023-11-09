@@ -12,6 +12,7 @@ export interface ThemeColors {
   "danger-dim": string;
   warn: string;
   "warn-dim": string;
+  "success-strong": string,
   success: string;
   "success-dim": string;
 }
@@ -34,6 +35,7 @@ export const themes = {
     "danger-dim": colors.rose[400],
     warn: colors.amber[500],
     "warn-dim": colors.amber[300],
+    "success-strong": colors.lime[600],
     success: colors.lime[400],
     "success-dim": colors.lime[200],
   },
@@ -49,6 +51,7 @@ export const themes = {
     "danger-dim": colors.rose[800],
     warn: colors.amber[500],
     "warn-dim": colors.amber[300],
+    "success-strong": colors.lime[600],
     success: colors.lime[400],
     "success-dim": colors.lime[200],
   },

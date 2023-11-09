@@ -31,6 +31,7 @@ const config: Config = {
         dim: "rgb(var(--theme-warn-dim) / <alpha-value>)",
       },
       success: {
+        strong: "rgb(var(--theme-success-strong) / <alpha-value>)",
         DEFAULT: "rgb(var(--theme-success) / <alpha-value>)",
         dim: "rgb(var(--theme-success-dim) / <alpha-value>)",
       },

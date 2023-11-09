@@ -1,5 +1,5 @@
-import {Room} from "@/model/room";
-import {UUID} from "crypto";
+import { Room } from "@/model/room";
+import { UUID } from "crypto";
 
 export interface RoomDto {
   ID: UUID;
@@ -18,4 +18,3 @@ export const roomToModel = (room: RoomDto): Room => {
     isStarted: room.IsStarted,
   };
 };
-
