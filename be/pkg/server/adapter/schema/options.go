@@ -1,10 +1,7 @@
 package schema
 
 import (
-	"encoding/json"
-
 	"github.com/jostrzol/mess/pkg/mess"
-	"github.com/mitchellh/mapstructure"
 )
 
 func optionNodesFromDomain(nodes []*mess.OptionNode) []*OptionNode {
@@ -34,19 +31,13 @@ type OptionNode struct {
 }
 
 type OptionNodeDatum struct {
-	Data     interface{}
+	Option   interface{}
 	Children []*OptionNode `json:",omitempty"`
 }
 
-func (d OptionNodeDatum) MarshalJSON() ([]byte, error) {
-	data := make(map[string]any)
-	err := mapstructure.Decode(d.Data, &data)
-	if err != nil {
-		return nil, err
-	}
-	data["Children"] = d.Children
-	return json.Marshal(data)
-}
+type PieceTypeOption PieceType
+type SquareOption Square
+type MoveOption MoveGroup
 
 type optionTreeMarshaler struct {
 	result *OptionNode
@@ -58,7 +49,7 @@ func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.P
 		pieceType := pieceTypeFromDomain(datum.Option.PieceType)
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
-			Data:     map[string]any{"PieceType": pieceType},
+			Option:   PieceTypeOption(pieceType),
 			Children: children,
 		})
 	}
@@ -71,7 +62,7 @@ func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.Squa
 		square := squareFromDomain(datum.Option.Square)
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
-			Data:     map[string]any{"Square": square},
+			Option:   SquareOption(square),
 			Children: children,
 		})
 	}
@@ -84,7 +75,7 @@ func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOp
 		moveGroup := moveGroupFromDomain(datum.Option.MoveGroup)
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
-			Data:     moveGroup,
+			Option:   MoveOption(moveGroup),
 			Children: children,
 		})
 	}
