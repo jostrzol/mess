@@ -2,6 +2,7 @@ package room
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/jostrzol/mess/pkg/color"
@@ -20,6 +21,7 @@ type Room struct {
 	id      uuid.UUID
 	players map[color.Color]uuid.UUID
 	game    *mess.Game
+	mutex   sync.Mutex
 }
 
 func New() *Room {
@@ -31,6 +33,8 @@ func (r *Room) ID() uuid.UUID {
 }
 
 func (r *Room) AddPlayer(sessionID uuid.UUID) error {
+	r.mutex.Lock()
+	defer func() { r.mutex.Unlock() }()
 	for _, color := range color.ColorValues() {
 		playerID, present := r.players[color]
 		if playerID == sessionID {
@@ -67,6 +71,8 @@ func (r *Room) assertStartable() error {
 }
 
 func (r *Room) StartGame() error {
+	r.mutex.Lock()
+	defer func() { r.mutex.Unlock() }()
 	if err := r.assertStartable(); err != nil {
 		return err
 	}
@@ -78,11 +84,23 @@ func (r *Room) StartGame() error {
 	return nil
 }
 
-func (r *Room) Game() (*mess.Game, error) {
+func (r *Room) GameState() (*State, error) {
 	if !r.IsStarted() {
 		return nil, ErrNotStarted
 	}
-	return r.game, nil
+
+	r.mutex.Lock()
+	defer func() { r.mutex.Unlock() }()
+
+	optionTree, err := r.game.TurnOptions()
+	if err != nil {
+		return nil, fmt.Errorf("generating turn options: %w", err)
+	}
+
+	return &State{
+		Board:      r.game.Board(),
+		OptionTree: optionTree,
+	}, nil
 }
 
 var ErrRoomFull = usrerr.Errorf("room full")
