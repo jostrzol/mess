@@ -2,7 +2,6 @@ import { BoardProvider, useBoard } from "@/contexts/boardContext";
 import { useGameState } from "@/contexts/gameStateContext";
 import { useOptions } from "@/contexts/optionContext";
 import { Board as BoardModel } from "@/model/game/board";
-import { Move } from "@/model/game/move";
 import { Piece as PieceModel } from "@/model/game/piece";
 import { Square } from "@/model/game/square";
 import { DndContext } from "@dnd-kit/core";
@@ -62,7 +61,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
         const option = options.pop()
 
         if (option) {
-          choose(option.datum)
+          choose(option.node, option.datum)
         }
       }}
     >
@@ -85,6 +84,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
             "m-auto",
           )}
           style={{ gridTemplateColumns, gridTemplateRows }}
+          onPointerLeave={() => !draggedPiece && dispatch({"type": "Unhovered"})}
         >
           {BoardModel.MapSquares(board, (square, key) => {
             const piece = pieceMap[key];
@@ -94,6 +94,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
                 square={square}
                 isDot={destinations.includes(key)}
                 dotType={piece ? "danger" : "normal"}
+                onPointerOver={() => !draggedPiece && dispatch({"type": "Hovered", square: square})}
               >
                 {piece && <Piece piece={piece} />}
               </Tile>

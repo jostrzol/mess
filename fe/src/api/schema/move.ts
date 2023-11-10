@@ -12,3 +12,10 @@ export const moveToModel = (move: MoveDto): Move =>{
     to: move.To
   }
 }
+
+export const moveToDto = (move: Move): MoveDto =>{
+  return {
+    From: move.from,
+    To: move.to
+  }
+}

@@ -1,7 +1,8 @@
-import {OptionNode } from "./options";
-import {Piece} from "./piece";
+import { OptionNode } from "./options";
+import { Piece } from "./piece";
 
 export interface GameState {
+  turnNumber: number;
   pieces: Piece[];
-  optionTree: OptionNode
+  optionTree: OptionNode;
 }

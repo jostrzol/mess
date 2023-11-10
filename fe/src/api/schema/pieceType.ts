@@ -19,3 +19,9 @@ export const pieceTypeToModel=(pieceType: PieceTypeDto): PieceType => {
     iconUri: iconUriMap[pieceType.Name],
   }
 }
+
+export const pieceTypeToDto =(pieceType: PieceType): PieceTypeDto => {
+  return {
+    Name: pieceType.name,
+  }
+}

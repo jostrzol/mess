@@ -1,13 +1,18 @@
-import { Move } from "@/model/game/move";
 import {
   MoveOptionNode,
   NodeGroup,
-  OptionDatum,
   OptionNode,
   Route,
+  RouteItem,
 } from "@/model/game/options";
 import { Square } from "@/model/game/square";
-import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 export const OptionContext = createContext<OptionContextValue>(null!);
 
@@ -19,12 +24,12 @@ export interface OptionContextValue {
   route: Route;
   isDone: boolean;
   moveMap: MoveMap;
-  choose: (datum: OptionDatum) => void;
+  choose: <T extends OptionNode>(node: T, datum: T["data"][number]) => void;
 }
 
 type MoveMap = {
   [from: string]: {
-    [to: string]: NodeGroup<Move>;
+    [to: string]: NodeGroup<MoveOptionNode>;
   };
 };
 
@@ -43,9 +48,9 @@ export const OptionProvider = ({
   const [route, setRoute] = useState<Route>([]);
 
   useEffect(() => {
-    setCurrent(isReady ? [root] : [])
-    setRoute([])
-  }, [isReady, root, setCurrent, setRoute])
+    setCurrent(isReady ? [root] : []);
+    setRoute([]);
+  }, [isReady, root, setCurrent, setRoute]);
 
   const isDone = current.length == 0;
   const moveMap = current
@@ -56,21 +61,20 @@ export const OptionProvider = ({
         const subMap = map[from] ?? {};
         const to = Square.toString(datum.option.to);
         const group = subMap[to] ?? [];
-        const element = { message: node.message, datum };
+        const element = { node: node, datum };
         return { ...map, [from]: { ...subMap, [to]: [...group, element] } };
       }, map);
     }, {} as MoveMap);
-  const choose = (datum: OptionDatum) => {
-    console.log("choosing", datum)
-    const newCurrent = datum.children
-    const newRoute = [...route, datum.option]
+  const choose = <T extends OptionNode>(node: T, datum: T["data"][number]) => {
+    const newCurrent = datum.children;
+    const newRouteItem: RouteItem<T> = [node, datum.option];
+    const newRoute = [...route, newRouteItem];
 
     setCurrent(newCurrent);
     setRoute(newRoute);
 
     if (newCurrent.length === 0) {
-      console.log("choose finished", newRoute)
-      onChooseFinish?.(newRoute)
+      onChooseFinish?.(newRoute);
     }
   };
 

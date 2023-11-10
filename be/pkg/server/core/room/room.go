@@ -114,7 +114,10 @@ func (r *Room) PlayTurn(turn int, route mess.Route) error {
 
 	currentTurn := r.game.State.TurnNumber()
 	if turn < currentTurn {
-		return nil
+		// TODO: make idempotent -- check if options match
+		// if match => noop
+		// if not => error
+		return ErrTurnTooSmall
 	} else if turn > currentTurn {
 		return ErrTurnTooBig
 	}
@@ -132,4 +135,5 @@ var ErrNotEnoughPlayers = usrerr.Errorf("not enough players")
 var ErrAlreadyStarted = usrerr.Errorf("game is already started")
 var ErrAlreadyInRoom = usrerr.Errorf("player already in room")
 var ErrNotStarted = usrerr.Errorf("game not started")
+var ErrTurnTooSmall = usrerr.Errorf("the selected turn has already been played")
 var ErrTurnTooBig = usrerr.Errorf("the selected turn hasn't started yet")

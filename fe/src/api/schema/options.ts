@@ -1,7 +1,7 @@
-import { OptionNode, Unit } from "@/model/game/options";
-import { MoveDto, moveToModel } from "./move";
-import { PieceTypeDto, pieceTypeToModel } from "./pieceType";
-import { SquareDto, squareToModel } from "./square";
+import { OptionNode, Route, RouteItem, Unit } from "@/model/game/options";
+import { MoveDto, moveToDto, moveToModel } from "./move";
+import { PieceTypeDto, pieceTypeToDto, pieceTypeToModel } from "./pieceType";
+import { SquareDto, squareToDto, squareToModel } from "./square";
 
 export type OptionNodeDto =
   | PieceTypeOptionNodeDto
@@ -11,7 +11,7 @@ export type OptionNodeDto =
 
 export type OptionDto = PieceTypeDto | SquareDto | MoveDto | UnitDto;
 
-export type UnitDto = [];
+export type UnitDto = {};
 
 export interface PieceTypeOptionNodeDto
   extends BaseOptionNodeDto<PieceTypeDto> {
@@ -41,19 +41,45 @@ interface DatumDto<T extends OptionDto> {
   Children: OptionNodeDto[];
 }
 
-export const optionNodeToModel = <T extends OptionNodeDto,>(optionNode: T): OptionNode => {
+export const optionNodeToModel = <T extends OptionNodeDto>(
+  optionNode: T,
+): OptionNode => {
   const optionConverter: any = {
     PieceType: pieceTypeToModel,
     Square: squareToModel,
     Move: moveToModel,
-    Unit: (_: UnitDto): Unit => [],
+    Unit: (_: UnitDto): Unit => ({}),
   }[optionNode.Type];
   return {
     type: optionNode.Type,
     message: optionNode.Message,
     data: optionNode.Data.map((datum) => ({
       option: optionConverter(datum.Option),
-      children: datum.Children.map(optionNodeToModel)
+      children: datum.Children.map(optionNodeToModel),
     })),
+  };
+};
+
+export type RouteDto = RouteItemDto[];
+
+type RouteItemDto = OptionDto & {
+  Type: string;
+};
+
+export const routeToDto = (route: Route): RouteDto => route.map(routeItemToDto);
+
+const routeItemToDto = <T extends OptionNode>([
+  node,
+  option,
+]: RouteItem<T>): RouteItemDto => {
+  const optionConverter: any = {
+    PieceType: pieceTypeToDto,
+    Square: squareToDto,
+    Move: moveToDto,
+    Unit: (_: Unit): UnitDto => ({}),
+  }[node.type];
+  return {
+    Type: node.type,
+    ...optionConverter(option),
   };
 };
