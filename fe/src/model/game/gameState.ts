@@ -1,4 +1,4 @@
-import {OptionNode} from "./options";
+import {OptionNode } from "./options";
 import {Piece} from "./piece";
 
 export interface GameState {

@@ -23,4 +23,12 @@ export namespace Square {
 
   export const equals = (first: Square, second: Square): boolean =>
     first[0] === second[0] && first[1] === second[1];
+
+  export const isBlack = (square: Square): boolean => {
+    return (square[0] + square[1]) % 2 == 0;
+  };
+
+  export const distance = (from: Square, to: Square): [number, number] => {
+    return [to[0] - from[0], to[1] - from[1]];
+  };
 }

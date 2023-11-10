@@ -1,39 +1,42 @@
-import { Color } from "@/model/game/color";
-import { Piece } from "@/model/game/piece";
+import { Square } from "@/model/game/square";
+import { useDroppable } from "@dnd-kit/core";
 import clsx from "clsx";
-import * as component from "./piece";
+import { HTMLAttributes } from "react";
+
+export type DotType = "normal" | "danger";
 
 export type TileProps = {
-  color: Color;
-  piece?: Piece;
-  canMove: boolean;
-  onPieceHovered?: (piece: Piece) => any;
-  onPieceUnhovered?: (piece: Piece) => any;
-  isMoveProjected?: boolean;
-};
+  square: Square;
+  isDot?: boolean;
+  dotType?: DotType;
+} & HTMLAttributes<HTMLDivElement>;
 
 export const Tile = ({
-  color,
-  piece,
-  canMove,
-  onPieceHovered,
-  onPieceUnhovered,
-  isMoveProjected = false,
+  square,
+  isDot = false,
+  dotType = "normal",
+  children,
+  ...props
 }: TileProps) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: Square.toString(square),
+    data: { square: square },
+  });
+  const dotColor = {
+    normal: "bg-success-strong/90",
+    danger: "bg-danger/90",
+  }[dotType];
   return (
     <div
+      ref={setNodeRef}
       className={clsx(
         "min-h-[3rem]",
         "min-w-[3rem]",
-        color == "white" ? "bg-player-white" : "bg-player-black",
+        Square.isBlack(square) ? "bg-player-black" : "bg-player-white",
         "rounded-2xl",
         "relative",
-        piece && canMove && "hover:cursor-pointer",
       )}
-      style={{
-        overflowClipMargin: "content-box",
-        overflow: "clip",
-      }}
+      {...props}
     >
       <div
         className={clsx(
@@ -46,19 +49,15 @@ export const Tile = ({
           "w-4",
           "h-4",
           "rounded-full",
-          piece ? "bg-danger/90" : "bg-success-strong/90",
+          dotColor,
           "transition-opacity",
-          isMoveProjected || "opacity-0",
+          isDot || "opacity-0",
           "pointer-events-none",
+          isOver && "scale-150",
+          "transition-transform",
         )}
       />
-      <div
-        className={clsx(canMove && "hover:scale-110", "transition-transform")}
-        onPointerEnter={() => piece && onPieceHovered?.(piece)}
-        onPointerLeave={() => piece && onPieceUnhovered?.(piece)}
-      >
-        {piece && <component.Piece piece={piece} />}
-      </div>
+      <div>{children}</div>
       {/* Needed to make the parent div expand.
       Coulnd't get it to work without the image */}
       <svg className="invisible">
