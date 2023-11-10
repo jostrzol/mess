@@ -56,7 +56,6 @@ func (t *interactor) Run() (*mess.Player, error) {
 			return nil, fmt.Errorf("executing turn action: %v", err)
 		}
 
-		t.game.EndTurn()
 		t.printState()
 
 		isFinished, winner = t.game.PickWinner()

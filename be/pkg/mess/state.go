@@ -84,6 +84,10 @@ func (s *State) EndTurn() {
 	s.turnNumber++
 }
 
+func (s *State) TurnNumber() int {
+	return s.turnNumber
+}
+
 type StateValidator func(*State, *Move) bool
 type chainStateValidators []StateValidator
 
@@ -98,6 +102,15 @@ func (validators chainStateValidators) Validate(state *State, move *Move) bool {
 
 func (s *State) AddStateValidator(validator StateValidator) {
 	s.validators = append(s.validators, validator)
+}
+
+func (s *State) FindMoveGroup(vec SquareVec) *MoveGroup {
+	for _, mg := range s.ValidMoves() {
+		if mg.From == vec.From && mg.To == vec.To {
+			return mg
+		}
+	}
+	return nil
 }
 
 func (s *State) ValidMoves() []*MoveGroup {

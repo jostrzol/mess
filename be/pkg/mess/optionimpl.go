@@ -98,7 +98,7 @@ func (c *MoveChoiceGenerator) GenerateOptions() IOptionNodeData {
 	result := make(OptionNodeData[MoveOption], 0, len(validMoves))
 	for _, moveGroup := range validMoves {
 		result = append(result, &OptionNodeDatum[MoveOption]{
-			Option:   MoveOption{moveGroup},
+			Option:   MoveOption{moveGroup.SquareVec},
 			Children: []*OptionNode{moveGroup.optionTree},
 		})
 	}
@@ -116,11 +116,11 @@ func (n MoveOptionNodeData) filter(parentRoute Route, predicate func(Route) bool
 }
 
 type MoveOption struct {
-	MoveGroup *MoveGroup
+	SquareVec SquareVec
 }
 
 func (o MoveOption) String() string {
-	return o.MoveGroup.String()
+	return o.SquareVec.String()
 }
 
 // Unit choice

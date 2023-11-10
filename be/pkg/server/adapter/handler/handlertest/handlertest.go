@@ -113,7 +113,8 @@ func (c *httpClient) cloneWithEmptyJar() *httpClient {
 	return newHTTPClient(c.Suite, c.g)
 }
 
-func (c *httpClient) ServeHTTPOkAs(method string, url string, body JSON, result interface{}) {
+func (c *httpClient) ServeHTTPOkAs(method string, url string, body any, result interface{}) {
+	c.T().Helper()
 	res := c.ServeHTTPOk(method, url, body)
 	bytes, err := io.ReadAll(res.Result().Body)
 	c.NoError(err)
@@ -122,28 +123,47 @@ func (c *httpClient) ServeHTTPOkAs(method string, url string, body JSON, result 
 	c.NoError(err)
 }
 
-func (c *httpClient) ServeHTTPOk(method string, url string, body JSON) *httptest.ResponseRecorder {
+func (c *httpClient) ServeHTTPOk(method string, url string, body any) *httptest.ResponseRecorder {
+	c.T().Helper()
 	res := c.ServeHTTP(method, url, body)
-	c.Equal(res.Result().StatusCode, http.StatusOK)
+	if !c.Equal(http.StatusOK, res.Result().StatusCode) {
+		req := c.request(method, url, body)
+		c.T().Logf("request: %+v", req)
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			c.T().Logf("request body:  <can't read>")
+		} else {
+			c.T().Logf("request body:  %v", string(body))
+		}
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			c.T().Logf("response body: <can't read>")
+		} else {
+			c.T().Logf("response body: %v", string(body))
+		}
+	}
 	return res
 }
 
-func (c *httpClient) ServeHTTP(method string, url string, body JSON) *httptest.ResponseRecorder {
+func (c *httpClient) ServeHTTP(method string, url string, body any) *httptest.ResponseRecorder {
+	c.T().Helper()
 	res := httptest.NewRecorder()
 
-	bodyBytes, err := json.Marshal(body)
-	c.NoError(err)
-	req, err := http.NewRequest(method, url, bytes.NewReader(bodyBytes))
-	for _, cookie := range c.jar.Cookies(&root) {
-		req.AddCookie(cookie)
-	}
-	c.NoError(err)
-
+	req := c.request(method, url, body)
 	c.g.ServeHTTP(res, req)
 	c.jar.SetCookies(&root, res.Result().Cookies())
 	return res
 }
 
-type JSON = map[string]any
+func (c *httpClient) request(method string, url string, body any) *http.Request {
+	bodyBytes, err := json.Marshal(body)
+	c.NoError(err)
+	req, err := http.NewRequest(method, url, bytes.NewReader(bodyBytes))
+	c.NoError(err)
+	for _, cookie := range c.jar.Cookies(&root) {
+		req.AddCookie(cookie)
+	}
+	return req
+}
 
 var root = url.URL{Scheme: "http", Path: "/"}

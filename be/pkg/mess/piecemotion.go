@@ -35,10 +35,12 @@ func (g chainMotions) Generate(piece *Piece) []*MoveGroup {
 				optionTree = choice.GenerateOptions()
 			}
 			resultMap[destination] = &MoveGroup{
+				SquareVec: SquareVec{
+					From: piece.Square(),
+					To:   destination,
+				},
 				Name:       name,
 				Piece:      piece,
-				From:       piece.Square(),
-				To:         destination,
 				action:     motion.Action,
 				optionTree: optionTree,
 			}
@@ -49,10 +51,9 @@ func (g chainMotions) Generate(piece *Piece) []*MoveGroup {
 }
 
 type MoveGroup struct {
+	SquareVec
 	Name       string
 	Piece      *Piece
-	From       brd.Square
-	To         brd.Square
 	action     MoveActionFunc
 	optionTree *OptionNode
 }
@@ -83,10 +84,9 @@ func (mg *MoveGroup) FilterMoves(predicate func(*Move) bool) *MoveGroup {
 		return predicate(move)
 	})
 	return &MoveGroup{
+		SquareVec:  mg.SquareVec,
 		Name:       mg.Name,
 		Piece:      mg.Piece,
-		From:       mg.From,
-		To:         mg.To,
 		action:     mg.action,
 		optionTree: newOptionTree,
 	}
@@ -94,12 +94,11 @@ func (mg *MoveGroup) FilterMoves(predicate func(*Move) bool) *MoveGroup {
 
 func (mg *MoveGroup) Move(options []Option) *Move {
 	return &Move{
-		Name:    mg.Name,
-		Piece:   mg.Piece,
-		From:    mg.From,
-		To:      mg.To,
-		Options: options,
-		action:  mg.action,
+		SquareVec: mg.SquareVec,
+		Name:      mg.Name,
+		Piece:     mg.Piece,
+		Options:   options,
+		action:    mg.action,
 	}
 }
 
@@ -108,10 +107,9 @@ func (mg *MoveGroup) String() string {
 }
 
 type Move struct {
+	SquareVec
 	Name    string
 	Piece   *Piece
-	From    brd.Square
-	To      brd.Square
 	Options []Option
 	action  MoveActionFunc
 }
@@ -132,4 +130,13 @@ func (m *Move) Perform() error {
 
 func (m *Move) String() string {
 	return fmt.Sprintf("%v(%v): %v->%v", m.Name, m.Piece, m.From, m.To)
+}
+
+type SquareVec struct {
+	From brd.Square
+	To   brd.Square
+}
+
+func (v SquareVec) String() string {
+	return fmt.Sprintf("%v->%v", v.From, v.To)
 }

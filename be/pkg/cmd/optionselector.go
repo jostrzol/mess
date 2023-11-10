@@ -110,9 +110,9 @@ func (t *interactor) selectMove(data mess.MoveOptionNodeData) (*mess.OptionNodeD
 
 	validForPiece := make(map[board.Square]*mess.OptionNodeDatum[mess.MoveOption], 0)
 	for _, datum := range data.OptionNodeData {
-		moveGroup := datum.Option.MoveGroup
-		if moveGroup.Piece == piece {
-			validForPiece[moveGroup.To] = datum
+		vec := datum.Option.SquareVec
+		if vec.From == piece.Square() {
+			validForPiece[vec.To] = datum
 		}
 	}
 
@@ -121,7 +121,7 @@ func (t *interactor) selectMove(data mess.MoveOptionNodeData) (*mess.OptionNodeD
 	}
 	println("Valid destinations:")
 	for _, datum := range validForPiece {
-		fmt.Printf("-> %v\n", &datum.Option.MoveGroup.To)
+		fmt.Printf("-> %v\n", &datum.Option.SquareVec.To)
 	}
 
 	println("Choose a destination square")

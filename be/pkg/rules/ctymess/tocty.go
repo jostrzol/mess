@@ -102,6 +102,13 @@ func MoveGroupToCty(moveGroup *mess.MoveGroup) cty.Value {
 	})
 }
 
+func SquareVecToCty(vec mess.SquareVec) cty.Value {
+	return cty.ObjectVal(map[string]cty.Value{
+		"src": cty.StringVal(vec.From.String()),
+		"dst": cty.StringVal(vec.To.String()),
+	})
+}
+
 func BoardToCty(board *mess.PieceBoard) cty.Value {
 	width, height := board.Size()
 	return cty.ObjectVal(map[string]cty.Value{
@@ -152,7 +159,7 @@ func OptionToCty(option mess.Option) cty.Value {
 	case mess.MoveOption:
 		return cty.ObjectVal(map[string]cty.Value{
 			"type": cty.StringVal("move"),
-			"move": MoveGroupToCty(opt.MoveGroup),
+			"move": SquareVecToCty(opt.SquareVec),
 		})
 	case mess.UnitOption:
 		return cty.ObjectVal(map[string]cty.Value{

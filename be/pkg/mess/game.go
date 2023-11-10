@@ -25,7 +25,12 @@ func (g *Game) TurnOptions() (*OptionNode, error) {
 }
 
 func (g *Game) Turn(options []Option) error {
-	return g.controller.Turn(g.State, options)
+	err := g.controller.Turn(g.State, options)
+	if err != nil {
+		return err
+	}
+	g.State.EndTurn()
+	return nil
 }
 
 type Controller interface {

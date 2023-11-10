@@ -7,12 +7,14 @@ import (
 )
 
 type State struct {
+	TurnNumber int
 	Pieces     []Piece
 	OptionTree interface{}
 }
 
 func StateFromDomain(s *room.State) *State {
 	return &State{
+		TurnNumber: s.TurnNumber,
 		Pieces:     piecesFromDomain(s.Board.AllPieces()),
 		OptionTree: optionNodeFromDomain(s.OptionTree),
 	}
@@ -53,14 +55,25 @@ func squareFromDomain(square board.Square) Square {
 	return [2]int{x, y}
 }
 
-type MoveGroup struct {
+func (s Square) ToDomain() board.Square {
+	return board.SquareFromCoords(s[0], s[1])
+}
+
+type SquareVec struct {
 	From Square
 	To   Square
 }
 
-func moveGroupFromDomain(moveGroup *mess.MoveGroup) MoveGroup {
-	return MoveGroup{
-		From: squareFromDomain(moveGroup.From),
-		To:   squareFromDomain(moveGroup.To),
+func squareVecFromDomain(vec mess.SquareVec) SquareVec {
+	return SquareVec{
+		From: squareFromDomain(vec.From),
+		To:   squareFromDomain(vec.To),
+	}
+}
+
+func (s SquareVec) ToDomain() mess.SquareVec {
+	return mess.SquareVec{
+		From: s.From.ToDomain(),
+		To:   s.To.ToDomain(),
 	}
 }

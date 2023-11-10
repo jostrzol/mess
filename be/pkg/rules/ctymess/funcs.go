@@ -592,7 +592,7 @@ func MakeMoveFunc(state *mess.State) function.Function {
 		Params: []function.Parameter{
 			{
 				Name: "move",
-				Type: MoveGroup,
+				Type: SquareVec,
 			},
 			{
 				Name: "options",
@@ -601,15 +601,20 @@ func MakeMoveFunc(state *mess.State) function.Function {
 		},
 		Type: function.StaticReturnType(cty.DynamicPseudoType),
 		Impl: func(args []cty.Value, retType cty.Type) (cty.Value, error) {
-			var moveGroup *mess.MoveGroup
+			var squareVec mess.SquareVec
 			var options []mess.Option
 			var err error
 
-			if moveGroup, err = MoveGroupFromCty(state, args[0]); err != nil {
+			if squareVec, err = SquareVecFromCty(state, args[0]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'move': %w", err)
 			}
 			if options, err = OptionsFromCty(state, args[1]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'move': %w", err)
+			}
+
+			moveGroup := state.FindMoveGroup(squareVec)
+			if moveGroup == nil {
+				return cty.DynamicVal, fmt.Errorf("move not found")
 			}
 
 			err = moveGroup.Move(options).Perform()

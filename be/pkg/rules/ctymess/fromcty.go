@@ -253,16 +253,16 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 		}
 		return mess.SquareOption{Square: square}, nil
 	case "move":
-		moveCty, err := getAttr(value, "move")
+		squareVecCty, err := getAttr(value, "move")
 		if err != nil {
 			return nil, err
 		}
 
-		moveGroup, err := MoveGroupFromCty(state, moveCty)
+		vec, err := SquareVecFromCty(state, squareVecCty)
 		if err != nil {
 			return nil, err
 		}
-		return mess.MoveOption{MoveGroup: moveGroup}, nil
+		return mess.MoveOption{SquareVec: vec}, nil
 	case "unit":
 		return mess.UnitOption{}, nil
 	default:
@@ -270,31 +270,29 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 	}
 }
 
-func MoveGroupFromCty(state *mess.State, value cty.Value) (*mess.MoveGroup, error) {
+func SquareVecFromCty(state *mess.State, value cty.Value) (mess.SquareVec, error) {
 	srcCty, err := getAttr(value, "src")
 	if err != nil {
-		return nil, err
+		return mess.SquareVec{}, err
 	}
 	src, err := SquareFromCty(srcCty)
 	if err != nil {
-		return nil, err
+		return mess.SquareVec{}, err
 	}
 
 	dstCty, err := getAttr(value, "dst")
 	if err != nil {
-		return nil, err
+		return mess.SquareVec{}, err
 	}
 	dst, err := SquareFromCty(dstCty)
 	if err != nil {
-		return nil, err
+		return mess.SquareVec{}, err
 	}
 
-	for _, mg := range state.ValidMoves() {
-		if mg.From == src && mg.To == dst {
-			return mg, nil
-		}
-	}
-	return nil, fmt.Errorf("move not valid")
+	return mess.SquareVec{
+		From: src,
+		To:   dst,
+	}, nil
 }
 
 func MoveFromCty(state *mess.State, value cty.Value) (*mess.Move, error) {

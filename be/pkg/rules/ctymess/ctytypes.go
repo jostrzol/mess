@@ -49,6 +49,11 @@ var Move = cty.Object(map[string]cty.Type{
 	"options": cty.List(Option),
 })
 
+var SquareVec = cty.Object(map[string]cty.Type{
+	"src": cty.String,
+	"dst": cty.String,
+})
+
 var Option = cty.DynamicPseudoType
 var Choice = cty.DynamicPseudoType
 

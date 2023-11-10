@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 )
 
@@ -64,10 +65,29 @@ func (s *Service) StartGame(roomID uuid.UUID) (*Room, error) {
 	return room, nil
 }
 
-func (s *Service) GetGameState(roomID uuid.UUID, sessionID uuid.UUID) (*State, error) {
+func (s *Service) GetGameState(sessionID uuid.UUID, roomID uuid.UUID) (*State, error) {
 	room, err := s.repository.Get(roomID)
 	if err != nil {
 		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+
+	state, err := room.GameState()
+	if err != nil {
+		return nil, fmt.Errorf("getting game state: %w", err)
+	}
+
+	return state, nil
+}
+
+func (s *Service) PlayTurn(sessionID uuid.UUID, roomID uuid.UUID, turn int, route mess.Route) (*State, error) {
+	room, err := s.repository.Get(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+
+	err = room.PlayTurn(turn, route)
+	if err != nil {
+		return nil, fmt.Errorf("getting game state: %w", err)
 	}
 
 	state, err := room.GameState()

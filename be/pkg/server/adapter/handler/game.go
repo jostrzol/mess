@@ -2,7 +2,9 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -19,9 +21,9 @@ type GameHandler struct {
 func StartGame(h *GameHandler, g *gin.Engine) {
 	g.PUT("/rooms/:id/game", func(c *gin.Context) {
 		session := GetSessionData(sessions.Default(c))
-		id := c.Param("id")
+		roomId := c.Param("id")
 
-		roomID, err := parseUUID(id)
+		roomID, err := parseUUID(roomId)
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -44,6 +46,27 @@ func StartGame(h *GameHandler, g *gin.Engine) {
 
 func GetGameState(h *GameHandler, g *gin.Engine) {
 	g.GET("/rooms/:id/game", func(c *gin.Context) {
+		roomId := c.Param("id")
+
+		roomID, err := parseUUID(roomId)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		session := GetSessionData(sessions.Default(c))
+		state, err := h.service.GetGameState(session.ID, roomID)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, schema.StateFromDomain(state))
+	})
+}
+
+func PlayTurn(h *GameHandler, g *gin.Engine) {
+	g.PUT("/rooms/:id/game/turns/:turn", func(c *gin.Context) {
 		id := c.Param("id")
 
 		roomID, err := parseUUID(id)
@@ -52,8 +75,36 @@ func GetGameState(h *GameHandler, g *gin.Engine) {
 			return
 		}
 
+		turn, err := strconv.Atoi(c.Param("turn"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
 		session := GetSessionData(sessions.Default(c))
-		state, err := h.service.GetGameState(roomID, session.ID)
+
+		state, err := h.service.GetGameState(session.ID, roomID)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		var routeDto schema.Route
+		err = c.ShouldBindWith(&routeDto, schema.RouteBinding{})
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		route, err := routeDto.ToDomain(state.State)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		fmt.Printf("route: %#v\n", route)
+
+		state, err = h.service.PlayTurn(session.ID, roomID, turn, route)
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -64,5 +115,9 @@ func GetGameState(h *GameHandler, g *gin.Engine) {
 }
 
 func init() {
-	ioc.MustHandlerFill[GameHandler](StartGame, GetGameState)
+	ioc.MustHandlerFill[GameHandler](
+		StartGame,
+		GetGameState,
+		PlayTurn,
+	)
 }

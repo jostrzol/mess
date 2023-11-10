@@ -98,9 +98,32 @@ func (r *Room) GameState() (*State, error) {
 	}
 
 	return &State{
+		TurnNumber: r.game.TurnNumber(),
 		Board:      r.game.Board(),
 		OptionTree: optionTree,
 	}, nil
+}
+
+func (r *Room) PlayTurn(turn int, route mess.Route) error {
+	if !r.IsStarted() {
+		return ErrNotStarted
+	}
+
+	r.mutex.Lock()
+	defer func() { r.mutex.Unlock() }()
+
+	currentTurn := r.game.State.TurnNumber()
+	if turn < currentTurn {
+		return nil
+	} else if turn > currentTurn {
+		return ErrTurnTooBig
+	}
+
+	err := r.game.Turn(route)
+	if err != nil {
+		return fmt.Errorf("choosing turn options: %w", err)
+	}
+	return nil
 }
 
 var ErrRoomFull = usrerr.Errorf("room full")
@@ -109,3 +132,4 @@ var ErrNotEnoughPlayers = usrerr.Errorf("not enough players")
 var ErrAlreadyStarted = usrerr.Errorf("game is already started")
 var ErrAlreadyInRoom = usrerr.Errorf("player already in room")
 var ErrNotStarted = usrerr.Errorf("game not started")
+var ErrTurnTooBig = usrerr.Errorf("the selected turn hasn't started yet")
