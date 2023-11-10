@@ -1,7 +1,9 @@
 package schema
 
-import "github.com/google/uuid"
+import (
+	"github.com/jostrzol/mess/pkg/server/core/id"
+)
 
 type SessionData struct {
-	ID uuid.UUID
+	ID id.Session
 }

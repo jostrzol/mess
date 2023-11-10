@@ -2,8 +2,8 @@ export interface RoomChanged {
   EventType: "RoomChanged";
 }
 
-export interface GameStarted {
-  EventType: "GameStarted";
+export interface GameChanged {
+  EventType: "GameChanged";
 }
 
-export type Event = RoomChanged | GameStarted;
+export type Event = RoomChanged | GameChanged;

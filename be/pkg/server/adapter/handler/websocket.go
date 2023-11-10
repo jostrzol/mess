@@ -5,10 +5,12 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jostrzol/mess/pkg/server/adapter/inmem"
 	"github.com/jostrzol/mess/pkg/server/adapter/schema"
+	"github.com/jostrzol/mess/pkg/server/core/event"
+	"github.com/jostrzol/mess/pkg/server/core/game"
+	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/core/room"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 	"go.uber.org/zap"
@@ -25,10 +27,12 @@ const wsTimeout = time.Second
 type WsHandler struct {
 	logger     *zap.Logger         `container:"type"`
 	websockets *inmem.WsRepository `container:"type"`
+	rooms      room.Repository     `container:"type"`
+	games      game.Repository     `container:"type"`
 }
 
 func init() {
-	ioc.MustSingletonFill[WsHandler]()
+	ioc.MustSingletonObserverFill[WsHandler]()
 }
 
 func (h *WsHandler) handle(c *gin.Context) error {
@@ -70,17 +74,59 @@ func (h *WsHandler) handle(c *gin.Context) error {
 	return nil
 }
 
-func (h *WsHandler) sendToOpponents(room *room.Room, mySessionID uuid.UUID, event schema.Event) {
-	for _, playerID := range room.Players() {
-		if playerID != mySessionID {
-			err := h.websockets.Send(playerID, event)
+func (h *WsHandler) Handle(evnt event.Event) {
+	var err error
+	var eventToSend schema.Event
+	var players []id.Session
+	var author id.Session
+	switch ev := evnt.(type) {
+	case *event.PlayerJoined:
+		players, err = h.playersInRoom(ev.RoomID)
+		author = ev.PlayerID
+		eventToSend = &schema.RoomChanged{}
+	case *event.GameStarted:
+		players, err = h.playersInRoom(ev.RoomID)
+		author = ev.By
+		eventToSend = &schema.RoomChanged{}
+	case *event.GameChanged:
+		players, err = h.playersInGame(ev.GameID)
+		author = ev.By
+		eventToSend = &schema.GameChanged{}
+	}
+	if err != nil {
+		h.logger.Error("sending event", zap.Any("event", evnt), zap.Error(err))
+		return
+	}
+	h.sendToOpponents(players, author, eventToSend)
+}
+
+func (h *WsHandler) sendToOpponents(players []id.Session, author id.Session, event schema.Event) {
+	for _, player := range players {
+		if player != author {
+			err := h.websockets.Send(player, event)
 			if err != nil {
 				h.logger.Error("sending event",
-					zap.Stringer("target", playerID),
+					zap.Stringer("target", player),
 					zap.String("eventType", event.EventType()),
 					zap.Error(err),
 				)
 			}
 		}
 	}
+}
+
+func (h *WsHandler) playersInRoom(roomID id.Room) ([]id.Session, error) {
+	room, err := h.rooms.Get(roomID)
+	if err != nil {
+		return nil, err
+	}
+	return room.Players(), nil
+}
+
+func (h *WsHandler) playersInGame(gameID id.Game) ([]id.Session, error) {
+	game, err := h.games.Get(gameID)
+	if err != nil {
+		return nil, err
+	}
+	return game.Players(), nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/jostrzol/mess/pkg/server/adapter/schema"
+	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/core/room"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 )
@@ -32,9 +33,7 @@ func CreateRoom(h *RoomHandler, g *gin.Engine) {
 
 func GetRoom(h *RoomHandler, g *gin.Engine) {
 	g.GET("/rooms/:id", func(c *gin.Context) {
-		id := c.Param("id")
-
-		roomID, err := parseUUID(id)
+		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -53,9 +52,8 @@ func GetRoom(h *RoomHandler, g *gin.Engine) {
 func JoinRoom(h *RoomHandler, g *gin.Engine) {
 	g.PUT("/rooms/:id/players", func(c *gin.Context) {
 		session := GetSessionData(sessions.Default(c))
-		id := c.Param("id")
 
-		roomID, err := parseUUID(id)
+		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -68,8 +66,29 @@ func JoinRoom(h *RoomHandler, g *gin.Engine) {
 		case err != nil:
 			AbortWithError(c, err)
 			return
-		default:
-			h.wsHandler.sendToOpponents(r, session.ID, &schema.RoomChanged{})
+		}
+
+		c.JSON(http.StatusOK, schema.RoomFromDomain(r))
+	})
+}
+
+func StartGame(h *RoomHandler, g *gin.Engine) {
+	g.PUT("/rooms/:id/game", func(c *gin.Context) {
+		session := GetSessionData(sessions.Default(c))
+
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		r, err := h.service.StartGame(session.ID, roomID)
+		switch {
+		case errors.Is(err, room.ErrAlreadyStarted):
+			break
+		case err != nil:
+			AbortWithError(c, err)
+			return
 		}
 
 		c.JSON(http.StatusOK, schema.RoomFromDomain(r))
@@ -91,6 +110,7 @@ func init() {
 		CreateRoom,
 		GetRoom,
 		JoinRoom,
+		StartGame,
 		HandleWebsocket,
 	)
 }

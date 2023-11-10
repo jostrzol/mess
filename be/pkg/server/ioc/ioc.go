@@ -3,6 +3,7 @@ package ioc
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golobby/container/v3"
+	"github.com/jostrzol/mess/pkg/server/core/event"
 	"golang.org/x/exp/maps"
 )
 
@@ -48,6 +49,19 @@ func MustHandlerFill[T any](addHandlerFuncs ...func(*T, *gin.Engine)) {
 		for _, addHandlerFunc := range addHandlerFuncs {
 			addHandlerFunc(handler, g)
 		}
+	})
+}
+
+func MustSingletonObserverFill[T any, PT interface {
+	event.Observer
+	*T
+}]() {
+	container.MustSingletonLazy(container.Global, func(broker *event.Broker) PT {
+		var result T
+		container.MustFill(container.Global, &result)
+		ptr := PT(&result)
+		broker.Observe(ptr)
+		return ptr
 	})
 }
 

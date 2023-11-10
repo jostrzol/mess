@@ -2,13 +2,14 @@ package handler
 
 import (
 	"github.com/google/uuid"
+	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/core/usrerr"
 )
 
-func parseUUID(str string) (uuid.UUID, error) {
+func parseUUID[T id.ID](str string) (T, error) {
 	result, err := uuid.Parse(str)
 	if err != nil {
-		return uuid.UUID{}, usrerr.Wrap(err, "invalid uuid format")
+		return T{}, usrerr.Wrap(err, "invalid uuid format")
 	}
-	return result, nil
+	return T{BaseID: id.BaseID{UUID: result}}, nil
 }

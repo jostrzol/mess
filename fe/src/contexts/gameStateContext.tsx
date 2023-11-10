@@ -5,7 +5,7 @@ import { ReactNode, createContext, useContext } from "react";
 
 export const GameStateContext = createContext<GameStateContextValue>(null!);
 
-export function useGameState() {
+export const useGameState = () => {
   return useContext(GameStateContext);
 }
 

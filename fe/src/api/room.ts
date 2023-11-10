@@ -1,7 +1,5 @@
 import { Room } from "@/model/room";
 import { UUID } from "crypto";
-import useWebSocket from "react-use-websocket";
-import { Event } from "./schema/event";
 import { RoomDto, roomToModel } from "./schema/room";
 import { url } from "./url";
 import { throwIfError } from "./utils";
@@ -24,14 +22,4 @@ export const joinRoom = async (id: UUID): Promise<Room> => {
 
   const obj: RoomDto = await res.json();
   return roomToModel(obj);
-};
-
-export const useRoomWebsocket = (roomId: UUID) => {
-  const url_ = url("rooms/:id/websocket", {
-    params: { id: roomId },
-    schema: "ws",
-  });
-  const { lastJsonMessage, ...rest } = useWebSocket(url_);
-  const lastEvent = lastJsonMessage as Event | null;
-  return { lastEvent, ...rest };
 };

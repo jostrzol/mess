@@ -16,7 +16,7 @@ import {
 
 export const OptionContext = createContext<OptionContextValue>(null!);
 
-export function useOptions() {
+export const useOptions = () => {
   return useContext(OptionContext);
 }
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/gin-contrib/sessions"
-	"github.com/google/uuid"
 	"github.com/jostrzol/mess/pkg/server/adapter/schema"
+	"github.com/jostrzol/mess/pkg/server/core/id"
 )
 
 const SessionKey = "session"
@@ -15,7 +15,7 @@ const sessionDataKey = "data"
 
 func newSessionData() *schema.SessionData {
 	return &schema.SessionData{
-		ID: uuid.New(),
+		ID: id.New[id.Session](),
 	}
 }
 

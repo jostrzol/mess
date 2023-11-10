@@ -1,9 +1,12 @@
 "use client";
 
-import { useRoomWebsocket } from "@/api/room";
-import {ConnectionStatus} from "@/components/connectionStatus";
-import { RoomWsContext } from "@/contexts/roomWsContext";
+import { ConnectionStatus } from "@/components/connectionStatus";
+import {
+  RoomWebsocketProvider,
+  useRoomWebsocket,
+} from "@/contexts/roomWsContext";
 import { UUID } from "crypto";
+import { ReactNode } from "react";
 
 export type RoomPageParams = {
   params: {
@@ -14,13 +17,20 @@ export type RoomPageParams = {
 const RoomLayout = ({
   children,
   params,
-}: RoomPageParams & { children: React.ReactNode }) => {
-  const roomWsContextValue = useRoomWebsocket(params.roomId);
+}: RoomPageParams & { children: ReactNode }) => {
   return (
-    <RoomWsContext.Provider value={roomWsContextValue}>
-      <ConnectionStatus state={roomWsContextValue.readyState} />
-      {children}
-    </RoomWsContext.Provider>
+    <RoomWebsocketProvider roomId={params.roomId}>
+      <RoomLayoutInner>{children}</RoomLayoutInner>
+    </RoomWebsocketProvider>
+  );
+};
+
+const RoomLayoutInner = ({ children }: { children: ReactNode }) => {
+  const { readyState } = useRoomWebsocket();
+  return (
+    <>
+      <ConnectionStatus state={readyState} />;{children}
+    </>
   );
 };
 

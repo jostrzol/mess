@@ -15,7 +15,7 @@ type Room struct {
 
 func RoomFromDomain(r *room.Room) *Room {
 	return &Room{
-		ID:            r.ID(),
+		ID:            r.ID().UUID,
 		Players:       len(r.Players()),
 		PlayersNeeded: room.PlayersNeeded,
 		IsStartable:   r.IsStartable(),

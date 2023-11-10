@@ -2,20 +2,20 @@ package inmem
 
 import (
 	"github.com/golobby/container/v3"
-	"github.com/google/uuid"
+	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/core/room"
 )
 
 type RoomRepository struct {
-	rooms map[uuid.UUID]*room.Room
+	rooms map[id.Room]*room.Room
 }
 
 func NewRoomRepository() *RoomRepository {
-	return &RoomRepository{rooms: make(map[uuid.UUID]*room.Room)}
+	return &RoomRepository{rooms: make(map[id.Room]*room.Room)}
 }
 
 func init() {
-	container.MustSingleton(container.Global, func() room.Repository {
+	container.MustSingletonLazy(container.Global, func() room.Repository {
 		return NewRoomRepository()
 	})
 }
@@ -25,7 +25,7 @@ func (r *RoomRepository) Save(room *room.Room) error {
 	return nil
 }
 
-func (r *RoomRepository) Get(roomID uuid.UUID) (*room.Room, error) {
+func (r *RoomRepository) Get(roomID id.Room) (*room.Room, error) {
 	result, ok := r.rooms[roomID]
 	if !ok {
 		return nil, room.ErrNotFound

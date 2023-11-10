@@ -1,19 +1,22 @@
 package schema
 
 import (
+	"github.com/google/uuid"
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
-	"github.com/jostrzol/mess/pkg/server/core/room"
+	"github.com/jostrzol/mess/pkg/server/core/game"
 )
 
 type State struct {
+	ID         uuid.UUID
 	TurnNumber int
 	Pieces     []Piece
 	OptionTree interface{}
 }
 
-func StateFromDomain(s *room.State) *State {
+func StateFromDomain(s *game.State) *State {
 	return &State{
+		ID:         s.ID.UUID,
 		TurnNumber: s.TurnNumber,
 		Pieces:     piecesFromDomain(s.Board.AllPieces()),
 		OptionTree: optionNodeFromDomain(s.OptionTree),

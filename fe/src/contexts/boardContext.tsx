@@ -12,7 +12,7 @@ import { useOptions } from "./optionContext";
 
 export const BoardContext = createContext<BoardContextValue>(null!);
 
-export function useBoard() {
+export const useBoard = () => {
   return useContext(BoardContext);
 }
 

@@ -2,11 +2,11 @@
 
 import { startGame } from "@/api/game";
 import { joinRoom } from "@/api/room";
+import { RoomChanged } from "@/api/schema/event";
 import { Button } from "@/components/form/button";
-import { RoomWsContext } from "@/contexts/roomWsContext";
+import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
-import { useContext, useEffect } from "react";
 import { RoomPageParams } from "./layout";
 
 const RoomPage = ({ params }: RoomPageParams) => {
@@ -23,16 +23,12 @@ const RoomPage = ({ params }: RoomPageParams) => {
     },
   });
 
-  const { lastEvent } = useContext(RoomWsContext);
-  useEffect(() => {
-    if (
-      lastEvent?.EventType === "RoomChanged" ||
-      lastEvent?.EventType === "GameStarted"
-    ) {
+  useRoomWebsocket<RoomChanged>({
+    type: "RoomChanged",
+    onEvent: () => {
       client.invalidateQueries({ queryKey: ["room", params.roomId] });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastEvent]);
+    },
+  });
 
   if (!isSuccess) {
     return null;
