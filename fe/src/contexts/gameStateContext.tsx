@@ -9,7 +9,7 @@ export const useGameState = () => {
   return useContext(GameStateContext);
 }
 
-export interface GameStateContextValue {
+export interface GameStateContextValue extends GameState {
   pieceMap: Record<string, Piece>;
 }
 
@@ -24,7 +24,7 @@ export const GameStateProvider = ({
     state?.pieces.map((piece) => [Square.toString(piece.square), piece]) ?? [],
   );
   return (
-    <GameStateContext.Provider value={{ pieceMap }}>
+    <GameStateContext.Provider value={{ pieceMap, ...state }}>
       {children}
     </GameStateContext.Provider>
   );

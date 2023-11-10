@@ -6,6 +6,7 @@ export interface GameStateDto {
   TurnNumber: number;
   Pieces: PieceDto[];
   OptionTree: any;
+  IsMyTurn: boolean
 }
 
 export const gameStateToModel = (state: GameStateDto): GameState => {
@@ -13,5 +14,6 @@ export const gameStateToModel = (state: GameStateDto): GameState => {
     turnNumber: state.TurnNumber,
     pieces: state.Pieces.map(pieceToModel),
     optionTree: optionNodeToModel(state.OptionTree),
+    isMyTurn: state.IsMyTurn,
   };
 };

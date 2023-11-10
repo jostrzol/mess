@@ -9,12 +9,14 @@ export type TileProps = {
   square: Square;
   isDot?: boolean;
   dotType?: DotType;
+  dotScale?: number;
 } & HTMLAttributes<HTMLDivElement>;
 
 export const Tile = ({
   square,
   isDot = false,
   dotType = "normal",
+  dotScale = 1,
   children,
   ...props
 }: TileProps) => {
@@ -38,14 +40,13 @@ export const Tile = ({
       )}
       {...props}
     >
+      <div>
       <div
         className={clsx(
           "absolute",
           "z-10",
           "top-1/2",
           "left-1/2",
-          "-translate-x-1/2",
-          "-translate-y-1/2",
           "w-4",
           "h-4",
           "rounded-full",
@@ -56,7 +57,9 @@ export const Tile = ({
           isOver && "scale-150",
           "transition-transform",
         )}
+        style={{transform: `translate(-50%, -50%) scale(${dotScale}) `}}
       />
+      </div>
       <div>{children}</div>
       {/* Needed to make the parent div expand.
       Coulnd't get it to work without the image */}

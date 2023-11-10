@@ -29,7 +29,8 @@ const RoomLayoutInner = ({ children }: { children: ReactNode }) => {
   const { readyState } = useRoomWebsocket();
   return (
     <>
-      <ConnectionStatus state={readyState} />;{children}
+      <ConnectionStatus state={readyState} />
+      {children}
     </>
   );
 };

@@ -1,4 +1,5 @@
 import { useBoard } from "@/contexts/boardContext";
+import {useGameState} from "@/contexts/gameStateContext";
 import { useOptions } from "@/contexts/optionContext";
 import * as model from "@/model/game/piece";
 import { Square } from "@/model/game/square";
@@ -14,9 +15,10 @@ export interface PieceProps {
 export const Piece = ({ piece }: PieceProps) => {
   const { moveMap } = useOptions();
   const { hoveredSquare } = useBoard();
+  const { isMyTurn } = useGameState();
 
   const moves = moveMap[Square.toString(piece.square)];
-  const canMove = moves !== undefined
+  const canMove = isMyTurn && moves !== undefined
   const canDrop = hoveredSquare && Square.toString(hoveredSquare) in (moves ?? {});
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =

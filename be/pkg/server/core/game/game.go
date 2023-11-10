@@ -27,6 +27,7 @@ type State struct {
 	Board      *mess.PieceBoard
 	OptionTree *mess.OptionNode
 	State      *mess.State
+	IsMyTurn   bool
 }
 
 func New(event *event.GameStarted) (*Game, error) {
@@ -57,7 +58,12 @@ func (g *Game) Players() []id.Session {
 	return maps.Values(g.players)
 }
 
-func (g *Game) State() (*State, error) {
+func (g *Game) IsCurrentPlayer(session id.Session) bool {
+	currentPlayerSession := g.players[g.game.CurrentPlayer().Color()]
+	return currentPlayerSession == session
+}
+
+func (g *Game) State(session id.Session) (*State, error) {
 	g.mutex.Lock()
 	defer func() { g.mutex.Unlock() }()
 
@@ -72,12 +78,17 @@ func (g *Game) State() (*State, error) {
 		Board:      g.game.Board(),
 		OptionTree: optionTree,
 		State:      g.game.State,
+		IsMyTurn:   g.IsCurrentPlayer(session),
 	}, nil
 }
 
 func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.Event, error) {
 	g.mutex.Lock()
 	defer func() { g.mutex.Unlock() }()
+
+	if !g.IsCurrentPlayer(session) {
+		return nil, ErrNotYourTurn
+	}
 
 	currentTurn := g.game.State.TurnNumber()
 	if turn < currentTurn {
@@ -101,3 +112,4 @@ func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.E
 
 var ErrTurnTooSmall = usrerr.Errorf("the selected turn has already been played")
 var ErrTurnTooBig = usrerr.Errorf("the selected turn hasn't started yet")
+var ErrNotYourTurn = usrerr.Errorf("it's not your turn")

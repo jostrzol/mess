@@ -11,7 +11,8 @@ type State struct {
 	ID         uuid.UUID
 	TurnNumber int
 	Pieces     []Piece
-	OptionTree interface{}
+	OptionTree *OptionNode
+	IsMyTurn   bool
 }
 
 func StateFromDomain(s *game.State) *State {
@@ -20,6 +21,7 @@ func StateFromDomain(s *game.State) *State {
 		TurnNumber: s.TurnNumber,
 		Pieces:     piecesFromDomain(s.Board.AllPieces()),
 		OptionTree: optionNodeFromDomain(s.OptionTree),
+		IsMyTurn:   s.IsMyTurn,
 	}
 }
 

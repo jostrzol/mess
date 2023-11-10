@@ -26,7 +26,7 @@ func (s *Service) GetGameState(sessionID id.Session, roomID id.Room) (*State, er
 		return nil, fmt.Errorf("getting game %v: %w", roomID, err)
 	}
 
-	state, err := game.State()
+	state, err := game.State(sessionID)
 	if err != nil {
 		return nil, fmt.Errorf("calculating game state: %w", err)
 	}
@@ -50,7 +50,7 @@ func (s *Service) PlayTurn(sessionID id.Session, roomID id.Room, turn int, route
 	}
 	s.events.Notify(ev)
 
-	state, err := game.State()
+	state, err := game.State(sessionID)
 	if err != nil {
 		return nil, fmt.Errorf("calculating game state: %w", err)
 	}
