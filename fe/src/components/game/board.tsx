@@ -27,7 +27,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
   const gridTemplateRows = `repeat(${board.width}, auto)`;
 
   const { pieceMap } = useGameState();
-  const { choose } = useOptions();
+  const { choose, moveMap } = useOptions();
   const { dispatch, destinations, draggedPiece } = useBoard();
 
   return (
@@ -53,16 +53,17 @@ const BoardWrapped = ({ board }: BoardProps) => {
       onDragEnd={(e) => {
         const piece: PieceModel = e.active.data.current!.piece;
         dispatch({ type: "Dropped", piece: piece });
-
         if (e.over === null) return;
 
         const destination: Square = e.over.data.current!.square;
-        const move: Move = {
-          from: piece.square,
-          to: destination,
-        };
+        const pieceMoves = moveMap[Square.toString(piece.square)] ?? {}
+        const options = pieceMoves[Square.toString(destination)] ?? []
+        // TODO: choose option if options.length > 1
+        const option = options.pop()
 
-        console.log(`move: ${JSON.stringify(move)}`);
+        if (option) {
+          choose(option.datum)
+        }
       }}
     >
       <div

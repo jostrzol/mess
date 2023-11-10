@@ -30,9 +30,11 @@ type MoveMap = {
 
 export const OptionProvider = ({
   root,
+  onChooseFinish,
   children,
 }: {
   root?: OptionNode;
+  onChooseFinish?: (route: Route) => void;
   children?: ReactNode;
 }) => {
   const isReady = root !== undefined;
@@ -59,8 +61,17 @@ export const OptionProvider = ({
       }, map);
     }, {} as MoveMap);
   const choose = (datum: OptionDatum) => {
-    setCurrent(datum.children);
-    setRoute([...route, datum.option]);
+    console.log("choosing", datum)
+    const newCurrent = datum.children
+    const newRoute = [...route, datum.option]
+
+    setCurrent(newCurrent);
+    setRoute(newRoute);
+
+    if (newCurrent.length === 0) {
+      console.log("choose finished", newRoute)
+      onChooseFinish?.(newRoute)
+    }
   };
 
   return (
