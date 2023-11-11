@@ -20,18 +20,26 @@ func init() {
 	ioc.MustSingletonObserverFill[Service]()
 }
 
-func (s *Service) GetGameState(sessionID id.Session, roomID id.Room) (*State, error) {
+func (s *Service) GetGameState(roomID id.Room) (*State, error) {
+	game, err := s.repository.GetForRoom(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting game %v: %w", roomID, err)
+	}
+	return game.State(), nil
+}
+
+func (s *Service) GetTurnOptions(roomID id.Room) (*mess.OptionNode, error) {
 	game, err := s.repository.GetForRoom(roomID)
 	if err != nil {
 		return nil, fmt.Errorf("getting game %v: %w", roomID, err)
 	}
 
-	state, err := game.State(sessionID)
+	optionTree, err := game.TurnOptions()
 	if err != nil {
-		return nil, fmt.Errorf("calculating game state: %w", err)
+		return nil, err
 	}
 
-	return state, nil
+	return optionTree, nil
 }
 
 func (s *Service) PlayTurn(sessionID id.Session, roomID id.Room, turn int, route mess.Route) (*State, error) {
@@ -50,12 +58,7 @@ func (s *Service) PlayTurn(sessionID id.Session, roomID id.Room, turn int, route
 	}
 	s.events.Notify(ev)
 
-	state, err := game.State(sessionID)
-	if err != nil {
-		return nil, fmt.Errorf("calculating game state: %w", err)
-	}
-
-	return state, nil
+	return game.State(), nil
 }
 
 func (s *Service) Handle(evnt event.Event) {

@@ -5,6 +5,7 @@ import {
   RoomWebsocketProvider,
   useRoomWebsocket,
 } from "@/contexts/roomWsContext";
+import {useIsFetching} from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { ReactNode } from "react";
 
@@ -27,9 +28,10 @@ const RoomLayout = ({
 
 const RoomLayoutInner = ({ children }: { children: ReactNode }) => {
   const { readyState } = useRoomWebsocket();
+  const fetching = useIsFetching()
   return (
     <>
-      <ConnectionStatus state={readyState} />
+      <ConnectionStatus websocketStatus={readyState} isFetching={fetching > 0} />
       {children}
     </>
   );

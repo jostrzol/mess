@@ -1,6 +1,6 @@
 "use client";
 
-import { getGame, playTurn } from "@/api/game";
+import { getState, getTurnOptions, playTurn } from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
 import { Board } from "@/components/game/board";
 import { GameStateProvider } from "@/contexts/gameStateContext";
@@ -12,16 +12,30 @@ import { RoomPageParams } from "../layout";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const client = useQueryClient();
-  const { data: state, isSuccess } = useQuery({
-    queryKey: ["room", params.roomId, "game"],
-    queryFn: () => getGame(params.roomId),
+
+  const keyState = ["room", params.roomId, "game", "state"]
+  const {
+    data: state,
+    isSuccess,
+    status,
+  } = useQuery({
+    queryKey: keyState,
+    queryFn: () => getState(params.roomId),
   });
+
+  const keyOptions = ["room", params.roomId, "game", "options"]
+  const { data: optionTree } = useQuery({
+    queryKey: keyOptions,
+    queryFn: () => getTurnOptions(params.roomId),
+  });
+
   const { mutate } = useMutation({
     mutationKey: ["room", params.roomId, "game", "turn"],
     mutationFn: (route: Route) =>
       playTurn(params.roomId, state!.turnNumber, route),
     onSuccess: (newState) => {
-      client.setQueryData(["room", params.roomId, "game"], newState);
+      client.setQueryData(keyState, newState);
+      client.invalidateQueries({ queryKey: keyOptions });
     },
     onError: (e) => {
       console.error(e);
@@ -30,10 +44,13 @@ const GamePage = ({ params }: RoomPageParams) => {
   });
   useRoomWebsocket<GameChanged>({
     type: "GameChanged",
-    onEvent: () => {
+    onEvent: (e) => {
+      console.log(e);
       client.invalidateQueries({ queryKey: ["room", params.roomId, "game"] });
+      client.resetQueries({ queryKey: keyOptions });
     },
   });
+  console.log(status, state);
 
   if (!isSuccess) {
     return null;
@@ -41,7 +58,7 @@ const GamePage = ({ params }: RoomPageParams) => {
   return (
     <GameStateProvider state={state}>
       <OptionProvider
-        root={state.optionTree}
+        root={optionTree ?? null}
         onChooseFinish={(route) => {
           mutate(route);
         }}

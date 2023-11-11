@@ -9,7 +9,13 @@ import "./globals.css";
 
 const RootTemplate = ({ children }: { children: React.ReactNode }) => {
   const themeContextValue = useTheme();
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60_000
+      }
+    }
+  });
   return (
     <ThemeContext.Provider value={themeContextValue}>
       <QueryClientProvider client={queryClient}>

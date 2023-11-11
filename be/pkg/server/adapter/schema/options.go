@@ -7,27 +7,29 @@ import (
 	"net/http"
 
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/jostrzol/mess/pkg/server/core/game"
+	"github.com/jostrzol/mess/pkg/server/core/usrerr"
 	"github.com/mitchellh/mapstructure"
 )
 
-func optionNodesFromDomain(nodes []*mess.OptionNode) []*OptionNode {
-	result := make([]*OptionNode, 0, len(nodes))
-	for _, node := range nodes {
-		nodeMarshalled := optionNodeFromDomain(node)
-		if nodeMarshalled != nil {
-			result = append(result, nodeMarshalled)
-		}
-	}
-	return result
-}
-
-func optionNodeFromDomain(node *mess.OptionNode) *OptionNode {
+func OptionNodeFromDomain(node *mess.OptionNode) *OptionNode {
 	if node == nil {
 		return nil
 	}
 	var marshaler optionTreeMarshaler
 	node.Accept(&marshaler)
 	return marshaler.result
+}
+
+func optionNodesFromDomain(nodes []*mess.OptionNode) []*OptionNode {
+	result := make([]*OptionNode, 0, len(nodes))
+	for _, node := range nodes {
+		nodeMarshalled := OptionNodeFromDomain(node)
+		if nodeMarshalled != nil {
+			result = append(result, nodeMarshalled)
+		}
+	}
+	return result
 }
 
 type OptionNode struct {
@@ -46,28 +48,28 @@ type SquareOption Square
 type MoveOption SquareVec
 type UnitOption struct{}
 
-func (o PieceTypeOption) ToDomain(state *mess.State) (mess.Option, error) {
-	pieceType, err := state.GetPieceType(o.Name)
-	if err != nil {
-		return nil, err
+func (o PieceTypeOption) ToDomain(state *game.State) (mess.Option, error) {
+	pieceType, ok := state.PieceTypes[o.Name]
+	if !ok {
+		return nil, usrerr.Errorf("piece type %q not found", o.Name)
 	}
 	return mess.PieceTypeOption{PieceType: pieceType}, nil
 }
 
-func (o SquareOption) ToDomain(_ *mess.State) (mess.Option, error) {
+func (o SquareOption) ToDomain(_ *game.State) (mess.Option, error) {
 	return mess.SquareOption{Square: Square(o).ToDomain()}, nil
 }
 
-func (o MoveOption) ToDomain(_ *mess.State) (mess.Option, error) {
+func (o MoveOption) ToDomain(_ *game.State) (mess.Option, error) {
 	return mess.MoveOption{SquareVec: SquareVec(o).ToDomain()}, nil
 }
 
-func (o UnitOption) ToDomain(_ *mess.State) (mess.Option, error) {
+func (o UnitOption) ToDomain(_ *game.State) (mess.Option, error) {
 	return mess.UnitOption{}, nil
 }
 
 type Option interface {
-	ToDomain(state *mess.State) (mess.Option, error)
+	ToDomain(state *game.State) (mess.Option, error)
 }
 
 type optionTreeMarshaler struct {
@@ -127,7 +129,7 @@ func (o *optionTreeMarshaler) VisitUnitNodeData(message string, data mess.UnitOp
 
 type Route []Option
 
-func (r Route) ToDomain(state *mess.State) (result mess.Route, err error) {
+func (r Route) ToDomain(state *game.State) (result mess.Route, err error) {
 	for _, optionDto := range r {
 		var option mess.Option
 		option, err = optionDto.ToDomain(state)

@@ -22,7 +22,7 @@ export const useOptions = () => {
 
 export interface OptionContextValue {
   route: Route;
-  isDone: boolean;
+  isReady: boolean;
   moveMap: MoveMap;
   choose: <T extends OptionNode>(node: T, datum: T["data"][number]) => void;
 }
@@ -38,11 +38,11 @@ export const OptionProvider = ({
   onChooseFinish,
   children,
 }: {
-  root?: OptionNode;
+  root: OptionNode | null;
   onChooseFinish?: (route: Route) => void;
   children?: ReactNode;
 }) => {
-  const isReady = root !== undefined;
+  const isReady = root !== null;
 
   const [current, setCurrent] = useState<OptionNode[]>([]);
   const [route, setRoute] = useState<Route>([]);
@@ -52,7 +52,6 @@ export const OptionProvider = ({
     setRoute([]);
   }, [isReady, root, setCurrent, setRoute]);
 
-  const isDone = current.length == 0;
   const moveMap = current
     .filter(is<MoveOptionNode>("Move"))
     .reduce((map, node) => {
@@ -79,7 +78,7 @@ export const OptionProvider = ({
   };
 
   return (
-    <OptionContext.Provider value={{ route, isDone, moveMap, choose }}>
+    <OptionContext.Provider value={{ route, isReady, moveMap, choose }}>
       {children}
     </OptionContext.Provider>
   );

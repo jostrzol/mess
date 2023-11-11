@@ -13,7 +13,7 @@ export interface PieceProps {
 }
 
 export const Piece = ({ piece }: PieceProps) => {
-  const { moveMap } = useOptions();
+  const { moveMap, isReady } = useOptions();
   const { hoveredSquare } = useBoard();
   const { isMyTurn } = useGameState();
 
@@ -34,6 +34,8 @@ export const Piece = ({ piece }: PieceProps) => {
       ref={setNodeRef}
       className={clsx(
         "relative",
+        isMyTurn && !isReady && "cursor-wait",
+        !isMyTurn && "cursor-not-allowed",
         canMove && "hover:scale-110",
         !canMove && "cursor-default",
         isDragging && ["z-20", "scale-110", "cursor-none"],

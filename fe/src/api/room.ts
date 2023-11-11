@@ -23,3 +23,12 @@ export const joinRoom = async (id: UUID): Promise<Room> => {
   const obj: RoomDto = await res.json();
   return roomToModel(obj);
 };
+
+export const startGame = async (roomId: UUID): Promise<Room> => {
+  const url_ = url("rooms/:id/game", { params: { id: roomId } });
+  const res = await fetch(url_, { method: "PUT", credentials: "include" });
+  await throwIfError(res);
+
+  const obj: RoomDto = await res.json();
+  return roomToModel(obj);
+};

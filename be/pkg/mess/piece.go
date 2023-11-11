@@ -120,3 +120,7 @@ func (p *Piece) Handle(event event.Event) {
 	}
 	p.moves = nil
 }
+
+func (p *Piece) Clone() *Piece {
+	return NewPiece(p.ty, p.owner)
+}

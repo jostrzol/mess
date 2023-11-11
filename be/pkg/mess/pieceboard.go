@@ -174,7 +174,7 @@ func (b *PieceBoard) Move(piece *Piece, square board.Square) error {
 	}
 	old, err := b.wrapped.Place(piece, square)
 	if err != nil {
-		b.wrapped.Place(piece, piece.Square())
+		_, _ = b.wrapped.Place(piece, piece.Square())
 		return err
 	}
 
@@ -194,4 +194,23 @@ type PieceMoved struct {
 	Piece *Piece
 	From  board.Square
 	To    board.Square
+}
+
+func (b *PieceBoard) Clone() *PieceBoard {
+	width, height := b.Size()
+	clone, err := NewPieceBoard(width, height)
+	if err != nil {
+		// If the previous board was created,
+		// the new one should be too
+		panic(err)
+	}
+	for _, piece := range b.AllPieces() {
+		err = piece.Clone().PlaceOn(clone, piece.Square())
+		if err != nil {
+			// If the piece was on the previous board,
+			// it should be ok to place it on the clone too
+			panic(err)
+		}
+	}
+	return clone
 }

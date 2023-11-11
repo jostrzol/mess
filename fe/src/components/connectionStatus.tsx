@@ -4,10 +4,12 @@ import { useContext } from "react";
 import { ReadyState } from "react-use-websocket";
 
 export const ConnectionStatus = ({
-  state,
+  websocketStatus,
+  isFetching = true,
   className,
 }: {
-  state: ReadyState;
+  websocketStatus: ReadyState;
+  isFetching: boolean;
   className?: string;
 }) => {
   const {
@@ -22,21 +24,40 @@ export const ConnectionStatus = ({
       "Connection uninstantiated",
       colors["txt-dim"],
     ],
-  }[state];
+  }[websocketStatus];
   return (
     <div
       className={clsx(
-        "w-4",
-        "h-4",
-        "rounded-full",
         "has-tooltip",
         "absolute",
         "top-5",
         "right-5",
         className,
       )}
-      style={{ backgroundColor: color }}
     >
+      <div
+        className={clsx(
+          "relative",
+          "w-4",
+          "h-4",
+          "rounded-full",
+          "has-tooltip",
+        )}
+        style={{ backgroundColor: color }}
+      />
+      <div
+        className={clsx(
+          "absolute",
+          "top-0",
+          "left-0",
+          "w-4",
+          "h-4",
+          "rounded-full",
+          "has-tooltip",
+          isFetching && "animate-ping",
+        )}
+        style={{ backgroundColor: color }}
+      />
       <span
         className={clsx(
           "tooltip",
@@ -45,7 +66,7 @@ export const ConnectionStatus = ({
           "p-1",
           "bg-primary-dim/50",
           "-left-2",
-          "-translate-y-2",
+          "-translate-y-3/4",
           "-translate-x-full",
           "whitespace-nowrap",
           "transition-opacity",

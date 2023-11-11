@@ -14,12 +14,11 @@ import (
 )
 
 type GameHandler struct {
-	service   *game.Service `container:"type"`
-	wsHandler *WsHandler    `container:"type"`
+	service *game.Service `container:"type"`
 }
 
 func GetGameState(h *GameHandler, g *gin.Engine) {
-	g.GET("/rooms/:id/game", func(c *gin.Context) {
+	g.GET("/rooms/:id/game/state", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
@@ -27,13 +26,31 @@ func GetGameState(h *GameHandler, g *gin.Engine) {
 		}
 
 		session := GetSessionData(sessions.Default(c))
-		state, err := h.service.GetGameState(session.ID, roomID)
+		state, err := h.service.GetGameState(roomID)
 		if err != nil {
 			AbortWithError(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, schema.StateFromDomain(state))
+		c.JSON(http.StatusOK, schema.StateFromDomain(session.ID, state))
+	})
+}
+
+func GetTurnOptions(h *GameHandler, g *gin.Engine) {
+	g.GET("/rooms/:id/game/options", func(c *gin.Context) {
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		optionTree, err := h.service.GetTurnOptions(roomID)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, schema.OptionNodeFromDomain(optionTree))
 	})
 }
 
@@ -53,7 +70,7 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 
 		session := GetSessionData(sessions.Default(c))
 
-		state, err := h.service.GetGameState(session.ID, roomID)
+		state, err := h.service.GetGameState(roomID)
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -66,7 +83,7 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 			return
 		}
 
-		route, err := routeDto.ToDomain(state.State)
+		route, err := routeDto.ToDomain(state)
 		if err != nil {
 			AbortWithError(c, err)
 			return
@@ -80,13 +97,14 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 			return
 		}
 
-		c.JSON(http.StatusOK, schema.StateFromDomain(state))
+		c.JSON(http.StatusOK, schema.StateFromDomain(session.ID, state))
 	})
 }
 
 func init() {
 	ioc.MustHandlerFill[GameHandler](
 		GetGameState,
+		GetTurnOptions,
 		PlayTurn,
 	)
 }

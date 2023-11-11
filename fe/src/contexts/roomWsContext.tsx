@@ -28,7 +28,8 @@ export const useRoomWebsocket = <T extends Event>(handler?: {
     if (handler && ws.lastEvent?.EventType === handler.type) {
       handler.onEvent(ws.lastEvent as T);
     }
-  }, [ws.lastEvent, handler]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ws.lastEvent]);
   return ws;
 };
 

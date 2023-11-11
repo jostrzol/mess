@@ -120,27 +120,16 @@ func (c *httpClient) ServeHTTPOkAs(method string, url string, body any, result i
 	c.NoError(err)
 
 	err = json.Unmarshal(bytes, &result)
-	c.NoError(err)
+	if !c.NoError(err) {
+		c.logRequest(method, url, body, res)
+	}
 }
 
 func (c *httpClient) ServeHTTPOk(method string, url string, body any) *httptest.ResponseRecorder {
 	c.T().Helper()
 	res := c.ServeHTTP(method, url, body)
 	if !c.Equal(http.StatusOK, res.Result().StatusCode) {
-		req := c.request(method, url, body)
-		c.T().Logf("request: %+v", req)
-		body, err := io.ReadAll(req.Body)
-		if err != nil {
-			c.T().Logf("request body:  <can't read>")
-		} else {
-			c.T().Logf("request body:  %v", string(body))
-		}
-		body, err = io.ReadAll(res.Body)
-		if err != nil {
-			c.T().Logf("response body: <can't read>")
-		} else {
-			c.T().Logf("response body: %v", string(body))
-		}
+		c.logRequest(method, url, body, res)
 	}
 	return res
 }
@@ -164,6 +153,23 @@ func (c *httpClient) request(method string, url string, body any) *http.Request 
 		req.AddCookie(cookie)
 	}
 	return req
+}
+
+func (c *httpClient) logRequest(method string, url string, reqBody any, res *httptest.ResponseRecorder) {
+	req := c.request(method, url, reqBody)
+	c.T().Logf("request: %+v", req)
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		c.T().Logf("request body:  <can't read>")
+	} else {
+		c.T().Logf("request body:  %v", string(body))
+	}
+	body, err = io.ReadAll(res.Body)
+	if err != nil {
+		c.T().Logf("response body: <can't read>")
+	} else {
+		c.T().Logf("response body: %v", string(body))
+	}
 }
 
 var root = url.URL{Scheme: "http", Path: "/"}

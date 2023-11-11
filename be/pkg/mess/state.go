@@ -248,9 +248,9 @@ func (s *State) GetPieceType(name string) (*PieceType, error) {
 }
 
 func (s *State) PieceTypes() []*PieceType {
-	result := make([]*PieceType, 0, len(s.pieceTypes))
-	for _, pieceType := range s.pieceTypes {
-		result = append(result, pieceType)
-	}
-	return result
+	return maps.Values(s.pieceTypes)
+}
+
+func (s *State) PieceTypesByName() map[string]*PieceType {
+	return maps.Clone(s.pieceTypes)
 }

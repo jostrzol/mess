@@ -1,7 +1,6 @@
 "use client";
 
-import { startGame } from "@/api/game";
-import { joinRoom } from "@/api/room";
+import { joinRoom, startGame } from "@/api/room";
 import { RoomChanged } from "@/api/schema/event";
 import { Button } from "@/components/form/button";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";

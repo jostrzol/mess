@@ -19,15 +19,20 @@ type Game struct {
 	players map[color.Color]id.Session
 	mutex   sync.Mutex
 	game    *mess.Game
+	// cachedState is a Read-Only version of the current game state,
+	// not including cumputation-heavy fields. It should be calculated
+	// eagerly just after game state change and be valid all the time.
+	// Should be accessed through State() method.
+	cachedState      *State
+	cachedPieceTypes map[string]*mess.PieceType
 }
 
 type State struct {
-	ID         id.Game
-	TurnNumber int
-	Board      *mess.PieceBoard
-	OptionTree *mess.OptionNode
-	State      *mess.State
-	IsMyTurn   bool
+	ID            id.Game
+	TurnNumber    int
+	Board         *mess.PieceBoard
+	PieceTypes    map[string]*mess.PieceType
+	CurrentPlayer id.Session
 }
 
 func New(event *event.GameStarted) (*Game, error) {
@@ -35,15 +40,20 @@ func New(event *event.GameStarted) (*Game, error) {
 	if err != nil {
 		return nil, fmt.Errorf("decoding rules: %w", err)
 	}
-	return &Game{
+	result := &Game{
 		id:   event.GameID,
 		room: event.RoomID,
 		players: map[color.Color]id.Session{
 			color.White: event.Players[color.White],
 			color.Black: event.Players[color.Black],
 		},
-		game: game,
-	}, nil
+		mutex:            sync.Mutex{},
+		game:             game,
+		cachedPieceTypes: game.PieceTypesByName(),
+	}
+	result.calculateState()
+
+	return result, nil
 }
 
 func (g *Game) ID() id.Game {
@@ -58,12 +68,11 @@ func (g *Game) Players() []id.Session {
 	return maps.Values(g.players)
 }
 
-func (g *Game) IsCurrentPlayer(session id.Session) bool {
-	currentPlayerSession := g.players[g.game.CurrentPlayer().Color()]
-	return currentPlayerSession == session
+func (g *Game) CurrentPlayer() id.Session {
+	return g.cachedState.CurrentPlayer
 }
 
-func (g *Game) State(session id.Session) (*State, error) {
+func (g *Game) TurnOptions() (*mess.OptionNode, error) {
 	g.mutex.Lock()
 	defer func() { g.mutex.Unlock() }()
 
@@ -72,21 +81,21 @@ func (g *Game) State(session id.Session) (*State, error) {
 		return nil, fmt.Errorf("generating turn options: %w", err)
 	}
 
-	return &State{
-		ID:         g.id,
-		TurnNumber: g.game.TurnNumber(),
-		Board:      g.game.Board(),
-		OptionTree: optionTree,
-		State:      g.game.State,
-		IsMyTurn:   g.IsCurrentPlayer(session),
-	}, nil
+	return optionTree, nil
+}
+
+func (g *Game) State() *State {
+	if g.cachedState == nil {
+		panic(fmt.Errorf("state not calculated"))
+	}
+	return g.cachedState
 }
 
 func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.Event, error) {
 	g.mutex.Lock()
 	defer func() { g.mutex.Unlock() }()
 
-	if !g.IsCurrentPlayer(session) {
+	if g.CurrentPlayer() != session {
 		return nil, ErrNotYourTurn
 	}
 
@@ -104,10 +113,24 @@ func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.E
 	if err != nil {
 		return nil, usrerr.Errorf("choosing turn options: %w", err)
 	}
+
+	g.calculateState()
 	return &event.GameChanged{
 		GameID: g.id,
 		By:     session,
 	}, nil
+}
+
+// calculateState caches the current game state.
+// Presumes that THE MUTEX IS LOCKED!
+func (g *Game) calculateState() {
+	g.cachedState = &State{
+		ID:            g.id,
+		TurnNumber:    g.game.TurnNumber(),
+		Board:         g.game.Board(),
+		CurrentPlayer: g.players[g.game.CurrentPlayer().Color()],
+		PieceTypes:    g.cachedPieceTypes,
+	}
 }
 
 var ErrTurnTooSmall = usrerr.Errorf("the selected turn has already been played")

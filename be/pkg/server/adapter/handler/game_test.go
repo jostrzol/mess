@@ -36,6 +36,17 @@ func (s *GameSuite) TestGetGameState() {
 	s.Client().getGameState(room.ID)
 }
 
+func (s *GameSuite) TestGetTurnOptions() {
+	// given
+	room := s.Client().createFilledRoom()
+
+	// and
+	room = s.Client().startGame(room.ID)
+
+	// expect
+	s.Client().getTurnOptions(room.ID)
+}
+
 func (s *GameSuite) TestChooseGameTurnOptionRoute() {
 	// given
 	room := s.Client().createStartedRoom()
@@ -70,7 +81,21 @@ func (c *GameClient) startGame(roomID uuid.UUID) (room schema.Room) {
 }
 
 func (c *GameClient) getGameState(roomID uuid.UUID) (state schema.State) {
-	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game", nil, &state)
+	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/state", nil, &state)
+	return
+}
+
+type OptionNode struct {
+	Type    string
+	Message string
+	Data    []struct {
+		Option   any
+		Children []*OptionNode
+	}
+}
+
+func (c *GameClient) getTurnOptions(roomID uuid.UUID) (optionTree *OptionNode) {
+	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/options", nil, &optionTree)
 	return
 }
 

@@ -103,6 +103,7 @@ func (h *WsHandler) Handle(evnt event.Event) {
 func (h *WsHandler) sendToOpponents(players []id.Session, author id.Session, event schema.Event) {
 	for _, player := range players {
 		if player != author {
+			h.logger.Debug("sending websocket message", zap.Any("event", event), zap.Stringer("session", player))
 			err := h.websockets.Send(player, event)
 			if err != nil {
 				h.logger.Error("sending event",

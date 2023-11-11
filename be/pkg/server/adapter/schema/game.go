@@ -5,23 +5,22 @@ import (
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/core/game"
+	"github.com/jostrzol/mess/pkg/server/core/id"
 )
 
 type State struct {
 	ID         uuid.UUID
 	TurnNumber int
 	Pieces     []Piece
-	OptionTree *OptionNode
 	IsMyTurn   bool
 }
 
-func StateFromDomain(s *game.State) *State {
+func StateFromDomain(session id.Session, s *game.State) *State {
 	return &State{
 		ID:         s.ID.UUID,
 		TurnNumber: s.TurnNumber,
 		Pieces:     piecesFromDomain(s.Board.AllPieces()),
-		OptionTree: optionNodeFromDomain(s.OptionTree),
-		IsMyTurn:   s.IsMyTurn,
+		IsMyTurn:   s.CurrentPlayer == session,
 	}
 }
 
