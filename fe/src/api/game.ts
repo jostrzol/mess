@@ -1,10 +1,21 @@
 import { GameState } from "@/model/game/gameState";
+import { StaticData } from "@/model/game/gameStaticData";
+import { OptionNode, Route } from "@/model/game/options";
 import { UUID } from "crypto";
 import { GameStateDto, gameStateToModel } from "./schema/game";
 import { OptionNodeDto, optionNodeToModel, routeToDto } from "./schema/options";
+import { StaticDataDto, staticDataToModel } from "./schema/staticData";
 import { url } from "./url";
 import { throwIfError } from "./utils";
-import {OptionNode, Route} from "@/model/game/options";
+
+export const getStaticData = async (roomId: UUID): Promise<StaticData> => {
+  const url_ = url("rooms/:id/game/static", { params: { id: roomId } });
+  const res = await fetch(url_, { method: "GET", credentials: "include" });
+  await throwIfError(res);
+
+  const obj: StaticDataDto = await res.json();
+  return staticDataToModel(obj);
+};
 
 export const getState = async (roomId: UUID): Promise<GameState> => {
   const url_ = url("rooms/:id/game/state", { params: { id: roomId } });

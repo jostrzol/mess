@@ -16,7 +16,7 @@ type StaticData struct {
 
 type BoardSize struct {
 	Width  int
-	Hieght int
+	Height int
 }
 
 func StaticDataFromDomain(s *game.StaticData) *StaticData {

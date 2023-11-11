@@ -43,7 +43,7 @@ type StaticData struct {
 
 type BoardSize struct {
 	Width  int
-	Hieght int
+	Height int
 }
 
 func New(event *event.GameStarted) (*Game, error) {
@@ -95,7 +95,7 @@ func (g *Game) boardSize() BoardSize {
 	width, height := g.game.Board().Size()
 	return BoardSize{
 		Width:  width,
-		Hieght: height,
+		Height: height,
 	}
 }
 

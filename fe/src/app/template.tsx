@@ -12,7 +12,8 @@ const RootTemplate = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60_000
+        staleTime: 60_000,
+        throwOnError: true,
       }
     }
   });

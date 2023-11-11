@@ -61,7 +61,7 @@ func (r *Room) IsStartable() bool {
 
 func (r *Room) assertStartable() error {
 	switch {
-	case len(r.players) != PlayersNeeded:
+	case r.nPlayers != PlayersNeeded:
 		return ErrNotEnoughPlayers
 	case r.IsStarted():
 		return ErrAlreadyStarted

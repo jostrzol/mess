@@ -94,7 +94,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
                 square={square}
                 isDot={destinations.includes(key)}
                 dotType={piece ? "danger" : "normal"}
-                dotScale={isMyTurn ? 1 : 0.5}
+                dotScale={isMyTurn ? 1 : 0.6}
                 onPointerOver={() => !draggedPiece && dispatch({"type": "Hovered", square: square})}
               >
                 {piece && <Piece piece={piece} />}
