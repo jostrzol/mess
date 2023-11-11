@@ -6,6 +6,7 @@ import { Button } from "@/components/form/button";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
+import { MdContentCopy } from "react-icons/md";
 import { RoomPageParams } from "./layout";
 
 const RoomPage = ({ params }: RoomPageParams) => {
@@ -42,7 +43,16 @@ const RoomPage = ({ params }: RoomPageParams) => {
         className="w-60 flex flex-col items-stretch gap-4"
         action={() => mutate()}
       >
-        <h1 className="text-center">Room</h1>
+        <div
+          className="flex m-auto gap-2 cursor-pointer"
+          onClick={() =>
+            navigator.clipboard.writeText(window.location.toString())
+          }
+        >
+          <span className="opacity-0"><MdContentCopy /></span>
+          <h1>Room</h1>
+          <MdContentCopy />
+        </div>
         <div className="flex justify-between">
           <p>Players</p>
           <p>{`${room.players}/${room.playersNeeded}`}</p>
