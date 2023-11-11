@@ -77,7 +77,7 @@ type optionTreeMarshaler struct {
 }
 
 func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.PieceTypeOptionNodeData) {
-	var dataMarshalled []OptionNodeDatum
+	dataMarshalled := []OptionNodeDatum{}
 	for _, datum := range data.OptionNodeData {
 		pieceType := pieceTypeFromDomain(datum.Option.PieceType)
 		children := optionNodesFromDomain(datum.Children)
@@ -90,7 +90,7 @@ func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.P
 }
 
 func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.SquareOptionNodeData) {
-	var dataMarshalled []OptionNodeDatum
+	dataMarshalled := []OptionNodeDatum{}
 	for _, datum := range data.OptionNodeData {
 		square := squareFromDomain(datum.Option.Square)
 		children := optionNodesFromDomain(datum.Children)
@@ -103,7 +103,7 @@ func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.Squa
 }
 
 func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOptionNodeData) {
-	var dataMarshalled []OptionNodeDatum
+	dataMarshalled := []OptionNodeDatum{}
 	for _, datum := range data.OptionNodeData {
 		vec := squareVecFromDomain(datum.Option.SquareVec)
 		children := optionNodesFromDomain(datum.Children)
@@ -116,7 +116,7 @@ func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOp
 }
 
 func (o *optionTreeMarshaler) VisitUnitNodeData(message string, data mess.UnitOptionNodeData) {
-	var dataMarshalled []OptionNodeDatum
+	dataMarshalled := []OptionNodeDatum{}
 	for _, datum := range data.OptionNodeData {
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{

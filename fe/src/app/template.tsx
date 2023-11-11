@@ -14,8 +14,11 @@ const RootTemplate = ({ children }: { children: React.ReactNode }) => {
       queries: {
         staleTime: 60_000,
         throwOnError: true,
-      }
-    }
+      },
+      mutations: {
+        throwOnError: true,
+      },
+    },
   });
   return (
     <ThemeContext.Provider value={themeContextValue}>

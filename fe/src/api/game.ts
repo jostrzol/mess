@@ -26,13 +26,14 @@ export const getState = async (roomId: UUID): Promise<GameState> => {
   return gameStateToModel(obj);
 };
 
-export const getTurnOptions = async (roomId: UUID): Promise<OptionNode> => {
+export const getTurnOptions = async (roomId: UUID): Promise<OptionNode | null> => {
   const url_ = url("rooms/:id/game/options", { params: { id: roomId } });
   const res = await fetch(url_, { method: "GET", credentials: "include" });
   await throwIfError(res);
 
-  const obj: OptionNodeDto = await res.json();
-  return optionNodeToModel(obj);
+  const obj: OptionNodeDto | null = await res.json();
+  console.log(obj)
+  return obj ? optionNodeToModel(obj) : null;
 };
 
 export const playTurn = async (

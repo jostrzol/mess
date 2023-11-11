@@ -21,7 +21,8 @@ func (g *Game) TurnOptions() (*OptionNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	return choice.GenerateOptions(), nil
+	optionTree := choice.GenerateOptions()
+	return optionTree, nil
 }
 
 func (g *Game) Turn(options []Option) error {

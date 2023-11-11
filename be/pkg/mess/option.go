@@ -41,6 +41,13 @@ func EmptyOptionNode() *OptionNode {
 	}
 }
 
+func (n *OptionNode) Len() int {
+	if n == nil || n.Data == nil {
+		return 0
+	}
+	return n.Data.len()
+}
+
 func (n *OptionNode) Accept(visitor OptionNodeDataVisitor) {
 	n.Data.accept(n.Message, visitor)
 }
