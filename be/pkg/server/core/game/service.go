@@ -69,6 +69,15 @@ func (s *Service) PlayTurn(sessionID id.Session, roomID id.Room, turn int, route
 	return game.State(), nil
 }
 
+func (s *Service) GetResolution(roomID id.Room) (*Resolution, error) {
+	game, err := s.repository.GetForRoom(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+
+	return game.Resolution(), nil
+}
+
 func (s *Service) Handle(evnt event.Event) {
 	switch ev := evnt.(type) {
 	case *event.GameStarted:

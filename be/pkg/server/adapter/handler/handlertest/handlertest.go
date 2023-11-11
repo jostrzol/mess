@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	"github.com/jostrzol/mess/configs/serverconfig"
 	"github.com/jostrzol/mess/pkg/logger"
@@ -88,11 +89,15 @@ func (c *BaseClient) client() *httpClient {
 	return c.httpClient
 }
 
-func CloneWithEmptyJar[T Client](c T) T {
-	result := c
-	newClient := result.client().cloneWithEmptyJar()
-	result.initClient(newClient)
-	return result
+func CloneWithEmptyJar[T Client, TP interface {
+	Client
+	*T
+}](c TP) TP {
+	var client T
+	v := reflect.Indirect(reflect.ValueOf(&client))
+	v.FieldByName("BaseClient").Set(reflect.ValueOf(new(BaseClient)))
+	client.initClient(newHTTPClient(c.client().Suite, c.client().g))
+	return &client
 }
 
 type httpClient struct {
@@ -120,17 +125,14 @@ func (c *httpClient) ServeHTTPOkAs(method string, url string, body any, result i
 	c.NoError(err)
 
 	err = json.Unmarshal(bytes, &result)
-	if !c.NoError(err) {
-		c.logRequest(method, url, body, res)
-	}
+	c.NoError(err)
 }
 
 func (c *httpClient) ServeHTTPOk(method string, url string, body any) *httptest.ResponseRecorder {
 	c.T().Helper()
 	res := c.ServeHTTP(method, url, body)
-	if !c.Equal(http.StatusOK, res.Result().StatusCode) {
-		c.logRequest(method, url, body, res)
-	}
+	c.Equal(http.StatusOK, res.Result().StatusCode)
+
 	return res
 }
 
@@ -141,6 +143,8 @@ func (c *httpClient) ServeHTTP(method string, url string, body any) *httptest.Re
 	req := c.request(method, url, body)
 	c.g.ServeHTTP(res, req)
 	c.jar.SetCookies(&root, res.Result().Cookies())
+
+	c.logRequest(method, url, body, res)
 	return res
 }
 
@@ -157,19 +161,24 @@ func (c *httpClient) request(method string, url string, body any) *http.Request 
 
 func (c *httpClient) logRequest(method string, url string, reqBody any, res *httptest.ResponseRecorder) {
 	req := c.request(method, url, reqBody)
-	c.T().Logf("request: %+v", req)
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		c.T().Logf("request body:  <can't read>")
-	} else {
-		c.T().Logf("request body:  %v", string(body))
+	c.T().Logf("-> request url: %v %v", req.Method, req.URL)
+	c.T().Logf("-> request headers: %+v", spew.Sdump(req.Header))
+	if reqBody != nil {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			c.T().Logf("-> request body: <can't read>")
+		} else {
+			c.T().Logf("-> request body: %v", string(body))
+		}
 	}
-	body, err = io.ReadAll(res.Body)
+	c.T().Logf("--------------------------------------------------------------------------------")
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		c.T().Logf("response body: <can't read>")
+		c.T().Logf("<- response body: <can't read>")
 	} else {
-		c.T().Logf("response body: %v", string(body))
+		c.T().Logf("<- response body: %v", string(body))
 	}
+	c.T().Logf("================================================================================")
 }
 
 var root = url.URL{Scheme: "http", Path: "/"}

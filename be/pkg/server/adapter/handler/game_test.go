@@ -64,6 +64,17 @@ func (s *GameSuite) TestChooseGameTurnOptionRoute() {
 	s.NotZero(state)
 }
 
+func (s *GameSuite) TestGetResolution() {
+	// given
+	room := s.Client().createStartedRoom()
+
+	// when
+	resolution := s.Client().getResolution(room.ID)
+
+	// expect
+	s.NotZero(resolution)
+}
+
 type GameClient struct{ RoomClient }
 
 func (c *GameClient) getStaticData(roomID uuid.UUID) (staticData schema.StaticData) {
@@ -85,19 +96,24 @@ type OptionNode struct {
 	}
 }
 
-func (c *GameClient) getTurnOptions(roomID uuid.UUID) (optionTree *OptionNode) {
-	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/options", nil, &optionTree)
-	return
-}
-
 func (c *GameClient) createStartedRoom() (room schema.Room) {
 	room = c.createFilledRoom()
 	room = c.startGame(room.ID)
 	return
 }
 
+func (c *GameClient) getTurnOptions(roomID uuid.UUID) (optionTree *OptionNode) {
+	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/options", nil, &optionTree)
+	return
+}
+
 func (c *GameClient) chooseTurnOpionRoute(roomID uuid.UUID, turn int, route any) (state schema.State) {
 	c.ServeHTTPOkAs("PUT", roomURL(roomID)+fmt.Sprintf("/game/turns/%v", turn), route, &state)
+	return
+}
+
+func (c *GameClient) getResolution(roomID uuid.UUID) (resolution schema.Resolution) {
+	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/resolution", nil, &resolution)
 	return
 }
 

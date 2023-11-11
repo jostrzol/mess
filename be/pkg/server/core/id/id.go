@@ -12,6 +12,10 @@ type BaseID struct {
 	uuid.UUID
 }
 
+func (i BaseID) IsZero() bool {
+	return i.UUID == uuid.UUID{}
+}
+
 type ID interface {
 	Session | Room | Game
 }

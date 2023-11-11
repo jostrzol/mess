@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -108,8 +107,6 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 			return
 		}
 
-		fmt.Printf("route: %#v\n", route)
-
 		state, err = h.service.PlayTurn(session.ID, roomID, turn, route)
 		if err != nil {
 			AbortWithError(c, err)
@@ -120,11 +117,31 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 	})
 }
 
+func GetResolution(h *GameHandler, g *gin.Engine) {
+	g.GET("/rooms/:id/game/resolution", func(c *gin.Context) {
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		resolution, err := h.service.GetResolution(roomID)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		session := GetSessionData(sessions.Default(c))
+		c.JSON(http.StatusOK, schema.ResolutionFromDomain(session.ID, resolution))
+	})
+}
+
 func init() {
 	ioc.MustHandlerFill[GameHandler](
 		GetGameStaticData,
 		GetGameState,
 		GetTurnOptions,
 		PlayTurn,
+		GetResolution,
 	)
 }

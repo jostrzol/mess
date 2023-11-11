@@ -27,6 +27,25 @@ func StaticDataFromDomain(s *game.StaticData) *StaticData {
 	}
 }
 
+type Resolution struct {
+	State string
+}
+
+func ResolutionFromDomain(session id.Session, r *game.Resolution) *Resolution {
+	var state string
+	switch {
+	case !r.IsResolved:
+		state = "Unresolved"
+	case r.Winner == session:
+		state = "Win"
+	case r.Winner.IsZero():
+		state = "Draw"
+	default:
+		state = "Defeat"
+	}
+	return &Resolution{State: state}
+}
+
 type State struct {
 	ID         uuid.UUID
 	TurnNumber int

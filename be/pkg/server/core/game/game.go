@@ -46,6 +46,11 @@ type BoardSize struct {
 	Height int
 }
 
+type Resolution struct {
+	IsResolved bool
+	Winner     id.Session
+}
+
 func New(event *event.GameStarted) (*Game, error) {
 	game, err := rules.DecodeRules(event.Rules, true)
 	if err != nil {
@@ -108,6 +113,13 @@ func (g *Game) playerColor(session id.Session) color.Color {
 	panic(fmt.Errorf("no color for player %v", session))
 }
 
+func (g *Game) State() *State {
+	if g.cachedState == nil {
+		panic(fmt.Errorf("state not calculated"))
+	}
+	return g.cachedState
+}
+
 func (g *Game) TurnOptions() (*mess.OptionNode, error) {
 	g.mutex.Lock()
 	defer func() { g.mutex.Unlock() }()
@@ -118,13 +130,6 @@ func (g *Game) TurnOptions() (*mess.OptionNode, error) {
 	}
 
 	return optionTree, nil
-}
-
-func (g *Game) State() *State {
-	if g.cachedState == nil {
-		panic(fmt.Errorf("state not calculated"))
-	}
-	return g.cachedState
 }
 
 func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.Event, error) {
@@ -151,6 +156,7 @@ func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.E
 	}
 
 	g.calculateState()
+
 	return &event.GameChanged{
 		GameID: g.id,
 		By:     session,
@@ -166,6 +172,22 @@ func (g *Game) calculateState() {
 		Board:         g.game.Board(),
 		CurrentPlayer: g.players[g.game.CurrentPlayer().Color()],
 		PieceTypes:    g.cachedPieceTypes,
+	}
+}
+
+func (g *Game) Resolution() *Resolution {
+	g.mutex.Lock()
+	defer func() { g.mutex.Unlock() }()
+
+	isResolved, winner := g.game.PickWinner()
+	var winnerSession id.Session
+	if winner != nil {
+		winnerSession = g.players[winner.Color()]
+	}
+
+	return &Resolution{
+		IsResolved: isResolved,
+		Winner:     winnerSession,
 	}
 }
 
