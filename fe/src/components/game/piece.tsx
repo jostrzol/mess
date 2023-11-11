@@ -44,7 +44,7 @@ export const Piece = ({ piece }: PieceProps) => {
           ? "cursor-wait"
           : isDragging
           ? "cursor-none"
-          : "cursor-auto",
+          : null,
         canMove && "hover:scale-110",
         !canMove && "cursor-default",
         isDragging && ["z-20", "scale-110"],

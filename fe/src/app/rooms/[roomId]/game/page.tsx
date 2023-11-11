@@ -1,6 +1,6 @@
 "use client";
 
-import { getState, getStaticData, getTurnOptions, playTurn } from "@/api/game";
+import { getResolution, getState, getStaticData, getTurnOptions, playTurn } from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
 import { Board } from "@/components/game/board";
 import { GameStateProvider } from "@/contexts/gameStateContext";
@@ -10,27 +10,41 @@ import { StaticDataProvider } from "@/contexts/staticDataContext";
 import { Route } from "@/model/game/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
+import {Resolution} from "@/model/game/resolution";
+import {Popup} from "@/components/popup";
+import {ResolutionPopup} from "@/components/game/resolutionPopup";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const client = useQueryClient();
 
-  const keyStaticData = ["room", params.roomId, "game", "static"];
+  const keyGame = ["room", params.roomId, "game"]
+
+  const keyStaticData = [...keyGame, "static"];
   const { data: staticData } = useQuery({
     queryKey: keyStaticData,
     queryFn: () => getStaticData(params.roomId),
     staleTime: Infinity,
   });
 
-  const keyState = ["room", params.roomId, "game", "state"];
+  const keyDynamic = [...keyGame, "dynamic"];
+
+  const keyState = [...keyDynamic, "state"];
   const { data: state } = useQuery({
     queryKey: keyState,
     queryFn: () => getState(params.roomId),
   });
 
-  const keyOptions = ["room", params.roomId, "game", "options"];
+  const keyOptions = [...keyDynamic, "options"];
   const { data: optionTree } = useQuery({
     queryKey: keyOptions,
     queryFn: () => getTurnOptions(params.roomId),
+  });
+
+  const keyResolution = [...keyDynamic, "resolution"];
+  const { data: { status } } = useQuery({
+    queryKey: keyResolution,
+    queryFn: () => getResolution(params.roomId),
+    initialData: { status: "Unresolved" } as Resolution
   });
 
   const { mutate } = useMutation({
@@ -38,19 +52,17 @@ const GamePage = ({ params }: RoomPageParams) => {
     mutationFn: (route: Route) =>
       playTurn(params.roomId, state!.turnNumber, route),
     onSuccess: (newState) => {
+      client.invalidateQueries({ queryKey: keyDynamic });
       client.setQueryData(keyState, newState);
-      client.invalidateQueries({ queryKey: keyOptions });
     },
-    onError: (e) => {
-      console.error(e);
-      client.invalidateQueries({ queryKey: ["room", params.roomId, "game"] });
+    onError: () => {
+      client.invalidateQueries({ queryKey: keyDynamic });
     },
   });
   useRoomWebsocket<GameChanged>({
     type: "GameChanged",
-    onEvent: (e) => {
-      console.log(e);
-      client.invalidateQueries({ queryKey: ["room", params.roomId, "game"] });
+    onEvent: () => {
+      client.invalidateQueries({ queryKey: keyDynamic });
       client.resetQueries({ queryKey: keyOptions });
     },
   });
@@ -68,6 +80,7 @@ const GamePage = ({ params }: RoomPageParams) => {
           }}
         >
           <Board board={staticData.board} />
+          {status !== "Unresolved" && <ResolutionPopup status={status}/>}
         </OptionProvider>
       </GameStateProvider>
     </StaticDataProvider>

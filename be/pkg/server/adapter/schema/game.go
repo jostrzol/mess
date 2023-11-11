@@ -28,22 +28,22 @@ func StaticDataFromDomain(s *game.StaticData) *StaticData {
 }
 
 type Resolution struct {
-	State string
+	Status string
 }
 
 func ResolutionFromDomain(session id.Session, r *game.Resolution) *Resolution {
-	var state string
+	var status string
 	switch {
 	case !r.IsResolved:
-		state = "Unresolved"
+		status = "Unresolved"
 	case r.Winner == session:
-		state = "Win"
+		status = "Win"
 	case r.Winner.IsZero():
-		state = "Draw"
+		status = "Draw"
 	default:
-		state = "Defeat"
+		status = "Defeat"
 	}
-	return &Resolution{State: state}
+	return &Resolution{Status: status}
 }
 
 type State struct {

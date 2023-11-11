@@ -156,7 +156,6 @@ func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.E
 	}
 
 	g.calculateState()
-
 	return &event.GameChanged{
 		GameID: g.id,
 		By:     session,

@@ -7,6 +7,8 @@ import { OptionNodeDto, optionNodeToModel, routeToDto } from "./schema/options";
 import { StaticDataDto, staticDataToModel } from "./schema/staticData";
 import { url } from "./url";
 import { throwIfError } from "./utils";
+import {Resolution} from "@/model/game/resolution";
+import {ResolutionDto, resolutionToModel} from "./schema/resoultion";
 
 export const getStaticData = async (roomId: UUID): Promise<StaticData> => {
   const url_ = url("rooms/:id/game/static", { params: { id: roomId } });
@@ -53,4 +55,13 @@ export const playTurn = async (
 
   const obj: GameStateDto = await res.json();
   return gameStateToModel(obj);
+};
+
+export const getResolution = async (roomId: UUID): Promise<Resolution> => {
+  const url_ = url("rooms/:id/game/resolution", { params: { id: roomId } });
+  const res = await fetch(url_, { method: "GET", credentials: "include" });
+  await throwIfError(res);
+
+  const obj: ResolutionDto = await res.json();
+  return resolutionToModel(obj);
 };
