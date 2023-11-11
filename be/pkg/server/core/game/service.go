@@ -20,6 +20,14 @@ func init() {
 	ioc.MustSingletonObserverFill[Service]()
 }
 
+func (s *Service) GetGameStaticData(sessionID id.Session, roomID id.Room) (*StaticData, error) {
+	game, err := s.repository.GetForRoom(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting game %v: %w", roomID, err)
+	}
+	return game.StaticData(sessionID), nil
+}
+
 func (s *Service) GetGameState(roomID id.Room) (*State, error) {
 	game, err := s.repository.GetForRoom(roomID)
 	if err != nil {

@@ -14,15 +14,15 @@ type GameSuite struct {
 	handlertest.HandlerSuite[GameClient]
 }
 
-func (s *GameSuite) TestStartGame() {
+func (s *GameSuite) TestGetGameStaticData() {
 	// given
-	room := s.Client().createFilledRoom()
+	room := s.Client().createStartedRoom()
 
 	// when
-	room = s.Client().startGame(room.ID)
+	staticData := s.Client().getStaticData(room.ID)
 
-	// then
-	s.True(room.IsStarted)
+	// expect
+	s.NotZero(staticData)
 }
 
 func (s *GameSuite) TestGetGameState() {
@@ -66,17 +66,8 @@ func (s *GameSuite) TestChooseGameTurnOptionRoute() {
 
 type GameClient struct{ RoomClient }
 
-func (c *GameClient) createFilledRoom() (room schema.Room) {
-	room = c.createRoom()
-	for !room.IsStartable {
-		c2 := handlertest.CloneWithEmptyJar(c)
-		room = c2.joinRoom(room.ID)
-	}
-	return
-}
-
-func (c *GameClient) startGame(roomID uuid.UUID) (room schema.Room) {
-	c.ServeHTTPOkAs("PUT", roomURL(roomID)+"/game", nil, &room)
+func (c *GameClient) getStaticData(roomID uuid.UUID) (staticData schema.StaticData) {
+	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/static", nil, &staticData)
 	return
 }
 

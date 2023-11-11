@@ -8,6 +8,25 @@ import (
 	"github.com/jostrzol/mess/pkg/server/core/id"
 )
 
+type StaticData struct {
+	ID        uuid.UUID
+	BoardSize BoardSize
+	MyColor   string
+}
+
+type BoardSize struct {
+	Width  int
+	Hieght int
+}
+
+func StaticDataFromDomain(s *game.StaticData) *StaticData {
+	return &StaticData{
+		ID:        s.ID.UUID,
+		BoardSize: BoardSize(s.BoardSize),
+		MyColor:   s.MyColor.String(),
+	}
+}
+
 type State struct {
 	ID         uuid.UUID
 	TurnNumber int

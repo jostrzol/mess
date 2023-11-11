@@ -17,6 +17,25 @@ type GameHandler struct {
 	service *game.Service `container:"type"`
 }
 
+func GetGameStaticData(h *GameHandler, g *gin.Engine) {
+	g.GET("/rooms/:id/game/static", func(c *gin.Context) {
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		session := GetSessionData(sessions.Default(c))
+		staticData, err := h.service.GetGameStaticData(session.ID, roomID)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, schema.StaticDataFromDomain(staticData))
+	})
+}
+
 func GetGameState(h *GameHandler, g *gin.Engine) {
 	g.GET("/rooms/:id/game/state", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
@@ -103,6 +122,7 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 
 func init() {
 	ioc.MustHandlerFill[GameHandler](
+		GetGameStaticData,
 		GetGameState,
 		GetTurnOptions,
 		PlayTurn,

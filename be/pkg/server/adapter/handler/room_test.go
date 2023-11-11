@@ -51,6 +51,17 @@ func (s *RoomSuite) TestGetRoom() {
 	s.Client().getRoom(room.ID)
 }
 
+func (s *RoomSuite) TestStartGame() {
+	// given
+	room := s.Client().createFilledRoom()
+
+	// when
+	room = s.Client().startGame(room.ID)
+
+	// then
+	s.True(room.IsStarted)
+}
+
 type RoomClient struct{ *handlertest.BaseClient }
 
 func (c *RoomClient) createRoom() (room schema.Room) {
@@ -65,6 +76,20 @@ func (c *RoomClient) joinRoom(roomID uuid.UUID) (room schema.Room) {
 
 func (c *RoomClient) getRoom(roomID uuid.UUID) (room schema.Room) {
 	c.ServeHTTPOkAs("GET", roomURL(roomID), nil, &room)
+	return
+}
+
+func (c *RoomClient) createFilledRoom() (room schema.Room) {
+	room = c.createRoom()
+	for !room.IsStartable {
+		c2 := handlertest.CloneWithEmptyJar(c)
+		room = c2.joinRoom(room.ID)
+	}
+	return
+}
+
+func (c *RoomClient) startGame(roomID uuid.UUID) (room schema.Room) {
+	c.ServeHTTPOkAs("PUT", roomURL(roomID)+"/game", nil, &room)
 	return
 }
 

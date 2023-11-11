@@ -35,6 +35,17 @@ type State struct {
 	CurrentPlayer id.Session
 }
 
+type StaticData struct {
+	ID        id.Game
+	BoardSize BoardSize
+	MyColor   color.Color
+}
+
+type BoardSize struct {
+	Width  int
+	Hieght int
+}
+
 func New(event *event.GameStarted) (*Game, error) {
 	game, err := rules.DecodeRules(event.Rules, true)
 	if err != nil {
@@ -70,6 +81,31 @@ func (g *Game) Players() []id.Session {
 
 func (g *Game) CurrentPlayer() id.Session {
 	return g.cachedState.CurrentPlayer
+}
+
+func (g *Game) StaticData(session id.Session) *StaticData {
+	return &StaticData{
+		ID:        g.id,
+		BoardSize: g.boardSize(),
+		MyColor:   g.playerColor(session),
+	}
+}
+
+func (g *Game) boardSize() BoardSize {
+	width, height := g.game.Board().Size()
+	return BoardSize{
+		Width:  width,
+		Hieght: height,
+	}
+}
+
+func (g *Game) playerColor(session id.Session) color.Color {
+	for color, player := range g.players {
+		if player == session {
+			return color
+		}
+	}
+	panic(fmt.Errorf("no color for player %v", session))
 }
 
 func (g *Game) TurnOptions() (*mess.OptionNode, error) {
