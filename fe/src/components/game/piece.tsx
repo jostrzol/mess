@@ -1,7 +1,7 @@
 import { useBoard } from "@/contexts/boardContext";
-import {useGameState} from "@/contexts/gameStateContext";
+import { useGameState } from "@/contexts/gameStateContext";
 import { useOptions } from "@/contexts/optionContext";
-import {useStaticData} from "@/contexts/staticDataContext";
+import { useStaticData } from "@/contexts/staticDataContext";
 import * as model from "@/model/game/piece";
 import { Square } from "@/model/game/square";
 import { useDraggable } from "@dnd-kit/core";
@@ -19,10 +19,11 @@ export const Piece = ({ piece }: PieceProps) => {
   const { hoveredSquare } = useBoard();
   const { isMyTurn } = useGameState();
 
-  const isMine = piece.color === myColor
+  const isMine = piece.color === myColor;
   const moves = moveMap[Square.toString(piece.square)];
-  const canMove = isMyTurn && moves !== undefined
-  const canDrop = hoveredSquare && Square.toString(hoveredSquare) in (moves ?? {});
+  const canMove = isMyTurn && moves !== undefined;
+  const canDrop =
+    hoveredSquare && Square.toString(hoveredSquare) in (moves ?? {});
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -37,11 +38,16 @@ export const Piece = ({ piece }: PieceProps) => {
       ref={setNodeRef}
       className={clsx(
         "relative",
-        isMyTurn && !isReady && "cursor-wait",
-        !isMine && "cursor-not-allowed",
+        !isMine
+          ? "cursor-not-allowed"
+          : isMyTurn && !isReady
+          ? "cursor-wait"
+          : isDragging
+          ? "cursor-none"
+          : "cursor-auto",
         canMove && "hover:scale-110",
         !canMove && "cursor-default",
-        isDragging && ["z-20", "scale-110", "cursor-none"],
+        isDragging && ["z-20", "scale-110"],
         isDragging && !canDrop && ["opacity-50"],
       )}
       style={style}
