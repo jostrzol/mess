@@ -4,14 +4,14 @@ import { useTheme } from "@/contexts/themeContext";
 import { OptionNode } from "@/model/game/options";
 import clsx from "clsx";
 import { ReactNode } from "react";
-import { MdClose, MdHourglassEmpty } from "react-icons/md";
+import { MdClose, MdHourglassEmpty, MdRefresh } from "react-icons/md";
 
 export const OptionIndicator = () => {
   const {
     theme: { colors },
   } = useTheme();
   const { isMyTurn } = useGameState();
-  const { route, currentNodes, selectedNode, select, reset } = useOptions();
+  const { isReady, route, currentNodes, selectedNode, select, reset } = useOptions();
 
   if (!isMyTurn) {
     return (
@@ -23,6 +23,16 @@ export const OptionIndicator = () => {
         </Indicator>
       </Options>
     );
+  } else if (!isReady) {
+    return (
+      <Options>
+        <Indicator label={"Loading..."}>
+          <div className="w-fit h-fit mt-[1px] ml-[1px] text-primary animate-spin-slow">
+            <MdRefresh />
+          </div>
+        </Indicator>
+      </Options>
+    )
   }
 
   return (
