@@ -168,7 +168,7 @@ func (g *Game) calculateState() {
 	g.cachedState = &State{
 		ID:            g.id,
 		TurnNumber:    g.game.TurnNumber(),
-		Board:         g.game.Board(),
+		Board:         g.game.Board().Clone(),
 		CurrentPlayer: g.players[g.game.CurrentPlayer().Color()],
 		PieceTypes:    g.cachedPieceTypes,
 	}
