@@ -60,11 +60,6 @@ export const Tile = ({
         />
       </div>
       <div>{children}</div>
-      {/* Needed to make the parent div expand.
-      Coulnd't get it to work without the image */}
-      <svg className="invisible">
-        <rect width="1" height="1" />
-      </svg>
     </div>
   );
 };

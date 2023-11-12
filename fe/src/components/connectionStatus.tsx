@@ -29,7 +29,7 @@ export const ConnectionStatus = ({
     <div
       className={clsx(
         "has-tooltip",
-        "absolute",
+        "fixed",
         "top-5",
         "right-5",
         className,

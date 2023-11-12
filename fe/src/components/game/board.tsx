@@ -6,8 +6,8 @@ import { Piece as PieceModel } from "@/model/game/piece";
 import { Square } from "@/model/game/square";
 import { DndContext } from "@dnd-kit/core";
 import clsx from "clsx";
-import { Piece } from "./piece";
-import { Tile } from "./tile";
+import {Piece} from "./piece";
+import {Tile} from "./tile";
 
 export type BoardProps = {
   board: BoardModel;
@@ -23,7 +23,7 @@ export const Board = (props: BoardProps) => {
 
 const BoardWrapped = ({ board }: BoardProps) => {
   const gridTemplateColumns = `repeat(${board.width}, 1fr)`;
-  const gridTemplateRows = `repeat(${board.width}, auto)`;
+  const gridTemplateRows = `repeat(${board.height}, 1fr)`;
 
   const { pieceMap, isMyTurn } = useGameState();
   const { choose, moveMap } = useOptions();
@@ -55,52 +55,51 @@ const BoardWrapped = ({ board }: BoardProps) => {
         if (e.over === null) return;
 
         const destination: Square = e.over.data.current!.square;
-        const pieceMoves = moveMap[Square.toString(piece.square)] ?? {}
-        const options = pieceMoves[Square.toString(destination)] ?? []
+        const pieceMoves = moveMap[Square.toString(piece.square)] ?? {};
+        const options = pieceMoves[Square.toString(destination)] ?? [];
         // TODO: choose option if options.length > 1
-        const option = options.pop()
+        const option = options.pop();
 
         if (option) {
-          choose(option.node, option.datum)
+          choose(option.node, option.datum);
         }
       }}
     >
       <div
         className={clsx(
-          "p-12",
-          "w-full",
-          "h-full",
+          "grow",
+          "portrait:w-11/12",
+          "aspect-square",
+          "flex",
+          "flex-col",
+          "justify-center",
           draggedPiece && ["cursor-none", "[&_*]:cursor-none"],
         )}
       >
         <div
           className={clsx(
-            "grid",
-            "grid-flow-row",
-            "max-h-full",
-            "max-w-full",
-            "h-fit",
-            "aspect-square",
-            "m-auto",
+          "p-4",
+          "grid",
+          "grid-flow-row",
           )}
           style={{ gridTemplateColumns, gridTemplateRows }}
           onPointerLeave={() => !draggedPiece && dispatch({"type": "Unhovered"})}
         >
           {BoardModel.MapSquares(board, (square, key) => {
-            const piece = pieceMap[key];
-            return (
-              <Tile
-                key={key}
-                square={square}
-                isDot={destinations.includes(key)}
-                dotType={piece ? "danger" : "normal"}
-                dotScale={isMyTurn ? 1 : 0.6}
-                onPointerOver={() => !draggedPiece && dispatch({"type": "Hovered", square: square})}
-              >
-                {piece && <Piece piece={piece} />}
+          const piece = pieceMap[key];
+          return (
+            <Tile
+            key={key}
+              square={square}
+              isDot={destinations.includes(key)}
+              dotType={piece ? "danger" : "normal"}
+              dotScale={isMyTurn ? 1 : 0.6}
+              onPointerOver={() => !draggedPiece && dispatch({"type": "Hovered", square: square})}
+            >
+              {piece && <Piece piece={piece} />}
               </Tile>
-            );
-          })}
+              );
+              })}
         </div>
       </div>
     </DndContext>

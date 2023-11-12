@@ -11,8 +11,8 @@ import { Route } from "@/model/game/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
 import {Resolution} from "@/model/game/resolution";
-import {Popup} from "@/components/popup";
 import {ResolutionPopup} from "@/components/game/resolutionPopup";
+import {Options} from "@/components/game/options";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const client = useQueryClient();
@@ -79,6 +79,7 @@ const GamePage = ({ params }: RoomPageParams) => {
             mutate(route);
           }}
         >
+          <Options />
           <Board board={staticData.board} />
           {status !== "Unresolved" && <ResolutionPopup status={status}/>}
         </OptionProvider>

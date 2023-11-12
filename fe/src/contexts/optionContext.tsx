@@ -21,8 +21,9 @@ export const useOptions = () => {
 }
 
 export interface OptionContextValue {
-  route: Route;
   isReady: boolean;
+  route: Route;
+  current: OptionNode[];
   moveMap: MoveMap;
   choose: <T extends OptionNode>(node: T, datum: T["data"][number]) => void;
 }
@@ -78,7 +79,7 @@ export const OptionProvider = ({
   };
 
   return (
-    <OptionContext.Provider value={{ route, isReady, moveMap, choose }}>
+    <OptionContext.Provider value={{ isReady, route, current, moveMap, choose }}>
       {children}
     </OptionContext.Provider>
   );
