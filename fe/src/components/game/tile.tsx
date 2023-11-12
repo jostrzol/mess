@@ -28,6 +28,7 @@ export const Tile = ({
     normal: "bg-success-strong/90",
     danger: "bg-danger/90",
   }[dotType];
+  const dotScaleEffective = !isDot ? 0 : isOver ? dotScale * 1.5 : dotScale;
   return (
     <div
       ref={setNodeRef}
@@ -41,24 +42,22 @@ export const Tile = ({
       {...props}
     >
       <div>
-      <div
-        className={clsx(
-          "absolute",
-          "z-10",
-          "top-1/2",
-          "left-1/2",
-          "w-4",
-          "h-4",
-          "rounded-full",
-          dotColor,
-          "transition-opacity",
-          isDot || "opacity-0",
-          "pointer-events-none",
-          isOver && "scale-150",
-          "transition-transform",
-        )}
-        style={{transform: `translate(-50%, -50%) scale(${dotScale}) `}}
-      />
+        <div
+          className={clsx(
+            "absolute",
+            "z-10",
+            "top-1/2",
+            "left-1/2",
+            "w-1/4",
+            "h-1/4",
+            "rounded-full",
+            dotColor,
+            "transition-opacity",
+            "pointer-events-none",
+            "transition-transform",
+          )}
+          style={{ transform: `translate(-50%, -50%) scale(${dotScaleEffective}) ` }}
+        />
       </div>
       <div>{children}</div>
       {/* Needed to make the parent div expand.

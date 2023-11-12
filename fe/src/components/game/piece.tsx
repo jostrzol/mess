@@ -45,9 +45,8 @@ export const Piece = ({ piece }: PieceProps) => {
           : isDragging
           ? "cursor-none"
           : null,
-        canMove && "hover:scale-110",
         !canMove && "cursor-default",
-        isDragging && ["z-20", "scale-110"],
+        isDragging && ["z-20"],
         isDragging && !canDrop && ["opacity-50"],
       )}
       style={style}
@@ -57,6 +56,8 @@ export const Piece = ({ piece }: PieceProps) => {
       <ReactSVG
         className={clsx(
           piece.color == "white" ? "player-white" : "player-black",
+          "transition-transform",
+          (canMove || isDragging) && "hover:scale-110",
         )}
         src={piece.type.iconUri}
       />
