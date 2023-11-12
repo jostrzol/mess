@@ -2,7 +2,6 @@ import {
   MoveOptionNode,
   NodeGroup,
   OptionNode,
-  PieceTypeOptionNode,
   Route,
   RouteItem,
 } from "@/model/game/options";
@@ -29,6 +28,7 @@ export interface OptionContextValue {
   moveMap: MoveMap;
   choose: <T extends OptionNode>(node: T, datum: T["data"][number]) => void;
   select: <T extends OptionNode>(node: T) => void;
+  reset: () => void;
 }
 
 type MoveMap = {
@@ -46,7 +46,6 @@ export const OptionProvider = ({
   onChooseFinish?: (route: Route) => void;
   children?: ReactNode;
 }) => {
-  const mockNode = {message: "Promote", type: "PieceType", data: []} as PieceTypeOptionNode
   const isReady = root !== null;
 
   const [route, setRoute] = useState<Route>([]);
@@ -55,25 +54,25 @@ export const OptionProvider = ({
 
   useEffect(() => {
     setRoute([]);
-    const newCurrent = isReady ? [root, mockNode] : [];
+    const newCurrent = isReady ? [root] : [];
     setCurrent(newCurrent);
     setSelected(newCurrent[0] ?? null);
   }, [isReady, root, setCurrent, setRoute]);
 
   const moveMap =
     selected?.type === "Move"
-    ? selected.data.reduce((map, datum) => {
-        const from = Square.toString(datum.option.from);
-        const subMap = map[from] ?? {};
-        const to = Square.toString(datum.option.to);
-        const group = subMap[to] ?? [];
-        const element = { node: selected, datum };
-        return { ...map, [from]: { ...subMap, [to]: [...group, element] } };
-      }, {} as MoveMap)
-    : {}
+      ? selected.data.reduce((map, datum) => {
+          const from = Square.toString(datum.option.from);
+          const subMap = map[from] ?? {};
+          const to = Square.toString(datum.option.to);
+          const group = subMap[to] ?? [];
+          const element = { node: selected, datum };
+          return { ...map, [from]: { ...subMap, [to]: [...group, element] } };
+        }, {} as MoveMap)
+      : {};
 
   const choose = <T extends OptionNode>(node: T, datum: T["data"][number]) => {
-    const newCurrent = [...datum.children, mockNode];
+    const newCurrent = datum.children;
     const newRouteItem: RouteItem<T> = [node, datum.option];
     const newRoute = [...route, newRouteItem];
 
@@ -85,6 +84,13 @@ export const OptionProvider = ({
       onChooseFinish?.(newRoute);
     }
   };
+
+  const reset = () => {
+    setRoute([]);
+    const newCurrent = isReady ? [root] : [];
+    setCurrent(newCurrent);
+    setSelected(newCurrent[0] ?? null);
+  }
 
   const select = <T extends OptionNode>(node: T) => {
     setSelected(node);
@@ -100,14 +106,10 @@ export const OptionProvider = ({
         moveMap,
         choose,
         select,
+        reset,
       }}
     >
       {children}
     </OptionContext.Provider>
   );
 };
-
-const is =
-  <T extends OptionNode>(type: T["type"]) =>
-  (node: OptionNode): node is T =>
-    node.type == type;

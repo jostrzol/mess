@@ -1,23 +1,30 @@
 "use client";
 
-import { getResolution, getState, getStaticData, getTurnOptions, playTurn } from "@/api/game";
+import {
+  getResolution,
+  getState,
+  getStaticData,
+  getTurnOptions,
+  playTurn,
+} from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
 import { Board } from "@/components/game/board";
+import { OptionIndicator } from "@/components/game/optionIndicator";
+import { ResolutionPopup } from "@/components/game/resolutionPopup";
 import { GameStateProvider } from "@/contexts/gameStateContext";
 import { OptionProvider } from "@/contexts/optionContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { StaticDataProvider } from "@/contexts/staticDataContext";
 import { Route } from "@/model/game/options";
+import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
-import {Resolution} from "@/model/game/resolution";
-import {ResolutionPopup} from "@/components/game/resolutionPopup";
-import {Options} from "@/components/game/options";
+import {OptionPieceType} from "@/components/game/optionPieceType";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const client = useQueryClient();
 
-  const keyGame = ["room", params.roomId, "game"]
+  const keyGame = ["room", params.roomId, "game"];
 
   const keyStaticData = [...keyGame, "static"];
   const { data: staticData } = useQuery({
@@ -41,10 +48,12 @@ const GamePage = ({ params }: RoomPageParams) => {
   });
 
   const keyResolution = [...keyDynamic, "resolution"];
-  const { data: { status } } = useQuery({
+  const {
+    data: { status },
+  } = useQuery({
     queryKey: keyResolution,
     queryFn: () => getResolution(params.roomId),
-    initialData: { status: "Unresolved" } as Resolution
+    initialData: { status: "Unresolved" } as Resolution,
   });
 
   const { mutate } = useMutation({
@@ -79,9 +88,10 @@ const GamePage = ({ params }: RoomPageParams) => {
             mutate(route);
           }}
         >
-          <Options />
+          <OptionIndicator />
           <Board board={staticData.board} />
-          {status !== "Unresolved" && <ResolutionPopup status={status}/>}
+          <OptionPieceType />
+          {status !== "Unresolved" && <ResolutionPopup status={status} />}
         </OptionProvider>
       </GameStateProvider>
     </StaticDataProvider>

@@ -1,10 +1,10 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     colors: {
@@ -39,6 +39,14 @@ const config: Config = {
     extend: {
       animation: {
         "ping-1": "ping 0.5s cubic-bezier(0, 0, 0.2, 1) 1",
+        "spin-slow": "spin 2s linear infinite;",
+        "spin-1/4": "spin-1/4 0.5s cubic-bezier(0, 0, 0.2, 1) 1;",
+      },
+      keyframes: {
+        "spin-1/4": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(90deg)" },
+        },
       },
     },
   },
