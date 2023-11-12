@@ -78,7 +78,6 @@ const BoardWrapped = ({ board }: BoardProps) => {
       >
         <div
           className={clsx(
-          "p-4",
           "grid",
           "grid-flow-row",
           )}
