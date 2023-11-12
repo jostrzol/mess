@@ -295,7 +295,7 @@ composite_function "promote_choose_piece_type" {
       if !contains(["king", "pawn"], type.name)
     ]
     choice = {
-      message = "Promote to"
+      message = "Promote"
       type    = "piece_type"
       options = options
     }
@@ -437,12 +437,12 @@ initial_state {
     A1 = "rook"
     B1 = "knight"
     C1 = "bishop"
-    H3 = "queen"
+    D1 = "queen"
     E1 = "king"
     F1 = "bishop"
     G1 = "knight"
     H1 = "rook"
-    A7 = "pawn"
+    A2 = "pawn"
     B2 = "pawn"
     C2 = "pawn"
     D2 = "pawn"
@@ -460,13 +460,13 @@ initial_state {
     F8 = "bishop"
     G8 = "knight"
     H8 = "rook"
-    # A7 = "pawn"
+    A7 = "pawn"
     B7 = "pawn"
     C7 = "pawn"
     D7 = "pawn"
     E7 = "pawn"
-    F6 = "pawn"
-    G5 = "pawn"
+    F7 = "pawn"
+    G7 = "pawn"
     H7 = "pawn"
   }
 }
