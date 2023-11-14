@@ -11,15 +11,17 @@ import (
 const defaultSessionSecretLen = 64
 
 type Config struct {
-	IsProduction  bool   `mapstructure:"release"`
-	SessionSecret string `mapstructure:"session_secret"`
-	Port          int    `mapstructure:"port"`
+	IsProduction   bool   `mapstructure:"release"`
+	SessionSecret  string `mapstructure:"session_secret"`
+	Port           int    `mapstructure:"port"`
+	IncomingOrigin string `mapstructure:"incoming_origin"`
 }
 
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("release", false)
-	v.SetDefault("secret", generateSessionSecret())
+	v.SetDefault("session_secret", generateSessionSecret())
 	v.SetDefault("port", 4000)
+	v.SetDefault("incoming_origin", "http://localhost:3000")
 }
 
 func generateSessionSecret() string {

@@ -1,0 +1,59 @@
+
+version: "3.9"
+
+services:
+  # client:
+  #   build: client
+  #   networks:
+  #     - z44_network
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #   command: --host 172.21.44.101 --port 8080 --interval 5 --message_count 100 --random_id
+  #   depends_on:
+  #     - "gate"
+  #     - "server"
+  #
+  # server:
+  #   build: server
+  #   networks:
+  #     - z44_network
+  #   volumes:
+  #     - type: bind
+  #       source: ./gate/keys
+  #       target: /gate/keys
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #   command: --gate_host 172.21.44.101 --gate_session_port 8081 
+  #   depends_on:
+  #     - "gate"
+
+  backend:
+    container_name: mess-backend
+    build: be
+    image: mess/backend
+    ports:
+      - 4000:4000
+    environment:
+      MESS_PORT: 4000
+      MESS_INCOMING_ORIGIN: http://${PROXY_SERVER_NAME}:${PROXY_PORT}
+
+  frontend:
+    container_name: mess-frontend
+    build: fe
+    image: mess/frontend
+    ports:
+      - 3000:3000
+    environment:
+      PORT: 3000
+      BACKEND_URL: ${PROXY_SERVER_NAME}:${PROXY_PORT}/api
+
+  proxy:
+    container_name: mess-proxy
+    depends_on:
+      - backend
+      - frontend
+    build: proxy
+    image: mess/proxy
+    ports:
+      - ${PROXY_PORT}:80
+

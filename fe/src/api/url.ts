@@ -1,4 +1,4 @@
-const address = "localhost:4000";
+const address: string = process.env.BACKEND_URL ?? "localhost:4000";
 
 type Query = { [key: string]: any };
 type Params = Query;
@@ -24,7 +24,7 @@ export const url = (path: string, options?: Options): string => {
     }
     return encodeURIComponent(value);
   });
-  url.pathname = injectedPathParts.join("/");
+  url.pathname += injectedPathParts.join("/");
 
   Object.entries(query).forEach(([key, value]) => {
     url.searchParams.set(key, value);

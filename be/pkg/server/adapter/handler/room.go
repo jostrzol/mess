@@ -96,7 +96,7 @@ func StartGame(h *RoomHandler, g *gin.Engine) {
 }
 
 func HandleWebsocket(h *RoomHandler, g *gin.Engine) {
-	g.GET("/rooms/:id/websocket", func(c *gin.Context) {
+	g.GET("/websocket", func(c *gin.Context) {
 		err := h.wsHandler.handle(c)
 		if err != nil {
 			AbortWithError(c, err)

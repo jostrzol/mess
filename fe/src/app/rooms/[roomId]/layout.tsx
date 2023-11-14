@@ -15,12 +15,9 @@ export type RoomPageParams = {
   };
 };
 
-const RoomLayout = ({
-  children,
-  params,
-}: RoomPageParams & { children: ReactNode }) => {
+const RoomLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <RoomWebsocketProvider roomId={params.roomId}>
+    <RoomWebsocketProvider>
       <RoomLayoutInner>{children}</RoomLayoutInner>
     </RoomWebsocketProvider>
   );

@@ -27,7 +27,7 @@ func init() {
 
 		g := gin.New()
 		c := cors.DefaultConfig()
-		c.AllowOrigins = []string{"http://localhost:3000"}
+		c.AllowOrigins = []string{config.IncomingOrigin}
 		c.AllowCredentials = true
 		g.Use(cors.New(c))
 		g.Use(ginzap.Ginzap(logger, time.RFC3339, true))

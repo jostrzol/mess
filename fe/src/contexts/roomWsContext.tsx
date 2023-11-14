@@ -34,16 +34,11 @@ export const useRoomWebsocket = <T extends Event>(handler?: {
 };
 
 export const RoomWebsocketProvider = ({
-  roomId,
   children,
 }: {
-  roomId: UUID;
   children?: ReactNode;
 }) => {
-  const url_ = url("rooms/:id/websocket", {
-    params: { id: roomId },
-    schema: "ws",
-  });
+  const url_ = url("websocket", { schema: "ws" });
   const { lastJsonMessage, ...rest } = useWebSocket(url_);
   const lastEvent = lastJsonMessage as Event | null;
   const value = { ...rest, lastEvent };
