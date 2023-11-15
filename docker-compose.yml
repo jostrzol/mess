@@ -30,7 +30,7 @@ services:
   backend:
     container_name: mess-backend
     build: be
-    image: mess/backend
+    image: jostrzol/mess-backend
     ports:
       - 4000:4000
     environment:
@@ -40,7 +40,7 @@ services:
   frontend:
     container_name: mess-frontend
     build: fe
-    image: mess/frontend
+    image: jostrzol/mess-frontend
     ports:
       - 3000:3000
     environment:
@@ -53,7 +53,7 @@ services:
       - backend
       - frontend
     build: proxy
-    image: mess/proxy
+    image: jostrzol/mess-proxy
     ports:
       - ${PROXY_PORT}:80
 
