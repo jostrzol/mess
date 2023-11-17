@@ -35,9 +35,10 @@ func (s *HandlerSuite[T]) SetupTest() {
 
 func setupRouter() *gin.Engine {
 	config := &serverconfig.Config{
-		IsProduction:  false,
-		SessionSecret: "secret",
-		Port:          54321,
+		IsProduction:   false,
+		SessionSecret:  "secret",
+		Port:           54321,
+		IncomingOrigin: "http://localhost:4000",
 	}
 	ioc.MustSingleton(config)
 	logger, err := logger.New(config.IsProduction)
