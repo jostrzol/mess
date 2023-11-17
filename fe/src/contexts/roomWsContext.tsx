@@ -1,12 +1,12 @@
 import { Event } from "@/api/schema/event";
-import { url } from "@/api/url";
-import { UUID } from "crypto";
 import { ReactNode, createContext, useContext, useEffect } from "react";
 import useWebSocket, { ReadyState, SendMessage } from "react-use-websocket";
 import {
   SendJsonMessage,
   WebSocketLike,
 } from "react-use-websocket/dist/lib/types";
+import {useMessApi} from "./messApiContext";
+import {MessApi} from "@/api/messApi";
 
 export const RoomWebsocketContext = createContext<RoomWebsocketContextValue>(
   null!,
@@ -38,7 +38,8 @@ export const RoomWebsocketProvider = ({
 }: {
   children?: ReactNode;
 }) => {
-  const url_ = url("websocket", { schema: "ws" });
+  const messApi = useMessApi(MessApi)
+  const url_ = messApi.url("websocket", { schema: "ws" });
   const { lastJsonMessage, ...rest } = useWebSocket(url_);
   const lastEvent = lastJsonMessage as Event | null;
   const value = { ...rest, lastEvent };

@@ -1,5 +1,3 @@
-const address: string = process.env.BACKEND_URL ?? "localhost:4000";
-
 type Query = { [key: string]: any };
 type Params = Query;
 type Options = {
@@ -8,10 +6,18 @@ type Options = {
   schema?: "http" | "ws";
 };
 
-export const url = (path: string, options?: Options): string => {
+
+export class MessApi {
+  _baseUrl: string
+
+  constructor(baseUrl: string) {
+    this._baseUrl = baseUrl
+  }
+
+ public url = (path: string, options?: Options): string => {
   const { params = {}, query = {}, schema = "http" } = options ?? {};
 
-  let url = new URL(`${schema}://${address}`);
+  let url = new URL(`${schema}://${this._baseUrl}`);
 
   const pathParts = path.split("/");
   const injectedPathParts = pathParts.map((part) => {
@@ -32,3 +38,5 @@ export const url = (path: string, options?: Options): string => {
 
   return url.href;
 };
+
+}

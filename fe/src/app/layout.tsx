@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
+import {MessApiProvider} from "@/contexts/messApiContext";
+import config from "../../app.config";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,7 +29,11 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
       <head>
         <style>{style}</style>
       </head>
-      <body className="bg-background text-txt">{children}</body>
+      <body className="bg-background text-txt">
+        <MessApiProvider baseUrl={config.backendUrl}>
+          {children}
+        </MessApiProvider>
+      </body>
     </html>
   );
 };

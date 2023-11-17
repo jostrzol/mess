@@ -1,12 +1,5 @@
 "use client";
 
-import {
-  getResolution,
-  getState,
-  getStaticData,
-  getTurnOptions,
-  playTurn,
-} from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
 import { Board } from "@/components/game/board";
 import { OptionIndicator } from "@/components/game/optionIndicator";
@@ -20,8 +13,11 @@ import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
 import {OptionPieceType} from "@/components/game/optionPieceType";
+import {useMessApi} from "@/contexts/messApiContext";
+import {GameApi} from "@/api/game";
 
 const GamePage = ({ params }: RoomPageParams) => {
+  const gameApi = useMessApi(GameApi);
   const client = useQueryClient();
 
   const keyGame = ["room", params.roomId, "game"];
@@ -29,7 +25,7 @@ const GamePage = ({ params }: RoomPageParams) => {
   const keyStaticData = [...keyGame, "static"];
   const { data: staticData } = useQuery({
     queryKey: keyStaticData,
-    queryFn: () => getStaticData(params.roomId),
+    queryFn: () => gameApi.getStaticData(params.roomId),
     staleTime: Infinity,
   });
 
@@ -38,13 +34,13 @@ const GamePage = ({ params }: RoomPageParams) => {
   const keyState = [...keyDynamic, "state"];
   const { data: state } = useQuery({
     queryKey: keyState,
-    queryFn: () => getState(params.roomId),
+    queryFn: () => gameApi.getState(params.roomId),
   });
 
   const keyOptions = [...keyDynamic, "options"];
   const { data: optionTree } = useQuery({
     queryKey: keyOptions,
-    queryFn: () => getTurnOptions(params.roomId),
+    queryFn: () => gameApi.getTurnOptions(params.roomId),
   });
 
   const keyResolution = [...keyDynamic, "resolution"];
@@ -52,14 +48,14 @@ const GamePage = ({ params }: RoomPageParams) => {
     data: { status },
   } = useQuery({
     queryKey: keyResolution,
-    queryFn: () => getResolution(params.roomId),
+    queryFn: () => gameApi.getResolution(params.roomId),
     initialData: { status: "Unresolved" } as Resolution,
   });
 
   const { mutate } = useMutation({
     mutationKey: ["room", params.roomId, "game", "turn"],
     mutationFn: (route: Route) =>
-      playTurn(params.roomId, state!.turnNumber, route),
+      gameApi.playTurn(params.roomId, state!.turnNumber, route),
     onSuccess: (newState) => {
       client.invalidateQueries({ queryKey: keyDynamic });
       client.setQueryData(keyState, newState);

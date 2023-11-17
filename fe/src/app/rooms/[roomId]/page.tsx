@@ -1,6 +1,5 @@
 "use client";
 
-import { joinRoom, startGame } from "@/api/room";
 import { RoomChanged } from "@/api/schema/event";
 import { Button } from "@/components/form/button";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
@@ -8,16 +7,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 import { MdContentCopy } from "react-icons/md";
 import { RoomPageParams } from "./layout";
+import {useMessApi} from "@/contexts/messApiContext";
+import {RoomApi} from "@/api/room";
 
 const RoomPage = ({ params }: RoomPageParams) => {
+  const roomApi = useMessApi(RoomApi);
   const client = useQueryClient();
   const { data: room, isSuccess } = useQuery({
     queryKey: ["room", params.roomId],
-    queryFn: () => joinRoom(params.roomId),
+    queryFn: () => roomApi.joinRoom(params.roomId),
   });
   const { mutate } = useMutation({
     mutationKey: ["room", params.roomId],
-    mutationFn: () => startGame(params.roomId),
+    mutationFn: () => roomApi.startGame(params.roomId),
     onSuccess: (room) => {
       client.setQueryData(["room", params.roomId], room);
     },
