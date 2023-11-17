@@ -30,4 +30,7 @@ services:
     image: jostrzol/mess-proxy
     ports:
       - ${PROXY_PORT}:80
+    environment:
+      BACKEND_HOST: mess-backend:4000
+      FRONTEND_HOST: mess-frontend:3000
 

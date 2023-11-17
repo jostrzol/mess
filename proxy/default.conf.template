@@ -1,9 +1,9 @@
 upstream backend {
-    server mess-backend:4000;
+    server ${BACKEND_HOST};
 }
 
 upstream frontend {
-    server mess-frontend:3000;
+    server ${FRONTEND_HOST};
 }
 
 server {

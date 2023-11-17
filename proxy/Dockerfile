@@ -1,5 +1,6 @@
 FROM nginx
 
-EXPOSE 80
+ENV NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+COPY ./default.conf.template /etc/nginx/templates/default.conf.template
 
-COPY ./default.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
