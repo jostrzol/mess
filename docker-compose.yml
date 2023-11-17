@@ -1,32 +1,6 @@
-
 version: "3.9"
 
 services:
-  # client:
-  #   build: client
-  #   networks:
-  #     - z44_network
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   command: --host 172.21.44.101 --port 8080 --interval 5 --message_count 100 --random_id
-  #   depends_on:
-  #     - "gate"
-  #     - "server"
-  #
-  # server:
-  #   build: server
-  #   networks:
-  #     - z44_network
-  #   volumes:
-  #     - type: bind
-  #       source: ./gate/keys
-  #       target: /gate/keys
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   command: --gate_host 172.21.44.101 --gate_session_port 8081 
-  #   depends_on:
-  #     - "gate"
-
   backend:
     container_name: mess-backend
     build: be
