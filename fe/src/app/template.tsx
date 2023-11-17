@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./globals.css";
 
-const RootTemplate = async ({ children }: { children: React.ReactNode }) => {
+const RootTemplate = ({ children }: { children: React.ReactNode }) => {
   const themeContextValue = useTheme();
   const queryClient = new QueryClient({
     defaultOptions: {

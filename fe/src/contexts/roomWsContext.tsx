@@ -40,7 +40,10 @@ export const RoomWebsocketProvider = ({
 }) => {
   const messApi = useMessApi(MessApi);
   const url_ = messApi.url("websocket", { schema: "ws" });
-  const { lastJsonMessage, ...rest } = useWebSocket(url_);
+  const { lastJsonMessage, ...rest } = useWebSocket(url_, {
+    retryOnError: true,
+    shouldReconnect: () => true,
+  });
   const lastEvent = lastJsonMessage as Event | null;
   const value = { ...rest, lastEvent };
   return (

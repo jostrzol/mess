@@ -19,7 +19,7 @@ services:
       - 3000:3000
     environment:
       PORT: 3000
-      BACKEND_URL: ${PROXY_SERVER_NAME}:${PROXY_PORT}/api
+      BACKEND_URL: ${PROXY_SERVER_NAME}:${PROXY_PORT}/api/
 
   proxy:
     container_name: mess-proxy
