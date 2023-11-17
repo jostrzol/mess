@@ -10,7 +10,7 @@ export type OptionNode =
 
 export type OptionDatum = OptionNode["data"][number];
 
-export type RouteItem<T extends OptionNode> = [T, T["data"][number]["option"]]
+export type RouteItem<T extends OptionNode> = [T, T["data"][number]["option"]];
 
 export type Route = RouteItem<OptionNode>[];
 

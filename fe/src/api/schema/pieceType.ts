@@ -1,7 +1,7 @@
-import {PieceType} from "@/model/game/pieceType";
+import { PieceType } from "@/model/game/pieceType";
 
 export interface PieceTypeDto {
-  Name: string
+  Name: string;
 }
 
 const iconUriMap: Record<string, string> = {
@@ -13,15 +13,15 @@ const iconUriMap: Record<string, string> = {
   pawn: "/pieces/pawn.svg",
 };
 
-export const pieceTypeToModel=(pieceType: PieceTypeDto): PieceType => {
+export const pieceTypeToModel = (pieceType: PieceTypeDto): PieceType => {
   return {
     name: pieceType.Name,
     iconUri: iconUriMap[pieceType.Name],
-  }
-}
+  };
+};
 
-export const pieceTypeToDto =(pieceType: PieceType): PieceTypeDto => {
+export const pieceTypeToDto = (pieceType: PieceType): PieceTypeDto => {
   return {
     Name: pieceType.name,
-  }
-}
+  };
+};

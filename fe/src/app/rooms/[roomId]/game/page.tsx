@@ -1,10 +1,13 @@
 "use client";
 
+import { GameApi } from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
 import { Board } from "@/components/game/board";
 import { OptionIndicator } from "@/components/game/optionIndicator";
+import { OptionPieceType } from "@/components/game/optionPieceType";
 import { ResolutionPopup } from "@/components/game/resolutionPopup";
 import { GameStateProvider } from "@/contexts/gameStateContext";
+import { useMessApi } from "@/contexts/messApiContext";
 import { OptionProvider } from "@/contexts/optionContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { StaticDataProvider } from "@/contexts/staticDataContext";
@@ -12,9 +15,6 @@ import { Route } from "@/model/game/options";
 import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
-import {OptionPieceType} from "@/components/game/optionPieceType";
-import {useMessApi} from "@/contexts/messApiContext";
-import {GameApi} from "@/api/game";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const gameApi = useMessApi(GameApi);

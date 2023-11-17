@@ -7,7 +7,7 @@ export const GameStateContext = createContext<GameStateContextValue>(null!);
 
 export const useGameState = () => {
   return useContext(GameStateContext);
-}
+};
 
 export interface GameStateContextValue extends GameState {
   pieceMap: Record<string, Piece>;

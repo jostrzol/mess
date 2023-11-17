@@ -90,7 +90,7 @@ export const OptionProvider = ({
     const newCurrent = isReady ? [root] : [];
     setCurrent(newCurrent);
     setSelected(newCurrent[0] ?? null);
-  }
+  };
 
   const select = <T extends OptionNode>(node: T) => {
     setSelected(node);

@@ -1,17 +1,17 @@
 "use client";
 
-import {RoomApi} from "@/api/room";
+import { RoomApi } from "@/api/room";
 import { Button } from "@/components/form/button";
 import { Input } from "@/components/form/input";
 import { Logo } from "@/components/logo";
-import {useMessApi} from "@/contexts/messApiContext";
+import { useMessApi } from "@/contexts/messApiContext";
 import { useMutation } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const RootPage = () => {
-  const roomApi = useMessApi(RoomApi)
+  const roomApi = useMessApi(RoomApi);
   const [roomId, setRoomId] = useState("");
   const router = useRouter();
   const { mutate, isPending } = useMutation({

@@ -27,13 +27,7 @@ export const ConnectionStatus = ({
   }[websocketStatus];
   return (
     <div
-      className={clsx(
-        "has-tooltip",
-        "fixed",
-        "top-5",
-        "right-5",
-        className,
-      )}
+      className={clsx("has-tooltip", "fixed", "top-5", "right-5", className)}
     >
       <div
         className={clsx(

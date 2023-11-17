@@ -1,14 +1,14 @@
 "use client";
 
+import { RoomApi } from "@/api/room";
 import { RoomChanged } from "@/api/schema/event";
 import { Button } from "@/components/form/button";
+import { useMessApi } from "@/contexts/messApiContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 import { MdContentCopy } from "react-icons/md";
 import { RoomPageParams } from "./layout";
-import {useMessApi} from "@/contexts/messApiContext";
-import {RoomApi} from "@/api/room";
 
 const RoomPage = ({ params }: RoomPageParams) => {
   const roomApi = useMessApi(RoomApi);
@@ -51,7 +51,9 @@ const RoomPage = ({ params }: RoomPageParams) => {
             navigator.clipboard.writeText(window.location.toString())
           }
         >
-          <span className="opacity-0"><MdContentCopy /></span>
+          <span className="opacity-0">
+            <MdContentCopy />
+          </span>
           <h1>Room</h1>
           <MdContentCopy />
         </div>

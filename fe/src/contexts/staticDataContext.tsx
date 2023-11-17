@@ -1,11 +1,11 @@
-import {StaticData} from "@/model/game/gameStaticData";
+import { StaticData } from "@/model/game/gameStaticData";
 import { ReactNode, createContext, useContext } from "react";
 
 export const StaticDataContext = createContext<StaticData>(null!);
 
 export const useStaticData = () => {
   return useContext(StaticDataContext);
-}
+};
 
 export const StaticDataProvider = ({
   staticData,

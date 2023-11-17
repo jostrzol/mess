@@ -12,7 +12,7 @@ export interface ThemeColors {
   "danger-dim": string;
   warn: string;
   "warn-dim": string;
-  "success-strong": string,
+  "success-strong": string;
   success: string;
   "success-dim": string;
 }

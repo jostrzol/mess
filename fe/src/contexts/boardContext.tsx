@@ -14,7 +14,7 @@ export const BoardContext = createContext<BoardContextValue>(null!);
 
 export const useBoard = () => {
   return useContext(BoardContext);
-}
+};
 
 interface Hovered {
   type: "Hovered";

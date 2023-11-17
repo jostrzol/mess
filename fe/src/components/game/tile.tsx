@@ -56,7 +56,9 @@ export const Tile = ({
             "pointer-events-none",
             "transition-transform",
           )}
-          style={{ transform: `translate(-50%, -50%) scale(${dotScaleEffective}) ` }}
+          style={{
+            transform: `translate(-50%, -50%) scale(${dotScaleEffective}) `,
+          }}
         />
       </div>
       <div>{children}</div>

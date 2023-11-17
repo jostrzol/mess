@@ -6,8 +6,8 @@ import { Piece as PieceModel } from "@/model/game/piece";
 import { Square } from "@/model/game/square";
 import { DndContext } from "@dnd-kit/core";
 import clsx from "clsx";
-import {Piece} from "./piece";
-import {Tile} from "./tile";
+import { Piece } from "./piece";
+import { Tile } from "./tile";
 
 export type BoardProps = {
   board: BoardModel;
@@ -77,28 +77,29 @@ const BoardWrapped = ({ board }: BoardProps) => {
         )}
       >
         <div
-          className={clsx(
-          "grid",
-          "grid-flow-row",
-          )}
+          className={clsx("grid", "grid-flow-row")}
           style={{ gridTemplateColumns, gridTemplateRows }}
-          onPointerLeave={() => !draggedPiece && dispatch({"type": "Unhovered"})}
+          onPointerLeave={() =>
+            !draggedPiece && dispatch({ type: "Unhovered" })
+          }
         >
           {BoardModel.MapSquares(board, (square, key) => {
-          const piece = pieceMap[key];
-          return (
-            <Tile
-            key={key}
-              square={square}
-              isDot={destinations.includes(key)}
-              dotType={piece ? "danger" : "normal"}
-              dotScale={isMyTurn ? 1 : 0.6}
-              onPointerOver={() => !draggedPiece && dispatch({"type": "Hovered", square: square})}
-            >
-              {piece && <Piece piece={piece} />}
+            const piece = pieceMap[key];
+            return (
+              <Tile
+                key={key}
+                square={square}
+                isDot={destinations.includes(key)}
+                dotType={piece ? "danger" : "normal"}
+                dotScale={isMyTurn ? 1 : 0.6}
+                onPointerOver={() =>
+                  !draggedPiece && dispatch({ type: "Hovered", square: square })
+                }
+              >
+                {piece && <Piece piece={piece} />}
               </Tile>
-              );
-              })}
+            );
+          })}
         </div>
       </div>
     </DndContext>

@@ -11,7 +11,8 @@ export const OptionIndicator = () => {
     theme: { colors },
   } = useTheme();
   const { isMyTurn } = useGameState();
-  const { isReady, route, currentNodes, selectedNode, select, reset } = useOptions();
+  const { isReady, route, currentNodes, selectedNode, select, reset } =
+    useOptions();
 
   if (!isMyTurn) {
     return (
@@ -32,7 +33,7 @@ export const OptionIndicator = () => {
           </div>
         </Indicator>
       </Options>
-    )
+    );
   }
 
   return (

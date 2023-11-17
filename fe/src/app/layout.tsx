@@ -1,11 +1,11 @@
+import { MessApiProvider } from "@/contexts/messApiContext";
 import { Theme, defaultTheme } from "@/model/theme";
 import Color from "color";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
-import "./globals.css";
-import {MessApiProvider} from "@/contexts/messApiContext";
 import config from "../../app.config";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 

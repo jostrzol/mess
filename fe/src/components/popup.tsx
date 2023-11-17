@@ -1,8 +1,14 @@
 import clsx from "clsx";
 import { ReactNode } from "react";
-import {Window} from "./window";
+import { Window } from "./window";
 
-export const Popup = ({ children, className }: { children?: ReactNode, className?: string }) => {
+export const Popup = ({
+  children,
+  className,
+}: {
+  children?: ReactNode;
+  className?: string;
+}) => {
   return (
     <>
       <div
@@ -14,14 +20,7 @@ export const Popup = ({ children, className }: { children?: ReactNode, className
           "pointer-events-none",
         )}
       ></div>
-      <Window
-        className={clsx(
-          "fixed",
-          className,
-        )}
-      >
-        {children}
-      </Window>
+      <Window className={clsx("fixed", className)}>{children}</Window>
     </>
   );
 };
