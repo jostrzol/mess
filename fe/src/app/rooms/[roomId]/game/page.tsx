@@ -76,7 +76,7 @@ const GamePage = ({ params }: RoomPageParams) => {
     return null;
   }
   return (
-    <StaticDataProvider staticData={staticData}>
+    <StaticDataProvider roomId={params.roomId} staticData={staticData}>
       <GameStateProvider state={state}>
         <OptionProvider
           root={optionTree ?? null}

@@ -11,10 +11,11 @@ import (
 const defaultSessionSecretLen = 64
 
 type Config struct {
-	IsProduction   bool   `mapstructure:"release"`
-	SessionSecret  string `mapstructure:"session_secret"`
-	Port           int    `mapstructure:"port"`
-	IncomingOrigin string `mapstructure:"incoming_origin"`
+	IsProduction      bool   `mapstructure:"release"`
+	SessionSecret     string `mapstructure:"session_secret"`
+	Port              int    `mapstructure:"port"`
+	IncomingOrigin    string `mapstructure:"incoming_origin"`
+	AssetsCacheMaxAge int    `mapstructure:"assets_cache_max_age"`
 }
 
 func setDefaults(v *viper.Viper) {
@@ -22,6 +23,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("session_secret", generateSessionSecret())
 	v.SetDefault("port", 4000)
 	v.SetDefault("incoming_origin", "http://localhost:3000")
+	v.SetDefault("assets_cache_max_age", 600)
 }
 
 func generateSessionSecret() string {

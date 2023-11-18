@@ -38,7 +38,7 @@ export const OptionIndicator = () => {
 
   return (
     <Options>
-      {route.length !== 0 && (
+      {currentNodes.length !== 0 && route.length !== 0 && (
         <Indicator
           key="cancel"
           label={"Cancel"}

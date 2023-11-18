@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/jostrzol/mess/configs/serverconfig"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/adapter/schema"
 	"github.com/jostrzol/mess/pkg/server/core/game"
@@ -17,7 +19,8 @@ import (
 const GameURL = "/rooms/:id/game"
 
 type GameHandler struct {
-	service *game.Service `container:"type"`
+	service *game.Service        `container:"type"`
+	config  *serverconfig.Config `container:"type"`
 }
 
 func GetGameStaticData(h *GameHandler, g *gin.Engine) {
@@ -158,6 +161,7 @@ func GetAsset(h *GameHandler, g *gin.Engine) {
 
 		mimetype := mimetype.Detect(data)
 
+		c.Header("Cache-Control", fmt.Sprintf("max-age=%v", h.config.AssetsCacheMaxAge))
 		c.Data(http.StatusOK, mimetype.String(), data)
 	})
 }

@@ -14,7 +14,7 @@ export interface PieceProps {
 }
 
 export const Piece = ({ piece }: PieceProps) => {
-  const { myColor } = useStaticData();
+  const { myColor, assetUrl } = useStaticData();
   const { moveMap, isReady } = useOptions();
   const { hoveredSquare } = useBoard();
   const { isMyTurn } = useGameState();
@@ -24,6 +24,7 @@ export const Piece = ({ piece }: PieceProps) => {
   const canMove = isMyTurn && moves !== undefined;
   const canDrop =
     hoveredSquare && Square.toString(hoveredSquare) in (moves ?? {});
+  const icon = piece.type.representation[myColor].icon;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -59,7 +60,7 @@ export const Piece = ({ piece }: PieceProps) => {
           "transition-transform",
           (canMove || isDragging) && "hover:scale-110",
         )}
-        src={piece.type.iconUri}
+        src={assetUrl(icon)}
       />
     </div>
   );

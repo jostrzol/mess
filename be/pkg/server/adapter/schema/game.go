@@ -97,14 +97,14 @@ func pieceTypeFromDomain(pieceType *mess.PieceType) PieceType {
 }
 
 type Representation struct {
-	Symbol       string
-	IconAssetKey string `json:",omitempty"`
+	Symbol string
+	Icon   string `json:",omitempty"`
 }
 
 func representationFromDomain(representation mess.Representation) Representation {
 	return Representation{
-		Symbol:       string(representation.Symbol),
-		IconAssetKey: string(representation.Icon),
+		Symbol: string(representation.Symbol),
+		Icon:   string(representation.Icon),
 	}
 }
 

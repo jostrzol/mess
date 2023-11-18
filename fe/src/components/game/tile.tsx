@@ -35,6 +35,7 @@ export const Tile = ({
       className={clsx(
         "min-h-[3rem]",
         "min-w-[3rem]",
+        "aspect-square",
         Square.isBlack(square) ? "bg-player-black" : "bg-player-white",
         "rounded-2xl",
         "relative",

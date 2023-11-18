@@ -18,7 +18,7 @@ export class MessApi {
 
     let url = new URL(`${schema}://${this._baseUrl}`);
 
-    const pathParts = path.split("/");
+    const pathParts = path.split("/").filter((s, i) => i !== 0 || s.length !== 0);
     const injectedPathParts = pathParts.map((part) => {
       if (!part.startsWith(":")) {
         return part;

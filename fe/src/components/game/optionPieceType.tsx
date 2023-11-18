@@ -1,9 +1,11 @@
 import { Window } from "@/components/window";
 import { useGameState } from "@/contexts/gameStateContext";
 import { useOptions } from "@/contexts/optionContext";
+import { useStaticData } from "@/contexts/staticDataContext";
 import Image from "next/image";
 
 export const OptionPieceType = () => {
+  const { myColor, assetUrl } = useStaticData();
   const { isMyTurn } = useGameState();
   const { selectedNode, choose } = useOptions();
   if (!isMyTurn || selectedNode?.type !== "PieceType") {
@@ -26,7 +28,7 @@ export const OptionPieceType = () => {
               <Image
                 className="mx-auto"
                 alt={pieceType.name}
-                src={pieceType.iconUri}
+                src={assetUrl(pieceType.representation[myColor].icon)}
                 height={64}
                 width={64}
                 onClick={() => choose(selectedNode, datum)}
