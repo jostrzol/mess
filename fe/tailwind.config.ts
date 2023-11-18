@@ -20,8 +20,10 @@ const config: Config = {
       },
       player: {
         white: "rgb(var(--theme-player-white) / <alpha-value>)",
+        DEFAULT: "rgb(var(--player-color) / <alpha-value>)",
         black: "rgb(var(--theme-player-black) / <alpha-value>)",
       },
+      opponent: "rgb(var(--opponent-color) / <alpha-value>)",
       danger: {
         DEFAULT: "rgb(var(--theme-danger) / <alpha-value>)",
         dim: "rgb(var(--theme-danger-dim) / <alpha-value>)",

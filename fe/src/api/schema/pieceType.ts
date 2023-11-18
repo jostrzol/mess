@@ -9,7 +9,7 @@ export interface PieceTypeDto {
 
 export interface RepresentationDto {
   Symbol: string;
-  Icon: string;
+  Icon?: string;
 }
 
 export const pieceTypeToModel = (pieceType: PieceTypeDto): PieceType => {

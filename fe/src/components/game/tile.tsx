@@ -46,7 +46,7 @@ export const Tile = ({
         <div
           className={clsx(
             "absolute",
-            "z-10",
+            "z-20",
             "top-1/2",
             "left-1/2",
             "w-1/4",
@@ -62,7 +62,7 @@ export const Tile = ({
           }}
         />
       </div>
-      <div>{children}</div>
+      <div className="w-full h-full">{children}</div>
     </div>
   );
 };

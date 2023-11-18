@@ -7,5 +7,5 @@ export interface PieceType {
 
 export interface Representation {
   symbol: string;
-  icon: string;
+  icon?: string;
 }
