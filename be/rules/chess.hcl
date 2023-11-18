@@ -79,6 +79,16 @@ piece_types {
   }
 
   piece_type "knight" {
+    representation {
+      white {
+        symbol = "♘"
+        icon = "/piece_types/knight.svg"
+      }
+      black {
+        symbol = "♞"
+        icon = "/piece_types/knight.svg"
+      }
+    }
     motion {
       generator = "motion_hook"
     }
@@ -103,8 +113,12 @@ piece_types {
   piece_type "pawn" {
     representation {
       white {
+        symbol = "♙"
+        icon = "/piece_types/pawn.svg"
       }
       black {
+        symbol = "♟"
+        icon = "/piece_types/pawn.svg"
       }
     }
     motion {
