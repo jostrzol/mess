@@ -241,7 +241,7 @@ func TestMoves(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			game, err := rules.DecodeRules(ChessRulesFile, false)
+			game, err := rules.DecodeRulesFromOs(ChessRulesFile, false)
 			assert.NoError(t, err)
 
 			for _, piece := range tt.initState {
@@ -323,7 +323,7 @@ func TestPromotion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.color.String(), func(t *testing.T) {
-			game, err := rules.DecodeRules(ChessRulesFile, false)
+			game, err := rules.DecodeRulesFromOs(ChessRulesFile, false)
 			assert.NoError(t, err)
 
 			place(t, game, tt.color, "pawn", tt.src)
@@ -351,7 +351,7 @@ func TestPromotion(t *testing.T) {
 }
 
 func TestPromotionCheckMate(t *testing.T) {
-	game, err := rules.DecodeRules(ChessRulesFile, false)
+	game, err := rules.DecodeRulesFromOs(ChessRulesFile, false)
 	assert.NoError(t, err)
 
 	place(t, game, color.White, "pawn", "A7")

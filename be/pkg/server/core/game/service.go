@@ -6,6 +6,7 @@ import (
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/core/event"
 	"github.com/jostrzol/mess/pkg/server/core/id"
+	"github.com/jostrzol/mess/pkg/server/core/usrerr"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 	"go.uber.org/zap"
 )
@@ -76,6 +77,20 @@ func (s *Service) GetResolution(roomID id.Room) (*Resolution, error) {
 	}
 
 	return game.Resolution(), nil
+}
+
+func (s *Service) GetAsset(roomID id.Room, assetKey mess.AssetKey) ([]byte, error) {
+	game, err := s.repository.GetForRoom(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+
+	data := game.Asset(assetKey)
+	if data == nil {
+		return nil, usrerr.Errorf("asset %v not found", assetKey)
+	}
+
+	return data, nil
 }
 
 func (s *Service) Handle(evnt event.Event) {

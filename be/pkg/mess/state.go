@@ -19,6 +19,7 @@ type State struct {
 	turnNumber        int
 	isGeneratingMoves bool
 	pieceTypes        map[string]*PieceType
+	Assets            Assets
 }
 
 func NewState(board *PieceBoard) *State {
@@ -31,6 +32,7 @@ func NewState(board *PieceBoard) *State {
 		isRecording:   true,
 		turnNumber:    0,
 		pieceTypes:    make(map[string]*PieceType),
+		Assets:        make(Assets),
 	}
 	board.Observe(state)
 	return state

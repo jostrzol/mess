@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/google/uuid"
@@ -75,6 +76,14 @@ func (s *GameSuite) TestGetResolution() {
 	s.NotZero(resolution)
 }
 
+func (s *GameSuite) TestGetAsset() {
+	// given
+	room := s.Client().createStartedRoom()
+
+	// expect
+	s.Client().getAsset(room.ID, "/piece_types/king.svg")
+}
+
 type GameClient struct{ RoomClient }
 
 func (c *GameClient) getStaticData(roomID uuid.UUID) (staticData schema.StaticData) {
@@ -115,6 +124,13 @@ func (c *GameClient) chooseTurnOpionRoute(roomID uuid.UUID, turn int, route any)
 func (c *GameClient) getResolution(roomID uuid.UUID) (resolution schema.Resolution) {
 	c.ServeHTTPOkAs("GET", roomURL(roomID)+"/game/resolution", nil, &resolution)
 	return
+}
+
+func (c *GameClient) getAsset(roomID uuid.UUID, assetKey string) []byte {
+	res := c.ServeHTTPOk("GET", roomURL(roomID)+"/game/assets"+assetKey, nil)
+	bytes, err := io.ReadAll(res.Body)
+	c.NoError(err)
+	return bytes
 }
 
 func TestGameSuite(t *testing.T) {

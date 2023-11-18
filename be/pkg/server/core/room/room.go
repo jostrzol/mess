@@ -1,29 +1,44 @@
 package room
 
 import (
+	"os"
 	"slices"
 	"sync"
 
+	"github.com/jostrzol/mess/pkg/rules"
 	"github.com/jostrzol/mess/pkg/server/core/event"
 	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/core/usrerr"
 )
 
-// TODO: Make this dynamic.
-const rulesFile = "./rules/chess.hcl"
-
 const PlayersNeeded = 2
 
 type Room struct {
-	id       id.Room
-	players  [2]id.Session
-	nPlayers int
-	game     id.Game
-	mutex    sync.Mutex
+	id        id.Room
+	players   [2]id.Session
+	nPlayers  int
+	rulesFile *rules.File
+	game      id.Game
+	mutex     sync.Mutex
 }
 
 func New() *Room {
-	return &Room{id: id.New[id.Room]()}
+	return &Room{
+		id:        id.New[id.Room](),
+		rulesFile: defaultRulesFile(),
+	}
+}
+
+func defaultRulesFile() *rules.File {
+	filename := "./rules/chess.hcl"
+	src, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	return &rules.File{
+		Src:      src,
+		Filename: filename,
+	}
 }
 
 func (r *Room) ID() id.Room {
@@ -81,7 +96,7 @@ func (r *Room) StartGame(sessionID id.Session) (event.Event, error) {
 		GameID:  r.game,
 		RoomID:  r.id,
 		Players: r.players,
-		Rules:   rulesFile,
+		Rules:   r.rulesFile,
 		By:      sessionID,
 	}, nil
 }

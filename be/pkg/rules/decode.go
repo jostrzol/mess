@@ -2,7 +2,6 @@ package rules
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/ext/userfunc"
@@ -20,6 +19,7 @@ type rules struct {
 	InitialState    initialStateRules    `hcl:"initial_state,block"`
 	StateValidators *stateValidatorRules `hcl:"state_validators,block"`
 	Turn            *turnRules           `hcl:"turn,block"`
+	Assets          cty.Value            `hcl:"assets"`
 	Functions       callbackFunctionsRules
 }
 
@@ -33,14 +33,19 @@ type pieceTypesRules struct {
 }
 
 type pieceTypeRules struct {
-	Name    string        `hcl:"piece_name,label"`
-	Symbols *symbols      `hcl:"symbols,block"`
-	Motions []motionRules `hcl:"motion,block"`
+	Name           string           `hcl:"piece_name,label"`
+	Representation *representations `hcl:"representation,block"`
+	Motions        []motionRules    `hcl:"motion,block"`
 }
 
-type symbols struct {
-	White string `hcl:"white"`
-	Black string `hcl:"black"`
+type representations struct {
+	White *representation `hcl:"white,block"`
+	Black *representation `hcl:"black,block"`
+}
+
+type representation struct {
+	Symbol *string `hcl:"symbol"`
+	Icon   *string `hcl:"icon"`
 }
 
 type motionRules struct {
@@ -78,13 +83,8 @@ type callbackFunctionsRules struct {
 	StateValidators map[string]function.Function
 }
 
-func decodeRules(filename string, ctx *hcl.EvalContext) (*rules, error) {
+func decodeRules(src []byte, filename string, ctx *hcl.EvalContext) (*rules, error) {
 	diags := make(hcl.Diagnostics, 0)
-
-	src, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
 
 	file, parseDiags := hclsyntax.ParseConfig(src, filename, hcl.InitialPos)
 	diags = diags.Extend(parseDiags)
@@ -106,7 +106,7 @@ func decodeRules(filename string, ctx *hcl.EvalContext) (*rules, error) {
 	tmpDiags = gohcl.DecodeBody(body, ctx, rules)
 	diags = diags.Extend(tmpDiags)
 
-	err = mapstructure.Decode(ctx.Functions, &rules.Functions)
+	err := mapstructure.Decode(ctx.Functions, &rules.Functions)
 	if err != nil {
 		diags = diags.Append(&hcl.Diagnostic{
 			Severity: hcl.DiagError,

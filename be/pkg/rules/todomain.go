@@ -1,13 +1,18 @@
 package rules
 
 import (
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
+	"io"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/jostrzol/mess/pkg/board"
 	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
+	"github.com/zclconf/go-cty/cty"
 )
 
 func (c *rules) toEmptyGameState(ctx *hcl.EvalContext) (*mess.Game, error) {
@@ -36,6 +41,12 @@ func (c *rules) toEmptyGameState(ctx *hcl.EvalContext) (*mess.Game, error) {
 		}
 		state.AddPieceType(pieceType)
 	}
+
+	assets, err := decodeAssets(c.Assets)
+	if err != nil {
+		return nil, err
+	}
+	state.Assets = assets
 
 	initializeContext(ctx, game)
 	return game, nil
@@ -72,18 +83,39 @@ func decodePieceType(controller *controller, pieceTypeRules pieceTypeRules) (*me
 			},
 		)
 	}
-	if pieceTypeRules.Symbols != nil {
-		symbolWhite, err := decodeSymbol(pieceTypeRules.Symbols.White)
-		if err != nil {
-			return nil, err
+	if pieceTypeRules.Representation != nil {
+		if pieceTypeRules.Representation.Black != nil {
+			representation, err := decodeRepresentation(pieceTypeRules.Representation.Black)
+			if err != nil {
+				return nil, fmt.Errorf("decoding representation: %w", err)
+			}
+			pieceType.SetRepresentation(color.Black, representation)
 		}
-		symbolBlack, err := decodeSymbol(pieceTypeRules.Symbols.Black)
-		if err != nil {
-			return nil, err
+		if pieceTypeRules.Representation.White != nil {
+			representation, err := decodeRepresentation(pieceTypeRules.Representation.White)
+			if err != nil {
+				return nil, fmt.Errorf("decoding representation: %w", err)
+			}
+			pieceType.SetRepresentation(color.White, representation)
 		}
-		pieceType.SetSymbols(symbolWhite, symbolBlack)
 	}
 	return pieceType, nil
+}
+
+func decodeRepresentation(representation *representation) (mess.Representation, error) {
+	var symbol rune
+	var icon mess.AssetKey
+	var err error
+	if representation.Symbol != nil {
+		symbol, err = decodeSymbol(*representation.Symbol)
+		if err != nil {
+			return mess.Representation{}, fmt.Errorf("decoding symbol: %w", err)
+		}
+	}
+	if representation.Icon != nil {
+		icon = mess.NewAssetKey(*representation.Icon)
+	}
+	return mess.Representation{Symbol: symbol, Icon: icon}, err
 }
 
 func decodeSymbol(symbol string) (rune, error) {
@@ -127,4 +159,38 @@ func (c *rules) placePieces(state *mess.State) error {
 	}
 
 	return nil
+}
+
+func decodeAssets(assetsCty cty.Value) (mess.Assets, error) {
+	result := make(mess.Assets)
+	type keyAssetPair struct {
+		key   string
+		value cty.Value
+	}
+	assets := []keyAssetPair{{"", assetsCty}}
+	for len(assets) != 0 {
+		asset := assets[0]
+		assets = assets[1:]
+
+		if asset.value.Type().IsObjectType() {
+			for key, value := range asset.value.AsValueMap() {
+				assets = append(assets, keyAssetPair{asset.key + "/" + key, value})
+			}
+		} else {
+			valueRaw := asset.value.AsString()
+			whitespaceReplacer := strings.NewReplacer(" ", "", "\t", "", "\n", "", "\r", "")
+			valueB64 := whitespaceReplacer.Replace(valueRaw)
+			b64Reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(valueB64))
+			gzipReader, err := gzip.NewReader(b64Reader)
+			if err != nil {
+				return nil, fmt.Errorf("decoding asset %v: %w", asset.key, err)
+			}
+			value, err := io.ReadAll(gzipReader)
+			if err != nil {
+				return nil, fmt.Errorf("decoding asset %v: %w", asset.key, err)
+			}
+			result[mess.NewAssetKey(asset.key)] = value
+		}
+	}
+	return result, nil
 }

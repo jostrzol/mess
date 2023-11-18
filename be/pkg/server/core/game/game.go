@@ -190,6 +190,18 @@ func (g *Game) Resolution() *Resolution {
 	}
 }
 
+func (g *Game) Asset(key mess.AssetKey) []byte {
+	g.mutex.Lock()
+	defer func() { g.mutex.Unlock() }()
+
+	data, ok := g.game.Assets[key]
+	if !ok {
+		return nil
+	}
+
+	return data
+}
+
 var ErrTurnTooSmall = usrerr.Errorf("the selected turn has already been played")
 var ErrTurnTooBig = usrerr.Errorf("the selected turn hasn't started yet")
 var ErrNotYourTurn = usrerr.Errorf("it's not your turn")

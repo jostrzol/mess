@@ -4,20 +4,24 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/adapter/schema"
 	"github.com/jostrzol/mess/pkg/server/core/game"
 	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 )
 
+const GameURL = "/rooms/:id/game"
+
 type GameHandler struct {
 	service *game.Service `container:"type"`
 }
 
 func GetGameStaticData(h *GameHandler, g *gin.Engine) {
-	g.GET("/rooms/:id/game/static", func(c *gin.Context) {
+	g.GET(GameURL+"/static", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
@@ -36,7 +40,7 @@ func GetGameStaticData(h *GameHandler, g *gin.Engine) {
 }
 
 func GetGameState(h *GameHandler, g *gin.Engine) {
-	g.GET("/rooms/:id/game/state", func(c *gin.Context) {
+	g.GET(GameURL+"/state", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
@@ -55,7 +59,7 @@ func GetGameState(h *GameHandler, g *gin.Engine) {
 }
 
 func GetTurnOptions(h *GameHandler, g *gin.Engine) {
-	g.GET("/rooms/:id/game/options", func(c *gin.Context) {
+	g.GET(GameURL+"/options", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
@@ -73,7 +77,7 @@ func GetTurnOptions(h *GameHandler, g *gin.Engine) {
 }
 
 func PlayTurn(h *GameHandler, g *gin.Engine) {
-	g.PUT("/rooms/:id/game/turns/:turn", func(c *gin.Context) {
+	g.PUT(GameURL+"/turns/:turn", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
@@ -118,7 +122,7 @@ func PlayTurn(h *GameHandler, g *gin.Engine) {
 }
 
 func GetResolution(h *GameHandler, g *gin.Engine) {
-	g.GET("/rooms/:id/game/resolution", func(c *gin.Context) {
+	g.GET(GameURL+"/resolution", func(c *gin.Context) {
 		roomID, err := parseUUID[id.Room](c.Param("id"))
 		if err != nil {
 			AbortWithError(c, err)
@@ -136,6 +140,28 @@ func GetResolution(h *GameHandler, g *gin.Engine) {
 	})
 }
 
+func GetAsset(h *GameHandler, g *gin.Engine) {
+	g.GET(GameURL+"/assets/*key", func(c *gin.Context) {
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		key := c.Param("key")
+
+		data, err := h.service.GetAsset(roomID, mess.NewAssetKey(key))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		mimetype := mimetype.Detect(data)
+
+		c.Data(http.StatusOK, mimetype.String(), data)
+	})
+}
+
 func init() {
 	ioc.MustHandlerFill[GameHandler](
 		GetGameStaticData,
@@ -143,5 +169,6 @@ func init() {
 		GetTurnOptions,
 		PlayTurn,
 		GetResolution,
+		GetAsset,
 	)
 }

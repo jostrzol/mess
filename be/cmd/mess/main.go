@@ -31,7 +31,7 @@ func main() {
 		cmdError("no rules file")
 	}
 
-	game, err := rules.DecodeRules(*rulesFilename, true)
+	game, err := rules.DecodeRulesFromOs(*rulesFilename, true)
 	if err != nil {
 		runError("loading game rules: %s", err)
 	}

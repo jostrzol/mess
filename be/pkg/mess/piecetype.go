@@ -3,22 +3,28 @@ package mess
 import (
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/jostrzol/mess/pkg/color"
 )
 
 type PieceType struct {
-	name    string
-	symbols symbols
-	motions chainMotions
+	name           string
+	representation map[color.Color]Representation
+	motions        chainMotions
 }
 
-type symbols struct {
-	white rune
-	black rune
+type Representation struct {
+	Symbol rune
+	Icon   AssetKey
 }
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
-		name:    name,
+		name: name,
+		representation: map[color.Color]Representation{
+			color.Black: {Symbol: defaultSymbol(color.Black, name)},
+			color.White: {Symbol: defaultSymbol(color.White, name)},
+		},
 		motions: make(chainMotions, 0),
 	}
 }
@@ -27,32 +33,29 @@ func (t *PieceType) Name() string {
 	return t.name
 }
 
-func (t *PieceType) SymbolWhite() rune {
-	if t.symbols.white == 0 {
-		return unicode.ToUpper(t.firstNameRune())
+func (t *PieceType) SetRepresentation(color color.Color, representation Representation) {
+	if representation.Symbol == 0 {
+		representation.Symbol = defaultSymbol(color, t.Name())
 	}
-	return t.symbols.white
+	t.representation[color] = representation
 }
 
-func (t *PieceType) SymbolBlack() rune {
-	if t.symbols.black == 0 {
-		return unicode.ToLower(t.firstNameRune())
-	}
-	return t.symbols.black
+func (t *PieceType) Representation(color color.Color) Representation {
+	return t.representation[color]
 }
 
-func (t *PieceType) firstNameRune() rune {
-	r, _ := utf8.DecodeRuneInString(t.name)
+func defaultSymbol(col color.Color, name string) rune {
+	r, _ := utf8.DecodeRuneInString(name)
 	if r == utf8.RuneError {
 		return rune('?')
 	}
-	return r
-}
-
-func (t *PieceType) SetSymbols(symbolWhite rune, symbolBlack rune) {
-	t.symbols = symbols{
-		white: symbolWhite,
-		black: symbolBlack,
+	switch col {
+	case color.Black:
+		return unicode.ToLower(r)
+	case color.White:
+		return unicode.ToUpper(r)
+	default:
+		panic("unreachable")
 	}
 }
 

@@ -3,6 +3,7 @@ package schema
 import (
 	"github.com/google/uuid"
 	"github.com/jostrzol/mess/pkg/board"
+	"github.com/jostrzol/mess/pkg/color"
 	"github.com/jostrzol/mess/pkg/mess"
 	"github.com/jostrzol/mess/pkg/server/core/game"
 	"github.com/jostrzol/mess/pkg/server/core/id"
@@ -81,12 +82,29 @@ func piecesFromDomain(pieces []*mess.Piece) []Piece {
 }
 
 type PieceType struct {
-	Name string
+	Name           string
+	Representation map[string]Representation
 }
 
 func pieceTypeFromDomain(pieceType *mess.PieceType) PieceType {
 	return PieceType{
 		Name: pieceType.Name(),
+		Representation: map[string]Representation{
+			color.Black.String(): representationFromDomain(pieceType.Representation(color.Black)),
+			color.White.String(): representationFromDomain(pieceType.Representation(color.White)),
+		},
+	}
+}
+
+type Representation struct {
+	Symbol       string
+	IconAssetKey string `json:",omitempty"`
+}
+
+func representationFromDomain(representation mess.Representation) Representation {
+	return Representation{
+		Symbol:       string(representation.Symbol),
+		IconAssetKey: string(representation.Icon),
 	}
 }
 

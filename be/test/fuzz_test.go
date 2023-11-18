@@ -16,7 +16,7 @@ func FuzzGameMax10Steps(f *testing.F) {
 
 	f.Add(int64(12345))
 	f.Fuzz(func(t *testing.T, seed int64) {
-		game, err := rules.DecodeRules(ChessRulesFile, true)
+		game, err := rules.DecodeRulesFromOs(ChessRulesFile, true)
 		assert.NoError(t, err)
 
 		src := rand.NewSource(seed)

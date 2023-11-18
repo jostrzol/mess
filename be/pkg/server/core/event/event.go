@@ -3,6 +3,7 @@ package event
 import (
 	"github.com/golobby/container/v3"
 	"github.com/jostrzol/mess/pkg/event"
+	"github.com/jostrzol/mess/pkg/rules"
 	"github.com/jostrzol/mess/pkg/server/core/id"
 )
 
@@ -19,7 +20,7 @@ type GameStarted struct {
 	GameID  id.Game
 	RoomID  id.Room
 	Players [2]id.Session
-	Rules   string
+	Rules   *rules.File
 	By      id.Session
 }
 

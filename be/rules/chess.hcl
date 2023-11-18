@@ -24,9 +24,15 @@ board {
 
 piece_types {
   piece_type "king" {
-    symbols {
-      white = "♔"
-      black = "♚"
+    representation {
+      white {
+        symbol = "♔"
+        icon = "/piece_types/king.svg"
+      }
+      black {
+        symbol = "♚"
+        icon = "/piece_types/king.svg"
+      }
     }
     motion {
       generator = "motion_castling"
@@ -38,9 +44,15 @@ piece_types {
   }
 
   piece_type "queen" {
-    symbols {
-      white = "♕"
-      black = "♛"
+    representation {
+      white {
+        symbol = "♕"
+        icon = "/piece_types/queen.svg"
+      }
+      black {
+        symbol = "♛"
+        icon = "/piece_types/queen.svg"
+      }
     }
     motion {
       generator = "motion_line_diagonal"
@@ -51,9 +63,15 @@ piece_types {
   }
 
   piece_type "rook" {
-    symbols {
-      white = "♖"
-      black = "♜"
+    representation {
+      white {
+        symbol = "♖"
+        icon = "/piece_types/rook.svg"
+      }
+      black {
+        symbol = "♜"
+        icon = "/piece_types/rook.svg"
+      }
     }
     motion {
       generator = "motion_line_straight"
@@ -61,9 +79,15 @@ piece_types {
   }
 
   piece_type "knight" {
-    symbols {
-      white = "♘"
-      black = "♞"
+    representation {
+      white {
+        symbol = "♘"
+        icon = "/piece_types/knight.svg"
+      }
+      black {
+        symbol = "♞"
+        icon = "/piece_types/knight.svg"
+      }
     }
     motion {
       generator = "motion_hook"
@@ -71,9 +95,15 @@ piece_types {
   }
 
   piece_type "bishop" {
-    symbols {
-      white = "♗"
-      black = "♝"
+    representation {
+      white {
+        symbol = "♗"
+        icon = "/piece_types/bishop.svg"
+      }
+      black {
+        symbol = "♝"
+        icon = "/piece_types/bishop.svg"
+      }
     }
     motion {
       generator = "motion_line_diagonal"
@@ -81,9 +111,15 @@ piece_types {
   }
 
   piece_type "pawn" {
-    symbols {
-      white = "♙"
-      black = "♟"
+    representation {
+      white {
+        symbol = "♙"
+        icon = "/piece_types/pawn.svg"
+      }
+      black {
+        symbol = "♟"
+        icon = "/piece_types/pawn.svg"
+      }
     }
     motion {
       generator       = "motion_forward_straight"
@@ -525,5 +561,92 @@ composite_function "check_mated_player" {
     ]
     mated  = [for i, player in checked : player if length(valid_moves[i]) == 0]
     return = length(mated) == 0 ? null : mated[0]
+  }
+}
+
+assets = {
+  piece_types = {
+    "king.svg" = <<EOF
+      H4sIAJhDVmUAA+VVbW+bMBD+3l/huZrUSMXYBvOShVZqWlWTsq3Suk3rNxoIYSU4MjQv/35nDIFE
+      nfZ10hCJnvM99+K7s5lc71YF2qSqymUZYUYoRmk5l0leZhF+rRdWgK+vzibvbr9MH38+3KFqk6GH
+      bzezj1OELdv+4Uxt+/bxFn39fo8YYbZ99xkjvKzr9di2t9st2TpEqsy+V/F6mc8rG4i2JoKRDc4Y
+      I0mdYAihPUMyZRW9Yc4ppZqODWX8vDOsCmjPcre3QEfmcoXRJk+3NxLUFFHkCnjBOYJnkqSLysBG
+      fN6NM5UnaJsn9TLCnAiMlmmeLetW0D4w2ut/u3Vh9z4mGVrkRRHhTawuLGtdxPtUWXNZSHV5vlgs
+      RrjRW+q1SCOcbtJSJglGVa3kS9pZyfValmlZd3awy1HHsYq8TOfxOsJKvpbJ0fIvmZen6+0+mE69
+      qvc6Kka1istqIdUqwqu4VvnugpLQYSEXl4ia9yAz4lGABvmUBf4ID+q1juslSiL8CXGKOFQIzTRi
+      HMxCwExoLHxusN8RfOIyx8DWSPTAsBzNEm5oIDtoe9THa9BT15GTzMDA9X3khMCZIuYbKSB+iLhL
+      QiMEnoecAXF2kHhjNpRc1mAeaMMGcc1wG8wEMLgJwvROuLHkMN9eH79RMdqbeANPnXs2CDrEs+Ge
+      MFrF1QucS1VcnC9lkVajPxTCJAvZC6b7ERIfqut4IAZ6v4JwMZS9nq7lI+vjWndTX8LcDqbjtA/G
+      g0MJ5b7eQ0Acn0EjCeehqYznQE8cIsIQMZcEjqslByaJQU0C1ummkLvwnM60deSwZkPHYY4SPUmo
+      7Sk49QPfdLxJKCAiaHrOmoTAE4fZhWWdEEiCmg5DQq1u2mSmMzK2nSdOqCdO4jwdTuLhHFpwW42b
+      iwHAh35ZqjzLy7Gg7xH83jq4FuuObIMI1Q8gq4Xu8SzY2UDQY4NyqEQzNKd9U+m87q5Bd3ALamy6
+      vV3mdfp2eQ3huYjnL/3t1or/3Cz8Ndn/cE70bHSfN5iZif7MXp39BqubdYYZCAAA
+      EOF
+    "queen.svg" = <<EOF
+      H4sIAJhDVmUAA7VU207cMBB95yum7gtIxJfYuW03IAEtqkRbpEKr8hY22WzabBw5KZv9+46dwC5t
+      JZ6IosgzPnPOeGac+emwruGhMF2lm5QIygkUzULnVVOm5PbmgxcT6PqsybNaN0VKGk1OTw7mby6+
+      nN/8uH4P3UMJ17dnVx/PgXiMfZfnjF3cXMDXb5cgqGDs/WcCZNX37YyxzWZDN5JqU7JLk7WratEx
+      BDILxCCGZELQvM8JSlhmTK7p0v+E+5xzCycjZHY/jKgOYfd62Hq4Rxd6TfbPJtCqis2ZRjAHDirA
+      F6UAn3leLLtx6cz7YVaaKodNlferlPg0ILAqqnLVT4blILC1XzZRsB3HvIRlVdcpecjMoee1dbYt
+      jLfQtTbHb5fL5ZGtqtG/ikeEblusb9M/YvB8DrOtETJCPZfLTNDg3eSoq6b4qatmZvTvJid76bdZ
+      v4I8JZ/Ax2yFD35AAxnD1TM7QVvEVCQhCE6VFHz3CLunaKyU3Qt5aO2AxriBsZYpoTJKrC+SdjMC
+      ETo/ejgqyJBGaEn+zIqdhUirLQMkFo5W+Ta3hIootvwJD8ZYIV1ukbD5+EgSu3wCGf11lhjunur1
+      2JGpE73Jmm6pzTol66w31XAojoG7d1yIo73auaCirqu2K2CBbcb0klARWGCzQ1QKCRh0SzsFZjst
+      JuUnKU+bqsTO+GE7QEx9oYJ22M/rH5loVBA+jSeBif4FcrwxPPafk89Z+UIFvP0SKOyY6/mrlkIk
+      r1gKR/5yKXb3IqEqEqA4lYGyQ4szHkR2It2YKrwNTwaOVxg4aOjGfi/wbnf5UWZuf0knB38ARa+p
+      41UFAAA=
+      EOF
+    "rook.svg" = <<EOF
+      H4sIAJhDVmUAA31TXW+bMBR976/wvJdWKrYJJm1paKV+rJrUbZWWbtrenOCAN2Ij44Tk3+8aSkKz
+      dVEUzr2ce+7hEE+uN8sSraWtldEpDgnDSOq5yZTOU/w8/RCcY1Q7oTNRGi1TrA2+vjqavLv7cjv9
+      8XSP6nWOnp5vHj/eIhxQ+j26pfRueoe+fntAIQkpvf+MES6cqxJKm6YhTUSMzemDFVWh5jUFIvVE
+      GKIgFoYkcxmGFV4ZzOk6/cf4iDHm6bijJLNNx6qBNjObbQD3yNws8fDZQqiUbG4MkBliiMfwhVUI
+      PpNMLuoOtuVsk+RWZahRmStSPCIxRoVUeeFeCq+B0db/0hcJuteY5GihyjLFa2GPg6AqxVbaYG5K
+      Y0/fLxaLE5+qNb9lzzBVBflq13Pg+VrOtgSKqcRcuW0SXnrR4KC0q1Imci21ybLLTjVobSchiftG
+      qbSciyqxZqWzYfOXUfp1d6mctKWCS8L7XibqQlgrtokGm313ZwQjZ4WuF8YuU9zCUjh5zE4ZiU7w
+      INZKuAJlKf6EwhCFjIzg8uhx3MN4CM9e4IgNYU8YxUPYEyI2hD0h4kPYbd7le5DRbOVc/1IPXEfg
+      Oup1QpAiZ94pH6Du/v+0/4q/TfytjXyfU7edd+nwAe6zfNv16ILEXgH+uygaA9ePvSp4y9n5fkPK
+      y3BGWMz9DCPjc5CICW9zJTy+2FUxiS94yx1DOZj7uT8wOZxzf4yvjv4A0R68U4kEAAA=
+      EOF
+    "knight.svg" = <<EOF
+      H4sIAJhDVmUAA3VT226bQBB971dMty+JBHvltsQkakgaVUrbSE1a9REZbNNiFq2JHefrO4uNm1QO
+      gpnZuZw5M1omF0/LBtaVXdWmzYignEDVTk1Zt/OMPNx/8hMCq75oy6IxbZWR1pCL83eT91ff8vtf
+      d9ewWs/h7uHy9nMOxGfsp8oZu7q/gu8/bkBQwdj1VwJk0fddythms6EbRY2dsxtbdIt6umKYyFwi
+      FjEEE4KWfUmwhUNGcu0qO1IuOecunbzkLvBUV5tL85QRDhyCEF+EAnwmc5jVTZORdWFPfL9rim1l
+      /alpjPU+zGazUzemNX+qMcN0HQ7c9mMONhxytg2mmK6Y1v02FWcO1P/vaB+bKq3WVWvK8myH6m/q
+      sl+kgoajo6nbalp0qTWPbfnS+dvU7Wvvsu4r29So0mD0lcVqUVhbbNMWaY7eAxECvS3a1czYZUYG
+      syn66oR7nKrT/UqGtXRFv4AyI19ASk9wyEFJGnpCgEqcTlB7SsMtiNDpfNAcJEpMBKkwh7DjiIGr
+      z1FTBJGcagEioUHoyZCqGETkydghKk9qlFRgK0FVAEKggRFNdYg+TnkEQtJAYAHVkYtLhyy403hn
+      hEYIKpXzKDeFdiqkWscOCRtF6ESF2DjnKPPxpGiiPeyABJE0x8EcLSpjT9PQNVe4DFzIzoh38QDN
+      yPkityl+0LduynC3zdESyC5BBM4TkMJzY+PC4/3WB/nGFrXbcojiIzhewwfIExzy0cCh4vkNSIGc
+      /xWKQ+Ew/PHAvuL51cVaFr2tn044TaIIb1bo+U7sjppGWnl+SEWMN27PY8Lm+Ge7H/f83V9TmRLg
+      ewQAAA==
+      EOF
+    "bishop.svg" = <<EOF
+      H4sIAJhDVmUAA21Ua2+bMBT93l9x531ppWL84mGWtFLTrprUbpXWblq/kUAIG8EIaB7/ftcQ8qga
+      odjH9/jcc+0Lo+vNsoBVWje5KceEU0YgLWcmyctsTF6evzohgaaNyyQuTJmOSWnI9dXZ6NPtj8nz
+      n6c7aFYZPL3cPHybAHFc97ecuO7t8y38/HUPnHLXvftOgCzatopcd71e07Wkps7c+zquFvmscZHo
+      WiJuclGMc5q0CcEUVhnNlc34g+2CMWbppKdE003PapA2NZutgzE6M0tyXBtHlKfrG4NkBgyUhw+m
+      AvyNknTe9NMOTjdRVucJrPOkXYyJoB6BRZpni3YHrAaBrf13dxLuQWOUwTwvijFZxfW541RFvE1r
+      Z2YKU19+ns/nF/ZUa/MvHRimqvB8y3bgYH0dZ1sgxVTxLG+3Ef9iRZ36rUijdJWWJkn6lQOhV3U6
+      2xGn3rBQ5GU6i6uoNm9lcrz41+Tl6eoyb9O6yHGI1LCWxM0irut4G5Voc1jdpyXQ1nHZzE29HJNu
+      WsRtes4uGfUvyNGxZkNJ72xN39r2RGQZt3W+OcdL8zSX+hJY9xywI6kWvmR2yqkfcO6dpOrSVXG7
+      gGRMHoF7lCkfJKcaHkAy6gVejyYDEppKLkAEVIcBCJ8GQr1DyJXUDzkIj/KAg1SUaw1c0ZCHIAQO
+      HDgWHfjIxV5WQg5RRFoNG3lAfakOsqd4Z3Zn6Nj6674nhq77oFbMIdFVSFkYovYOoi1mnUsqlLBu
+      pMAU2CI8sDEpLZXRgPugaegHFgi0rynjcgB7zR76lGnf1i0DDVimh/p4JMwDj4YqsERFNfORiDc1
+      OAko99Wpy4/rGrnZETi6TB9dq+58MNUDiBCxN+BHa8hipAV9vMc4BExhnOs+roe4d4TJBy3avSTd
+      e3Fi7+AIBUHidk+hnG2AEC8Mr9r2mqLK03uEqbANLNdHeLTv9fAdwapH9ut2dfYfmSKttKAFAAA=
+      EOF
+    "pawn.svg" = <<EOF
+      H4sIAJhDVmUAA21SXW/TMBR936+4mBeQHH/FaT7WbNLaMZAQTKID8RglaRtI7cjJmnW/nuusQRMi
+      suLro3PPPffay+unQwvH2vWNNTmRTBCoTWmrxuxy8rD5ECQE+qEwVdFaU+fEWHJ9dbF8s/662vy8
+      v4X+uIP7h5vPn1ZAAs5/hCvO15s1fPt+B5JJzm+/ECD7YegyzsdxZGPIrNvxO1d0+6bsORK5J2IS
+      RzEpWTVUBEt4ZTRn+vw/6UoI4ekEjk093tinnAgQoCNc5HU/EqUAv2VXDHvYNm2bk2Ph3gVB1xan
+      2gWlba2jb7fb7XvfqbO/65lhuw57NsPMwZrIqXJyAKVYRFMoIVBMSSog0FSyOPW7BkEFS1IQTKUe
+      lRjFCVUsTGAFMmZhSOWCRSAXVCYsSn2gJKoJJIkQ6ammIUs0KKYljTyGiZE/qJgJTJA0lCxKpiBF
+      qY8QauSE+owrBNMzWS2meOFlVMIEFtOTOILhBKa+vDc7ucGsRfziUEUsVhQro3UUwFal9g15SSpD
+      3+U5nNxP04DAT4IG2g8D/89+rqcWx2q7omyGUyYv/UUE/xzdY1tnxprn2tnLl5sIxqYa9hl2NANt
+      Y+qy6DJnH031GvxlG5MdmqF2Mzod2ga3TM9YVfT7wrni5AvVM/rXCOH48Py7urr4AxpxiWIaAwAA
+      EOF
   }
 }
