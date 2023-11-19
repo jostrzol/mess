@@ -7,6 +7,7 @@ export interface RoomDto {
   PlayersNeeded: number;
   IsStartable: boolean;
   IsStarted: boolean;
+  RulesFilename: string;
 }
 
 export const roomToModel = (room: RoomDto): Room => {
@@ -16,5 +17,6 @@ export const roomToModel = (room: RoomDto): Room => {
     playersNeeded: room.PlayersNeeded,
     isStartable: room.IsStartable,
     isStarted: room.IsStarted,
+    rulesFilename: room.RulesFilename,
   };
 };

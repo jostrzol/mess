@@ -3,6 +3,7 @@ package room
 import (
 	"fmt"
 
+	"github.com/jostrzol/mess/pkg/rules"
 	"github.com/jostrzol/mess/pkg/server/core/event"
 	"github.com/jostrzol/mess/pkg/server/core/id"
 	"github.com/jostrzol/mess/pkg/server/ioc"
@@ -54,6 +55,29 @@ func (s *Service) GetRoom(roomID id.Room) (*Room, error) {
 		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
 	}
 	return room, nil
+}
+
+func (s *Service) GetRules(roomID id.Room) (*rules.File, error) {
+	room, err := s.repository.Get(roomID)
+	if err != nil {
+		return nil, fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+	return room.Rules(), nil
+}
+
+func (s *Service) SetRules(session id.Session, roomID id.Room, filename string, data []byte) error {
+	room, err := s.repository.Get(roomID)
+	if err != nil {
+		return fmt.Errorf("getting room %v: %w", roomID, err)
+	}
+
+	ev, err := room.UpdateRules(session, filename, data)
+	if err != nil {
+		return fmt.Errorf("setting rules: %w", err)
+	}
+	s.events.Notify(ev)
+
+	return nil
 }
 
 func (s *Service) StartGame(sessionID id.Session, roomID id.Room) (*Room, error) {

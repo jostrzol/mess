@@ -2,6 +2,7 @@ package room
 
 import (
 	"os"
+	"path/filepath"
 	"slices"
 	"sync"
 
@@ -17,7 +18,7 @@ type Room struct {
 	id        id.Room
 	players   [2]id.Session
 	nPlayers  int
-	rulesFile *rules.File
+	RulesFile *rules.File
 	game      id.Game
 	mutex     sync.Mutex
 }
@@ -25,7 +26,7 @@ type Room struct {
 func New() *Room {
 	return &Room{
 		id:        id.New[id.Room](),
-		rulesFile: defaultRulesFile(),
+		RulesFile: defaultRulesFile(),
 	}
 }
 
@@ -37,7 +38,7 @@ func defaultRulesFile() *rules.File {
 	}
 	return &rules.File{
 		Src:      src,
-		Filename: filename,
+		Filename: filepath.Base(filename),
 	}
 }
 
@@ -85,6 +86,20 @@ func (r *Room) assertStartable() error {
 	}
 }
 
+func (r *Room) Rules() *rules.File {
+	return r.RulesFile
+}
+
+func (r *Room) UpdateRules(session id.Session, filename string, data []byte) (event.Event, error) {
+	if filename == "" {
+		return nil, usrerr.Errorf("filename cannot be empty")
+	}
+
+	r.RulesFile = &rules.File{Filename: filename, Src: data}
+
+	return &event.RoomRulesChanged{RoomID: r.id, By: session}, nil
+}
+
 func (r *Room) StartGame(sessionID id.Session) (event.Event, error) {
 	r.mutex.Lock()
 	defer func() { r.mutex.Unlock() }()
@@ -96,7 +111,7 @@ func (r *Room) StartGame(sessionID id.Session) (event.Event, error) {
 		GameID:  r.game,
 		RoomID:  r.id,
 		Players: r.players,
-		Rules:   r.rulesFile,
+		Rules:   r.RulesFile,
 		By:      sessionID,
 	}, nil
 }

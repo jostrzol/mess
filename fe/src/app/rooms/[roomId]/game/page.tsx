@@ -15,6 +15,7 @@ import { Route } from "@/model/game/options";
 import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
+import {ConnectionStatus} from "@/components/connectionStatus";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const gameApi = useMessApi(GameApi);
@@ -84,7 +85,10 @@ const GamePage = ({ params }: RoomPageParams) => {
             mutate(route);
           }}
         >
-          <OptionIndicator />
+          <ConnectionStatus />
+          <div className="pt-4">
+            <OptionIndicator />
+          </div>
           <Board board={staticData.board} />
           <OptionPieceType />
           {status !== "Unresolved" && <ResolutionPopup status={status} />}

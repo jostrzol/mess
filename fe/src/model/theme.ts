@@ -20,44 +20,50 @@ export interface ThemeColors {
 export interface Theme {
   name: string;
   colors: ThemeColors;
+  editor: string;
 }
 
 export const themes = {
   light: {
-    background: colors.slate[50],
-    primary: colors.slate[700],
-    "primary-dim": colors.slate[500],
-    txt: colors.slate[900],
-    "txt-dim": colors.slate[400],
-    "player-white": colors.slate[50],
-    "player-black": colors.slate[950],
-    danger: colors.rose[600],
-    "danger-dim": colors.rose[400],
-    warn: colors.amber[500],
-    "warn-dim": colors.amber[300],
-    "success-strong": colors.lime[600],
-    success: colors.lime[400],
-    "success-dim": colors.lime[200],
+    name: "light",
+    colors: {
+      background: colors.slate[50],
+      primary: colors.slate[700],
+      "primary-dim": colors.slate[500],
+      txt: colors.slate[900],
+      "txt-dim": colors.slate[400],
+      "player-white": colors.slate[50],
+      "player-black": colors.slate[950],
+      danger: colors.rose[600],
+      "danger-dim": colors.rose[400],
+      warn: colors.amber[500],
+      "warn-dim": colors.amber[300],
+      "success-strong": colors.lime[600],
+      success: colors.lime[400],
+      "success-dim": colors.lime[200],
+    },
+    editor: "light",
   },
   dark: {
-    background: colors.slate[950],
-    primary: colors.slate[700],
-    "primary-dim": colors.slate[500],
-    txt: colors.slate[400],
-    "txt-dim": colors.slate[600],
-    "player-white": colors.slate[50],
-    "player-black": colors.slate[950],
-    danger: colors.rose[600],
-    "danger-dim": colors.rose[800],
-    warn: colors.amber[500],
-    "warn-dim": colors.amber[300],
-    "success-strong": colors.lime[600],
-    success: colors.lime[400],
-    "success-dim": colors.lime[200],
+    name: "dark",
+    colors: {
+      background: colors.slate[950],
+      primary: colors.slate[700],
+      "primary-dim": colors.slate[500],
+      txt: colors.slate[400],
+      "txt-dim": colors.slate[600],
+      "player-white": colors.slate[50],
+      "player-black": colors.slate[950],
+      danger: colors.rose[600],
+      "danger-dim": colors.rose[800],
+      warn: colors.amber[500],
+      "warn-dim": colors.amber[300],
+      "success-strong": colors.lime[600],
+      success: colors.lime[400],
+      "success-dim": colors.lime[200],
+    },
+    editor: "vs-dark",
   },
-} satisfies Record<string, ThemeColors>;
+} satisfies Record<string, Theme>;
 
-export const defaultTheme: Theme = {
-  name: "light",
-  colors: themes["light"],
-};
+export const defaultTheme: Theme = themes["light"];

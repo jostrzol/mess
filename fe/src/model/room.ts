@@ -6,4 +6,5 @@ export interface Room {
   playersNeeded: number;
   isStarted: boolean;
   isStartable: boolean;
+  rulesFilename: string;
 }

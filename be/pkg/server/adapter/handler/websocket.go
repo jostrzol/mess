@@ -84,6 +84,10 @@ func (h *WsHandler) Handle(evnt event.Event) {
 		players, err = h.playersInRoom(ev.RoomID)
 		author = ev.PlayerID
 		eventToSend = &schema.RoomChanged{}
+	case *event.RoomRulesChanged:
+		players, err = h.playersInRoom(ev.RoomID)
+		author = ev.By
+		eventToSend = &schema.RoomChanged{}
 	case *event.GameStarted:
 		players, err = h.playersInRoom(ev.RoomID)
 		author = ev.By

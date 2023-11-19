@@ -6,11 +6,13 @@ import { Button } from "@/components/form/button";
 import { useMessApi } from "@/contexts/messApiContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { MdContentCopy } from "react-icons/md";
 import { RoomPageParams } from "./layout";
+import {ConnectionStatus} from "@/components/connectionStatus";
 
 const RoomPage = ({ params }: RoomPageParams) => {
+  const router = useRouter();
   const roomApi = useMessApi(RoomApi);
   const client = useQueryClient();
   const { data: room, isSuccess } = useQuery({
@@ -36,11 +38,12 @@ const RoomPage = ({ params }: RoomPageParams) => {
     return null;
   }
   if (room.isStarted) {
-    redirect(`/rooms/${room.id}/game`);
+    router.replace(`/rooms/${room.id}/game`);
   }
 
   return (
     <>
+      <ConnectionStatus />
       <form
         className="w-60 flex flex-col items-stretch gap-4"
         action={() => mutate()}
@@ -61,6 +64,13 @@ const RoomPage = ({ params }: RoomPageParams) => {
           <p>Players</p>
           <p>{`${room.players}/${room.playersNeeded}`}</p>
         </div>
+        <div className="flex justify-between">
+          <p>Rules</p>
+          <pre>{room.rulesFilename}</pre>
+        </div>
+        <Button type="button" onClick={() => router.push(`/rooms/${room.id}/rules`)}>
+          Edit rules
+        </Button>
         <Button disabled={!room.isStartable} type="submit">
           Start
         </Button>

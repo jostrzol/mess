@@ -24,9 +24,15 @@ board {
 
 piece_types {
   piece_type "piece" {
-    symbols {
-      white = "○"
-      black = "●"
+    representation {
+      white {
+        symbol = "○"
+        icon = "/piece_types/disk.svg"
+      }
+      black {
+        symbol = "●"
+        icon = "/piece_types/disk.svg"
+      }
     }
     motion {
       generator = "motion_neighbours"
@@ -251,4 +257,17 @@ composite_function "is_any_occupied_by" {
 function "count_moves_by" {
   params = [color]
   result = sum([for move in game.record : 1 if move.piece.color == color]...)
+}
+
+assets = {
+  piece_types = {
+    "disk.svg" = <<EOF
+      H4sIAOFLWmUAA1WRXW7DIBCE33MKRF8SqcbgJK1D40TqTZCNHVoMaCF2fPtunLo/aKVdfZod0HA8
+      33pLBg3ReFdRwTgl2tW+Ma6r6DW1WUnPp9UxDh0ZjB7f/a2inHCy22NRgtsuVvSSUpB5Po4jG7fM
+      Q5cXnPMct+hpRcixI62xtqKDgnWWBasmDVntrYfnp7ZtN5TEBP5TLwofgnfapUWDZrNmsijxQdUm
+      TVK83U0zuFot9aCdb5oH+RU8XLPRNOkiBdsvwBqnaxUk+Ktr/sIPb9x/2pukwRpscrewRsWLAlCT
+      dPjMhf5cS0kC5WLroa9orxKY21o8Ez7X98Be+HyKbbkT5f71sJmTwqy0tSZETWpMuigYhlxPOAl2
+      oASQiRL7NPd8Djfv8IPuWZ9WX/hY10rPAQAA
+      EOF
+  }
 }

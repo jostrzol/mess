@@ -16,6 +16,11 @@ type PlayerJoined struct {
 	PlayerID id.Session
 }
 
+type RoomRulesChanged struct {
+	RoomID id.Room
+	By     id.Session
+}
+
 type GameStarted struct {
 	GameID  id.Game
 	RoomID  id.Room

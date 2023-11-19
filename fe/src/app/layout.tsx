@@ -18,7 +18,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
   const themeCookie = cookies().get("theme");
   const theme: Theme =
     themeCookie !== undefined ? JSON.parse(themeCookie?.value) : defaultTheme;
-  const colorDefinitions = Object.entries(theme?.colors).map(([key, value]) => {
+  const colorDefinitions = Object.entries(theme.colors).map(([key, value]) => {
     const colorKey = `--theme-${key}`;
     const colorValue = Color(value).array().join(" ");
     return `${colorKey}: ${colorValue};`;

@@ -12,9 +12,9 @@ export const throwIfError = async (res: Response): Promise<void> => {
     let msg = "failed to fetch data";
     try {
       const json: ErrorDto = await res.json();
-      msg += ": " + json.Message;
-    } finally {
-      throw new Error(msg);
+      throw new Error(`${msg}: ${json.Message}`);
+    } catch (e) {
+      throw new Error(`${msg}: ${e}`, {cause: e})
     }
   }
 };

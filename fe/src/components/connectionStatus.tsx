@@ -1,17 +1,17 @@
+import {useRoomWebsocket} from "@/contexts/roomWsContext";
 import { ThemeContext } from "@/contexts/themeContext";
+import {useIsFetching} from "@tanstack/react-query";
 import clsx from "clsx";
 import { useContext } from "react";
 import { ReadyState } from "react-use-websocket";
 
 export const ConnectionStatus = ({
-  websocketStatus,
-  isFetching = true,
   className,
 }: {
-  websocketStatus: ReadyState;
-  isFetching: boolean;
   className?: string;
 }) => {
+  const { readyState: websocketStatus } = useRoomWebsocket();
+  const fetching = useIsFetching();
   const {
     theme: { colors },
   } = useContext(ThemeContext);
@@ -27,13 +27,14 @@ export const ConnectionStatus = ({
   }[websocketStatus];
   return (
     <div
-      className={clsx("has-tooltip", "fixed", "top-5", "right-5", className)}
+      className={clsx("has-tooltip", "fixed", "top-5", "right-5", "z-50", className)}
     >
       <div
         className={clsx(
           "relative",
           "w-4",
           "h-4",
+          "z-50",
           "rounded-full",
           "has-tooltip",
         )}
@@ -48,7 +49,7 @@ export const ConnectionStatus = ({
           "h-4",
           "rounded-full",
           "has-tooltip",
-          isFetching && "animate-ping",
+          fetching > 0 && "animate-ping",
         )}
         style={{ backgroundColor: color }}
       />

@@ -51,6 +51,30 @@ func (s *RoomSuite) TestGetRoom() {
 	s.Client().getRoom(room.ID)
 }
 
+func (s *RoomSuite) TestGetRules() {
+	// given
+	room := s.Client().createRoom()
+
+	// expect
+	s.Client().getRules(room.ID)
+}
+
+func (s *RoomSuite) TestSetRules() {
+	// given
+	room := s.Client().createRoom()
+
+	// when
+	s.Client().setRules(room.ID, "rules.hcl", "board { width = 2; height = 2 }")
+
+	// then
+	rules := s.Client().getRules(room.ID)
+	s.Equal(rules, "board { width = 2; height = 2 }")
+
+	// and
+	room = s.Client().getRoom(room.ID)
+	s.Equal(room.RulesFilename, "rules.hcl")
+}
+
 func (s *RoomSuite) TestStartGame() {
 	// given
 	room := s.Client().createFilledRoom()
@@ -65,17 +89,17 @@ func (s *RoomSuite) TestStartGame() {
 type RoomClient struct{ *handlertest.BaseClient }
 
 func (c *RoomClient) createRoom() (room schema.Room) {
-	c.ServeHTTPOkAs("POST", "/rooms", nil, &room)
+	c.ServeJSONOkAs("POST", "/rooms", nil, &room)
 	return
 }
 
 func (c *RoomClient) joinRoom(roomID uuid.UUID) (room schema.Room) {
-	c.ServeHTTPOkAs("PUT", roomURL(roomID)+"/players", nil, &room)
+	c.ServeJSONOkAs("PUT", roomURL(roomID)+"/players", nil, &room)
 	return
 }
 
 func (c *RoomClient) getRoom(roomID uuid.UUID) (room schema.Room) {
-	c.ServeHTTPOkAs("GET", roomURL(roomID), nil, &room)
+	c.ServeJSONOkAs("GET", roomURL(roomID), nil, &room)
 	return
 }
 
@@ -88,8 +112,17 @@ func (c *RoomClient) createFilledRoom() (room schema.Room) {
 	return
 }
 
+func (c *RoomClient) getRules(roomID uuid.UUID) string {
+	res := c.ServeJSONOk("GET", roomURL(roomID)+"/rules", nil)
+	return res.Body.String()
+}
+
+func (c *RoomClient) setRules(roomID uuid.UUID, filename string, data string) {
+	c.ServeOk("PUT", roomURL(roomID)+"/rules/"+filename, []byte(data))
+}
+
 func (c *RoomClient) startGame(roomID uuid.UUID) (room schema.Room) {
-	c.ServeHTTPOkAs("PUT", roomURL(roomID)+"/game", nil, &room)
+	c.ServeJSONOkAs("PUT", roomURL(roomID)+"/game", nil, &room)
 	return
 }
 

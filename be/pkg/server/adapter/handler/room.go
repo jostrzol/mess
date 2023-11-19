@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"io"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -72,6 +73,51 @@ func JoinRoom(h *RoomHandler, g *gin.Engine) {
 	})
 }
 
+func GetRules(h *RoomHandler, g *gin.Engine) {
+	g.GET("/rooms/:id/rules", func(c *gin.Context) {
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		rules, err := h.service.GetRules(roomID)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		c.Data(http.StatusOK, HclContent, rules.Src)
+	})
+}
+
+func SetRules(h *RoomHandler, g *gin.Engine) {
+	g.PUT("/rooms/:id/rules/:filename", func(c *gin.Context) {
+		session := GetSessionData(sessions.Default(c))
+
+		roomID, err := parseUUID[id.Room](c.Param("id"))
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		filename := c.Param("filename")
+		data, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		err = h.service.SetRules(session.ID, roomID, filename, data)
+		if err != nil {
+			AbortWithError(c, err)
+			return
+		}
+
+		c.Status(http.StatusNoContent)
+	})
+}
+
 func StartGame(h *RoomHandler, g *gin.Engine) {
 	g.PUT("/rooms/:id/game", func(c *gin.Context) {
 		session := GetSessionData(sessions.Default(c))
@@ -110,6 +156,8 @@ func init() {
 		CreateRoom,
 		GetRoom,
 		JoinRoom,
+		GetRules,
+		SetRules,
 		StartGame,
 		HandleWebsocket,
 	)

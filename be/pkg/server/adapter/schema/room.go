@@ -11,6 +11,7 @@ type Room struct {
 	PlayersNeeded int
 	IsStartable   bool
 	IsStarted     bool
+	RulesFilename string
 }
 
 func RoomFromDomain(r *room.Room) *Room {
@@ -20,5 +21,6 @@ func RoomFromDomain(r *room.Room) *Room {
 		PlayersNeeded: room.PlayersNeeded,
 		IsStartable:   r.IsStartable(),
 		IsStarted:     r.IsStarted(),
+		RulesFilename: r.RulesFile.Filename,
 	}
 }

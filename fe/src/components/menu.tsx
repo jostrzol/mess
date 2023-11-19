@@ -9,7 +9,7 @@ import { Logo } from "./logo";
 
 export const Menu = () => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const { theme, setTheme } = useContext(ThemeContext);
+  const { theme: selectedTheme, setTheme } = useContext(ThemeContext);
   return (
     <aside
       className={clsx(
@@ -21,7 +21,7 @@ export const Menu = () => {
         "left-0",
         "h-screen",
         "-mb-[100vh]",
-        "z-10",
+        "z-40",
       )}
     >
       <div
@@ -52,18 +52,18 @@ export const Menu = () => {
             <h1>mess</h1>
           </section>
           <MenuSection title="Theme">
-            {Object.entries(themes).map(([name, colors]) => {
-              const isSelected = name == theme.name;
+            {Object.values(themes).map((theme) => {
+              const isSelected = theme.name == selectedTheme.name;
               return (
                 <button
-                  onClick={() => setTheme({ name, colors })}
+                  onClick={() => setTheme(theme)}
                   className={clsx(
                     "mb-2",
                     "bg-background",
                     "border-primary",
                     "max-w-fit",
                   )}
-                  key={name}
+                  key={theme.name}
                 >
                   <span
                     className={clsx(
@@ -78,12 +78,12 @@ export const Menu = () => {
                       isSelected && "scale-150",
                     )}
                     style={{
-                      backgroundColor: colors.background,
-                      borderColor: colors.primary,
+                      backgroundColor: theme.colors.background,
+                      borderColor: theme.colors.primary,
                     }}
                   />
                   <span className={clsx(isSelected || "text-txt-dim")}>
-                    {name[0].toUpperCase() + name.slice(1).toLowerCase()}
+                    {theme.name[0].toUpperCase() + theme.name.slice(1).toLowerCase()}
                   </span>
                 </button>
               );

@@ -119,9 +119,9 @@ func (c *httpClient) cloneWithEmptyJar() *httpClient {
 	return newHTTPClient(c.Suite, c.g)
 }
 
-func (c *httpClient) ServeHTTPOkAs(method string, url string, body any, result interface{}) {
+func (c *httpClient) ServeJSONOkAs(method string, url string, body any, result interface{}) {
 	c.T().Helper()
-	res := c.ServeHTTPOk(method, url, body)
+	res := c.ServeJSONOk(method, url, body)
 	bytes, err := io.ReadAll(res.Result().Body)
 	c.NoError(err)
 
@@ -129,15 +129,37 @@ func (c *httpClient) ServeHTTPOkAs(method string, url string, body any, result i
 	c.NoError(err)
 }
 
-func (c *httpClient) ServeHTTPOk(method string, url string, body any) *httptest.ResponseRecorder {
+func (c *httpClient) ServeJSONOk(method string, url string, body any) *httptest.ResponseRecorder {
 	c.T().Helper()
-	res := c.ServeHTTP(method, url, body)
-	c.Equal(http.StatusOK, res.Result().StatusCode)
+	return c.invokeMarshalled(c.ServeOk, method, url, body)
+}
+
+func (c *httpClient) ServeJSON(method string, url string, body any) *httptest.ResponseRecorder {
+	c.T().Helper()
+	return c.invokeMarshalled(c.Serve, method, url, body)
+}
+
+func (c *httpClient) invokeMarshalled(
+	action func(string, string, []byte) *httptest.ResponseRecorder,
+	method string,
+	url string,
+	body any,
+) *httptest.ResponseRecorder {
+	bodyBytes, err := json.Marshal(body)
+	c.NoError(err)
+	return action(method, url, bodyBytes)
+}
+
+func (c *httpClient) ServeOk(method string, url string, body []byte) *httptest.ResponseRecorder {
+	c.T().Helper()
+	res := c.Serve(method, url, body)
+	status := res.Result().StatusCode
+	c.True(200 <= status && status < 300)
 
 	return res
 }
 
-func (c *httpClient) ServeHTTP(method string, url string, body any) *httptest.ResponseRecorder {
+func (c *httpClient) Serve(method string, url string, body []byte) *httptest.ResponseRecorder {
 	c.T().Helper()
 	res := httptest.NewRecorder()
 
@@ -149,10 +171,8 @@ func (c *httpClient) ServeHTTP(method string, url string, body any) *httptest.Re
 	return res
 }
 
-func (c *httpClient) request(method string, url string, body any) *http.Request {
-	bodyBytes, err := json.Marshal(body)
-	c.NoError(err)
-	req, err := http.NewRequest(method, url, bytes.NewReader(bodyBytes))
+func (c *httpClient) request(method string, url string, body []byte) *http.Request {
+	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 	c.NoError(err)
 	for _, cookie := range c.jar.Cookies(&root) {
 		req.AddCookie(cookie)
@@ -160,7 +180,7 @@ func (c *httpClient) request(method string, url string, body any) *http.Request 
 	return req
 }
 
-func (c *httpClient) logRequest(method string, url string, reqBody any, res *httptest.ResponseRecorder) {
+func (c *httpClient) logRequest(method string, url string, reqBody []byte, res *httptest.ResponseRecorder) {
 	req := c.request(method, url, reqBody)
 	c.T().Logf("-> request url: %v %v", req.Method, req.URL)
 	c.T().Logf("-> request headers: %+v", spew.Sdump(req.Header))
@@ -173,12 +193,15 @@ func (c *httpClient) logRequest(method string, url string, reqBody any, res *htt
 		}
 	}
 	c.T().Logf("--------------------------------------------------------------------------------")
-	body, err := io.ReadAll(res.Body)
+	var newBody bytes.Buffer
+	resReader := io.TeeReader(res.Body, &newBody)
+	body, err := io.ReadAll(resReader)
 	if err != nil {
 		c.T().Logf("<- response body: <can't read>")
 	} else {
 		c.T().Logf("<- response body: %v", string(body))
 	}
+	res.Body = &newBody
 	c.T().Logf("================================================================================")
 }
 

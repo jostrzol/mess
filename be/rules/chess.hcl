@@ -27,11 +27,11 @@ piece_types {
     representation {
       white {
         symbol = "♔"
-        icon = "/piece_types/king.svg"
+        icon   = "/piece_types/king.svg"
       }
       black {
         symbol = "♚"
-        icon = "/piece_types/king.svg"
+        icon   = "/piece_types/king.svg"
       }
     }
     motion {
@@ -47,11 +47,11 @@ piece_types {
     representation {
       white {
         symbol = "♕"
-        icon = "/piece_types/queen.svg"
+        icon   = "/piece_types/queen.svg"
       }
       black {
         symbol = "♛"
-        icon = "/piece_types/queen.svg"
+        icon   = "/piece_types/queen.svg"
       }
     }
     motion {
@@ -66,11 +66,11 @@ piece_types {
     representation {
       white {
         symbol = "♖"
-        icon = "/piece_types/rook.svg"
+        icon   = "/piece_types/rook.svg"
       }
       black {
         symbol = "♜"
-        icon = "/piece_types/rook.svg"
+        icon   = "/piece_types/rook.svg"
       }
     }
     motion {
@@ -82,11 +82,11 @@ piece_types {
     representation {
       white {
         symbol = "♘"
-        icon = "/piece_types/knight.svg"
+        icon   = "/piece_types/knight.svg"
       }
       black {
         symbol = "♞"
-        icon = "/piece_types/knight.svg"
+        icon   = "/piece_types/knight.svg"
       }
     }
     motion {
@@ -98,11 +98,11 @@ piece_types {
     representation {
       white {
         symbol = "♗"
-        icon = "/piece_types/bishop.svg"
+        icon   = "/piece_types/bishop.svg"
       }
       black {
         symbol = "♝"
-        icon = "/piece_types/bishop.svg"
+        icon   = "/piece_types/bishop.svg"
       }
     }
     motion {
@@ -114,11 +114,11 @@ piece_types {
     representation {
       white {
         symbol = "♙"
-        icon = "/piece_types/pawn.svg"
+        icon   = "/piece_types/pawn.svg"
       }
       black {
         symbol = "♟"
-        icon = "/piece_types/pawn.svg"
+        icon   = "/piece_types/pawn.svg"
       }
     }
     motion {
@@ -566,7 +566,7 @@ composite_function "check_mated_player" {
 
 assets = {
   piece_types = {
-    "king.svg" = <<EOF
+    "king.svg"   = <<EOF
       H4sIAJhDVmUAA+VVbW+bMBD+3l/huZrUSMXYBvOShVZqWlWTsq3Suk3rNxoIYSU4MjQv/35nDIFE
       nfZ10hCJnvM99+K7s5lc71YF2qSqymUZYUYoRmk5l0leZhF+rRdWgK+vzibvbr9MH38+3KFqk6GH
       bzezj1OELdv+4Uxt+/bxFn39fo8YYbZ99xkjvKzr9di2t9st2TpEqsy+V/F6mc8rG4i2JoKRDc4Y
@@ -582,7 +582,7 @@ assets = {
       iwHAh35ZqjzLy7Gg7xH83jq4FuuObIMI1Q8gq4Xu8SzY2UDQY4NyqEQzNKd9U+m87q5Bd3ALamy6
       vV3mdfp2eQ3huYjnL/3t1or/3Cz8Ndn/cE70bHSfN5iZif7MXp39BqubdYYZCAAA
       EOF
-    "queen.svg" = <<EOF
+    "queen.svg"  = <<EOF
       H4sIAJhDVmUAA7VU207cMBB95yum7gtIxJfYuW03IAEtqkRbpEKr8hY22WzabBw5KZv9+46dwC5t
       JZ6IosgzPnPOeGac+emwruGhMF2lm5QIygkUzULnVVOm5PbmgxcT6PqsybNaN0VKGk1OTw7mby6+
       nN/8uH4P3UMJ17dnVx/PgXiMfZfnjF3cXMDXb5cgqGDs/WcCZNX37YyxzWZDN5JqU7JLk7WratEx
@@ -596,7 +596,7 @@ assets = {
       r1gKR/5yKXb3IqEqEqA4lYGyQ4szHkR2It2YKrwNTwaOVxg4aOjGfi/wbnf5UWZuf0knB38ARa+p
       41UFAAA=
       EOF
-    "rook.svg" = <<EOF
+    "rook.svg"   = <<EOF
       H4sIAJhDVmUAA31TXW+bMBR976/wvJdWKrYJJm1paKV+rJrUbZWWbtrenOCAN2Ij44Tk3+8aSkKz
       dVEUzr2ce+7hEE+uN8sSraWtldEpDgnDSOq5yZTOU/w8/RCcY1Q7oTNRGi1TrA2+vjqavLv7cjv9
       8XSP6nWOnp5vHj/eIhxQ+j26pfRueoe+fntAIQkpvf+MES6cqxJKm6YhTUSMzemDFVWh5jUFIvVE
@@ -637,7 +637,7 @@ assets = {
       OAko99Wpy4/rGrnZETi6TB9dq+58MNUDiBCxN+BHa8hipAV9vMc4BExhnOs+roe4d4TJBy3avSTd
       e3Fi7+AIBUHidk+hnG2AEC8Mr9r2mqLK03uEqbANLNdHeLTv9fAdwapH9ut2dfYfmSKttKAFAAA=
       EOF
-    "pawn.svg" = <<EOF
+    "pawn.svg"   = <<EOF
       H4sIAJhDVmUAA21SXW/TMBR936+4mBeQHH/FaT7WbNLaMZAQTKID8RglaRtI7cjJmnW/nuusQRMi
       suLro3PPPffay+unQwvH2vWNNTmRTBCoTWmrxuxy8rD5ECQE+qEwVdFaU+fEWHJ9dbF8s/662vy8
       v4X+uIP7h5vPn1ZAAs5/hCvO15s1fPt+B5JJzm+/ECD7YegyzsdxZGPIrNvxO1d0+6bsORK5J2IS

@@ -19,7 +19,7 @@ type rules struct {
 	InitialState    initialStateRules    `hcl:"initial_state,block"`
 	StateValidators *stateValidatorRules `hcl:"state_validators,block"`
 	Turn            *turnRules           `hcl:"turn,block"`
-	Assets          cty.Value            `hcl:"assets"`
+	Assets          *cty.Value           `hcl:"assets"`
 	Functions       callbackFunctionsRules
 }
 

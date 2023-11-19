@@ -42,11 +42,13 @@ func (c *rules) toEmptyGameState(ctx *hcl.EvalContext) (*mess.Game, error) {
 		state.AddPieceType(pieceType)
 	}
 
-	assets, err := decodeAssets(c.Assets)
-	if err != nil {
-		return nil, err
+	if c.Assets != nil {
+		assets, err := decodeAssets(*c.Assets)
+		if err != nil {
+			return nil, err
+		}
+		state.Assets = assets
 	}
-	state.Assets = assets
 
 	initializeContext(ctx, game)
 	return game, nil
