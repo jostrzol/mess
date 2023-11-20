@@ -69,12 +69,12 @@ const BoardWrapped = ({ board }: BoardProps) => {
         className={clsx(
           "grow",
           "portrait:w-11/12",
-          "aspect-square",
           "flex",
           "flex-col",
           "justify-center",
           draggedPiece && ["cursor-none", "[&_*]:cursor-none"],
         )}
+        style={{aspectRatio: `${board.width} / ${board.height}`}}
       >
         <div
           className={clsx("grid", "grid-flow-row")}

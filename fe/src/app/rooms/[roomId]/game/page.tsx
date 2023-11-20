@@ -2,6 +2,7 @@
 
 import { GameApi } from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
+import { ConnectionStatus } from "@/components/connectionStatus";
 import { Board } from "@/components/game/board";
 import { OptionIndicator } from "@/components/game/optionIndicator";
 import { OptionPieceType } from "@/components/game/optionPieceType";
@@ -15,7 +16,6 @@ import { Route } from "@/model/game/options";
 import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
-import {ConnectionStatus} from "@/components/connectionStatus";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const gameApi = useMessApi(GameApi);
@@ -81,9 +81,7 @@ const GamePage = ({ params }: RoomPageParams) => {
       <GameStateProvider state={state}>
         <OptionProvider
           root={optionTree ?? null}
-          onChooseFinish={(route) => {
-            mutate(route);
-          }}
+          onChooseFinish={(route) => mutate(route)}
         >
           <ConnectionStatus />
           <div className="pt-4">

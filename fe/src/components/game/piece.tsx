@@ -56,7 +56,12 @@ export const Piece = ({ piece }: PieceProps) => {
       {...listeners}
       {...attributes}
     >
-      <div className={clsx((canMove || isDragging) && "hover:scale-110")}>
+      <div
+        className={clsx(
+          "transition-transform",
+          (canMove || isDragging) && "hover:scale-110",
+        )}
+      >
         <PieceIcon representation={representation} color={piece.color} />
       </div>
     </div>
