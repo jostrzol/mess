@@ -11,7 +11,7 @@ export const OptionIndicator = () => {
     theme: { colors },
   } = useTheme();
   const { isMyTurn } = useGameState();
-  const { isReady, route, currentNodes, selectedNode, select, reset } =
+  const { isReady, route, currentNodes, selectedNode, select, isResetable, reset } =
     useOptions();
 
   if (!isMyTurn) {
@@ -38,7 +38,7 @@ export const OptionIndicator = () => {
 
   return (
     <Options>
-      {currentNodes.length !== 0 && route.length !== 0 && (
+      {isResetable && (
         <Indicator
           key="cancel"
           label={"Cancel"}
@@ -113,7 +113,7 @@ const Indicator = ({
         className,
       )}
     >
-      <div className="relative w-full h-full">
+      <div className="relative w-full">
         <div
           className={clsx(
             "mx-auto w-5 h-5 border-2 border-primary rounded-full bg-background group",

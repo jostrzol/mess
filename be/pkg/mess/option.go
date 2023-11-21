@@ -18,7 +18,10 @@ func (c *Choice) GenerateOptions() *OptionNode {
 	optionData := c.Generator.GenerateOptions()
 	var children []*OptionNode
 	for _, choice := range c.NextChoices {
-		children = append(children, choice.GenerateOptions())
+		child := choice.GenerateOptions()
+		if child.Len() != 0 {
+			children = append(children, child)
+		}
 	}
 	if children != nil {
 		optionData.setLeavesChildren(children)
@@ -114,7 +117,9 @@ func (d OptionNodeData[T]) filter(parentRoute Route, predicate func(Route) bool)
 			var newChildren []*OptionNode
 			for _, child := range datum.Children {
 				newChild := child.filterRoutes(route, predicate)
-				newChildren = append(newChildren, newChild)
+				if newChild.Len() != 0 {
+					newChildren = append(newChildren, newChild)
+				}
 			}
 			if newChildren != nil {
 				result = append(result, &OptionNodeDatum[T]{Option: datum.Option, Children: newChildren})

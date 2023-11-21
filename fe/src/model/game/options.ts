@@ -10,7 +10,10 @@ export type OptionNode =
 
 export type OptionDatum = OptionNode["data"][number];
 
-export type RouteItem<T extends OptionNode> = [T, T["data"][number]["option"]];
+export type RouteItem<T extends OptionNode> = {
+  node: T
+  datum: T["data"][number]
+};
 
 export type Route = RouteItem<OptionNode>[];
 
@@ -36,8 +39,3 @@ interface BaseDatum<T extends Option> {
   option: T;
   children: OptionNode[];
 }
-
-export type NodeGroup<T extends OptionNode> = {
-  node: BaseOptionNode<T["type"], T["data"][number]["option"]>;
-  datum: T["data"][number];
-}[];

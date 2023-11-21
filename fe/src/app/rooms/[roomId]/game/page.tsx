@@ -5,7 +5,6 @@ import { GameChanged } from "@/api/schema/event";
 import { ConnectionStatus } from "@/components/connectionStatus";
 import { Board } from "@/components/game/board";
 import { OptionIndicator } from "@/components/game/optionIndicator";
-import { OptionPieceType } from "@/components/game/optionPieceType";
 import { ResolutionPopup } from "@/components/game/resolutionPopup";
 import { GameStateProvider } from "@/contexts/gameStateContext";
 import { useMessApi } from "@/contexts/messApiContext";
@@ -16,6 +15,7 @@ import { Route } from "@/model/game/options";
 import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
+import {PieceTypePopup} from "@/components/game/pieceTypePopup";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const gameApi = useMessApi(GameApi);
@@ -46,12 +46,12 @@ const GamePage = ({ params }: RoomPageParams) => {
 
   const keyResolution = [...keyDynamic, "resolution"];
   const {
-    data: { status },
+    data: resolution,
   } = useQuery({
     queryKey: keyResolution,
     queryFn: () => gameApi.getResolution(params.roomId),
-    initialData: { status: "Unresolved" } as Resolution,
   });
+  const status = resolution?.status ?? "Unresolved";
 
   const { mutate } = useMutation({
     mutationKey: ["room", params.roomId, "game", "turn"],
@@ -88,7 +88,7 @@ const GamePage = ({ params }: RoomPageParams) => {
             <OptionIndicator />
           </div>
           <Board board={staticData.board} />
-          <OptionPieceType />
+          <PieceTypePopup />
           {status !== "Unresolved" && <ResolutionPopup status={status} />}
         </OptionProvider>
       </GameStateProvider>

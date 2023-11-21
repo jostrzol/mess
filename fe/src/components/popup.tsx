@@ -14,13 +14,14 @@ export const Popup = ({
       <div
         className={clsx(
           "fixed",
+          "z-40",
           "w-full",
           "h-full",
           "bg-background/40",
           "pointer-events-none",
         )}
       ></div>
-      <Window className={clsx("fixed", className)}>{children}</Window>
+      <Window className={clsx("fixed", "z-50", className)}>{children}</Window>
     </>
   );
 };

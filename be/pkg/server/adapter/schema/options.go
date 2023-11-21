@@ -174,7 +174,7 @@ func (r RouteBinding) Bind(req *http.Request, obj any) error {
 		case "PieceType":
 			option, err = decodeOpton[PieceTypeOption](tmpOption.Rest)
 		case "Square":
-			option, err = decodeOpton[SquareOption](tmpOption.Rest)
+			option, err = decodeOpton[SquareOption](tmpOption.Rest["Square"])
 		case "Move":
 			option, err = decodeOpton[MoveOption](tmpOption.Rest)
 		case "Unit":

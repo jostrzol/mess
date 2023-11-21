@@ -26,7 +26,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
   const gridTemplateRows = `repeat(${board.height}, 1fr)`;
 
   const { pieceMap, isMyTurn } = useGameState();
-  const { choose, moveMap } = useOptions();
+  const { choose, moveMap, squareMap } = useOptions();
   const { dispatch, destinations, draggedPiece } = useBoard();
 
   return (
@@ -56,13 +56,11 @@ const BoardWrapped = ({ board }: BoardProps) => {
 
         const destination: Square = e.over.data.current!.square;
         const pieceMoves = moveMap[Square.toString(piece.square)] ?? {};
-        const options = pieceMoves[Square.toString(destination)] ?? [];
-        // TODO: choose option if options.length > 1
-        const option = options.pop();
+        const routeItem = pieceMoves[Square.toString(destination)];
 
-        if (option) {
-          choose(option.node, option.datum);
-        }
+        if (routeItem === undefined) throw new Error("invalid move")
+
+        choose(routeItem);
       }}
     >
       <div
@@ -85,6 +83,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
         >
           {BoardModel.MapSquares(board, (square, key) => {
             const piece = pieceMap[key];
+            const squareRouteItem = squareMap[key]
             return (
               <Tile
                 key={key}
@@ -92,9 +91,12 @@ const BoardWrapped = ({ board }: BoardProps) => {
                 isDot={destinations.includes(key)}
                 dotType={piece ? "danger" : "normal"}
                 dotScale={isMyTurn ? 1 : 0.6}
+                isRing={squareRouteItem !== undefined}
+                ringScale={isMyTurn ? 1 : 0.6}
                 onPointerOver={() =>
                   !draggedPiece && dispatch({ type: "Hovered", square: square })
                 }
+                onClick={() => squareRouteItem && choose(squareRouteItem)}
               >
                 {piece && <Piece piece={piece} />}
               </Tile>
