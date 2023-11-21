@@ -45,7 +45,7 @@ export const OptionIndicator = () => {
           circleColor={colors["danger-dim"]}
           onClick={reset}
         >
-          <div className="w-fit h-fit mt-[1px] antialiased hover:animate-spin-1/4 text-danger-dim">
+          <div className="w-fit h-fit mt-[1px] ml-[1px] antialiased hover:animate-spin-1/4 text-danger-dim">
             <MdClose />
           </div>
         </Indicator>

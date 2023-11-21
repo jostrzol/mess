@@ -1,7 +1,7 @@
-import { Window } from "@/components/window";
 import { useGameState } from "@/contexts/gameStateContext";
 import { useOptions } from "@/contexts/optionContext";
 import { useStaticData } from "@/contexts/staticDataContext";
+import { Popup } from "../popup";
 import { PieceIcon } from "./piece";
 
 export const PieceTypePopup = () => {
@@ -12,11 +12,7 @@ export const PieceTypePopup = () => {
     return null;
   }
   return (
-    <Window
-      title={selectedNode.message}
-      opaque
-      className="fixed bottom-0 m-4 max-w-[90%] z-50"
-    >
+    <Popup title={selectedNode.message} position="bottom">
       <div className="grid grid-flow-col auto-cols-fr gap-4 items-center">
         {selectedNode?.data.map((datum, i) => {
           const pieceType = datum.option;
@@ -27,7 +23,7 @@ export const PieceTypePopup = () => {
             >
               <div
                 className="w-12 h-12"
-                onClick={() => choose({node: selectedNode, datum})}
+                onClick={() => choose({ node: selectedNode, datum })}
               >
                 <PieceIcon
                   color={myColor}
@@ -41,6 +37,6 @@ export const PieceTypePopup = () => {
           );
         })}
       </div>
-    </Window>
+    </Popup>
   );
 };

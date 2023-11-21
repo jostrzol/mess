@@ -15,6 +15,7 @@ import { Route } from "@/model/game/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
 import {PieceTypePopup} from "@/components/game/pieceTypePopup";
+import {UnitPopup} from "@/components/game/unitPopup";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const gameApi = useMessApi(GameApi);
@@ -88,6 +89,7 @@ const GamePage = ({ params }: RoomPageParams) => {
           </div>
           <Board board={staticData.board} />
           <PieceTypePopup />
+          <UnitPopup />
           {status !== "Unresolved" && <ResolutionPopup status={status} />}
         </OptionProvider>
       </GameStateProvider>

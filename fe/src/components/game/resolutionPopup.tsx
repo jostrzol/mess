@@ -17,7 +17,7 @@ export const ResolutionPopup = ({
   }[status];
   const router = useRouter();
   return (
-    <Popup>
+    <Popup modal>
       <div className="px-4 flex flex-col items-center">
         {icon && (
           <Image alt={"resolution icon"} src={icon} height={32} width={32} />

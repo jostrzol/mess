@@ -57,14 +57,14 @@ export const OptionProvider = ({
   const [route, setRoute] = useState<Route>([]);
   const [current, setCurrent] = useState<OptionNode[]>([]);
   const [selected, setSelected] = useState<OptionNode | null>(null);
-  const [isResetable, setIsResetable] = useState<boolean>(false);
+  const [isChosenAuto, setIsChosenAuto] = useState<boolean>(false);
 
   const reset = useCallback(() => {
     setRoute([]);
     const newCurrent = isReady ? [root] : [];
     setCurrent(newCurrent);
     setSelected(newCurrent[0] ?? null);
-    setIsResetable(false);
+    setIsChosenAuto(false);
   }, [isReady, root]);
 
   useEffect(reset, [reset]);
@@ -77,7 +77,7 @@ export const OptionProvider = ({
       setRoute(newRoute);
       setCurrent(newCurrent);
       setSelected(newCurrent[0] ?? null);
-      setIsResetable(true);
+      setIsChosenAuto(true);
 
       if (newCurrent.length === 0) {
         onChooseFinish?.(newRoute);
@@ -89,11 +89,11 @@ export const OptionProvider = ({
   useEffect(() => {
     const routeItem = singleUnitWithSingleChild(current);
     if (routeItem) {
-      const lastCanReset = isResetable;
+      const lastCanReset = isChosenAuto;
       choose(routeItem);
-      setIsResetable(lastCanReset || false);
+      setIsChosenAuto(lastCanReset || false);
     }
-  }, [current, choose, isResetable]);
+  }, [current, choose, isChosenAuto]);
 
   const select = <T extends OptionNode>(node: T) => setSelected(node);
 
@@ -112,8 +112,8 @@ export const OptionProvider = ({
     selected?.type === "Square"
       ? selected.data.reduce((map, datum) => {
           const from = Square.toString(datum.option);
-          const routeItem = {node: selected, datum}
-          return { ...map, [from]: routeItem};
+          const routeItem = { node: selected, datum };
+          return { ...map, [from]: routeItem };
         }, {} as SquareMap)
       : {};
 
@@ -128,7 +128,7 @@ export const OptionProvider = ({
         squareMap,
         choose,
         select,
-        isResetable,
+        isResetable: isChosenAuto && current.length !== 0,
         reset,
       }}
     >
