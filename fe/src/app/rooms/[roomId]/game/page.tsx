@@ -2,10 +2,13 @@
 
 import { GameApi } from "@/api/game";
 import { GameChanged } from "@/api/schema/event";
-import { ConnectionStatus } from "@/components/connectionStatus";
 import { Board } from "@/components/game/board";
 import { OptionIndicator } from "@/components/game/optionIndicator";
+import { PieceTypePopup } from "@/components/game/pieceTypePopup";
 import { ResolutionPopup } from "@/components/game/resolutionPopup";
+import { UnitPopup } from "@/components/game/unitPopup";
+import { Main } from "@/components/main";
+import { Navbar, NavbarSpacer } from "@/components/navbar";
 import { GameStateProvider } from "@/contexts/gameStateContext";
 import { useMessApi } from "@/contexts/messApiContext";
 import { OptionProvider } from "@/contexts/optionContext";
@@ -14,8 +17,6 @@ import { StaticDataProvider } from "@/contexts/staticDataContext";
 import { Route } from "@/model/game/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
-import {PieceTypePopup} from "@/components/game/pieceTypePopup";
-import {UnitPopup} from "@/components/game/unitPopup";
 
 const GamePage = ({ params }: RoomPageParams) => {
   const gameApi = useMessApi(GameApi);
@@ -45,9 +46,7 @@ const GamePage = ({ params }: RoomPageParams) => {
   });
 
   const keyResolution = [...keyDynamic, "resolution"];
-  const {
-    data: resolution,
-  } = useQuery({
+  const { data: resolution } = useQuery({
     queryKey: keyResolution,
     queryFn: () => gameApi.getResolution(params.roomId),
   });
@@ -83,13 +82,14 @@ const GamePage = ({ params }: RoomPageParams) => {
           root={optionTree ?? null}
           onChooseFinish={(route) => mutate(route)}
         >
-          <ConnectionStatus />
-          <div className="pt-4">
+          <Navbar>
             <OptionIndicator />
-          </div>
-          <Board board={staticData.board} />
-          <PieceTypePopup />
-          <UnitPopup />
+          </Navbar>
+          <Main className="pb-4">
+            <Board board={staticData.board} />
+            <PieceTypePopup />
+            <UnitPopup />
+          </Main>
           {status !== "Unresolved" && <ResolutionPopup status={status} />}
         </OptionProvider>
       </GameStateProvider>

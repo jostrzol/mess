@@ -29,7 +29,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
       <head>
         <style>{style}</style>
       </head>
-      <body className="bg-background text-txt">
+      <body className="bg-background text-txt flex flex-col h-screen">
         <MessApiProvider baseUrl={config.backendUrl}>
           {children}
         </MessApiProvider>

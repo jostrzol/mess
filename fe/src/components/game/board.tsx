@@ -66,7 +66,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
       <div
         className={clsx(
           "grow",
-          "portrait:w-11/12",
+          "portrait:w-10/12",
           "flex",
           "flex-col",
           "justify-center",

@@ -1,11 +1,11 @@
 "use client";
 
 import { Main } from "@/components/main";
-import { Menu } from "@/components/menu";
 import { ThemeContext, useTheme } from "@/contexts/themeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./globals.css";
+import {Navbar} from "@/components/navbar";
 
 const RootTemplate = ({ children }: { children: React.ReactNode }) => {
   const themeContextValue = useTheme();
@@ -23,8 +23,7 @@ const RootTemplate = ({ children }: { children: React.ReactNode }) => {
   return (
     <ThemeContext.Provider value={themeContextValue}>
       <QueryClientProvider client={queryClient}>
-        <Menu />
-        <Main>{children}</Main>
+        {children}
         <ReactQueryDevtools />
       </QueryClientProvider>
     </ThemeContext.Provider>

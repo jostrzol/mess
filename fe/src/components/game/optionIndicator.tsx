@@ -18,7 +18,7 @@ export const OptionIndicator = () => {
     return (
       <Options>
         <Indicator label={"Opponent's turn"}>
-          <div className="w-fit h-fit mt-[1px] ml-[1px] text-primary hover:animate-spin-slow">
+          <div className="w-fit h-fit text-primary hover:animate-spin-slow">
             <MdHourglassEmpty />
           </div>
         </Indicator>
@@ -45,7 +45,7 @@ export const OptionIndicator = () => {
           circleColor={colors["danger-dim"]}
           onClick={reset}
         >
-          <div className="w-fit h-fit mt-[1px] ml-[1px] antialiased hover:animate-spin-1/4 text-danger-dim">
+          <div className="w-fit h-fit ml-[1px] antialiased hover:animate-spin-1/4 text-danger-dim">
             <MdClose />
           </div>
         </Indicator>

@@ -1,12 +1,20 @@
+import clsx from "clsx";
 import { ReactNode } from "react";
 
 type MainProps = {
   children: ReactNode;
+  className?: string;
 };
 
-export const Main = ({ children }: MainProps) => {
+export const Main = ({ children, className }: MainProps) => {
   return (
-    <main className="h-screen relative overflow-hidden flex flex-col justify-center items-center gap-4">
+    <main
+      className={clsx(
+        "grow relative overflow-hidden",
+        "flex flex-col justify-center items-center gap-4",
+        className,
+      )}
+    >
       {children}
     </main>
   );

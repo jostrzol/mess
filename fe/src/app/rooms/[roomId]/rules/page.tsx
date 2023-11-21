@@ -2,13 +2,11 @@
 
 import { RoomApi } from "@/api/room";
 import { RulesApi } from "@/api/rules";
-import { RoomChanged } from "@/api/schema/event";
-import { Back } from "@/components/back";
 import { Button } from "@/components/form/button";
 import { Input } from "@/components/form/input";
 import { UploadFile } from "@/components/form/uploadFile";
+import { Navbar } from "@/components/navbar";
 import { useMessApi } from "@/contexts/messApiContext";
-import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useTheme } from "@/contexts/themeContext";
 import { Editor } from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -43,8 +41,11 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
   const { mutate: save } = useMutation({
     mutationFn: () => roomApi.saveRules(roomId, filename, editor.getValue()),
     onSuccess: () => {
-      setIsDirty(false)
-      client.setQueryData(["room", roomId], {...room, rulesFilename: filename})
+      setIsDirty(false);
+      client.setQueryData(["room", roomId], {
+        ...room,
+        rulesFilename: filename,
+      });
     },
   });
 
@@ -63,50 +64,51 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
   }
 
   return (
-    <div className="w-full h-full pl-8">
-      <form
-        className="w-full flex p-2 gap-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          save();
-        }}
-      >
-        <Back />
-        <Input
-          required
-          className="font-mono placeholder:font-sans grow"
-          placeholder="Enter filename"
-          spellCheck={false}
-          value={filename}
-          onChange={(e) => setFilename(e.currentTarget.value)}
-        />
-        <UploadFile
-          onChange={async (e) => {
-            const file = e.currentTarget.files?.[0];
-            if (file) {
-              setFilename(file.name)
-              editor.setValue(await file.text());
-              save()
-            }
+    <>
+      <Navbar>
+        <form
+          className="w-full flex p-2 gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save();
           }}
         >
-          Upload rules
-        </UploadFile>
-        <Button
-          type="button"
-          onClick={() =>
-            editor?.getAction("editor.action.formatDocument").run()
-          }
-        >
-          Format
-        </Button>
-        <Button
-          type="submit"
-          disabled={editor === null || filename === "" || !isDirty}
-        >
-          Save
-        </Button>
-      </form>
+          <Input
+            required
+            className="font-mono placeholder:font-sans grow"
+            placeholder="Enter filename"
+            spellCheck={false}
+            value={filename}
+            onChange={(e) => setFilename(e.currentTarget.value)}
+          />
+          <UploadFile
+            onChange={async (e) => {
+              const file = e.currentTarget.files?.[0];
+              if (file) {
+                setFilename(file.name);
+                editor.setValue(await file.text());
+                save();
+              }
+            }}
+          >
+            Upload rules
+          </UploadFile>
+          <Button
+            type="button"
+            onClick={() =>
+              editor?.getAction("editor.action.formatDocument").run()
+            }
+          >
+            Format
+          </Button>
+          <Button
+            type="submit"
+            disabled={editor === null || filename === "" || !isDirty}
+          >
+            Save
+          </Button>
+        </form>
+      </Navbar>
       <Editor
         defaultLanguage="hcl"
         theme={theme.editor}
@@ -125,7 +127,7 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
           });
         }}
       />
-    </div>
+    </>
   );
 };
 

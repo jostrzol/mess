@@ -59,10 +59,10 @@ export const Piece = ({ piece }: PieceProps) => {
       <div
         className={clsx(
           "transition-transform",
-          (canMove || isDragging) && "hover:scale-110",
+          (canMove || isDragging) && "hover:scale-125",
         )}
       >
-        <PieceIcon representation={representation} color={piece.color} />
+        <PieceIcon className="p-1" representation={representation} color={piece.color} />
       </div>
     </div>
   );
@@ -71,20 +71,21 @@ export const Piece = ({ piece }: PieceProps) => {
 export const PieceIcon = ({
   representation,
   color,
+  className,
 }: {
   representation: Representation;
   color: Color;
+  className?: string,
 }) => {
   const { assetUrl } = useStaticData();
 
   return representation.icon === undefined ? (
-    <div>
       <svg
         viewBox="0 0 100 100"
         className={clsx(
-          "p-3",
           color == "white" ? "player-white" : "player-black",
           "text-player",
+          className,
         )}
         style={{
           font: "bold 80px Century Gothic, Arial",
@@ -105,12 +106,12 @@ export const PieceIcon = ({
           {representation.symbol}
         </text>
       </svg>
-    </div>
   ) : (
     <ReactSVG
       className={clsx(
         color == "white" ? "player-white" : "player-black",
         "transition-transform",
+        className,
       )}
       src={assetUrl(representation.icon)}
     />

@@ -4,6 +4,7 @@ import { RoomApi } from "@/api/room";
 import { Button } from "@/components/form/button";
 import { Input } from "@/components/form/input";
 import { Logo } from "@/components/logo";
+import { Main } from "@/components/main";
 import { useMessApi } from "@/contexts/messApiContext";
 import { useMutation } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -20,41 +21,49 @@ const RootPage = () => {
     onSuccess: (room) => router.push(`/rooms/${room.id}`),
   });
   return (
-    <div
-      className={clsx(
-        "h-full",
-        "flex",
-        "max-w-lg",
-        "flex-col",
-        "items-stretch",
-        "gap-4",
-      )}
-    >
+    <Main>
       <div
-        className={clsx("mx-auto", "m-4", "flex-grow", "flex", "items-center")}
+        className={clsx(
+          "h-full",
+          "flex",
+          "max-w-lg",
+          "flex-col",
+          "items-stretch",
+          "gap-4",
+        )}
       >
-        <Logo size={180} />
-      </div>
-      <Button disabled={isPending} onClick={() => mutate()}>
-        New room
-      </Button>
-      <form
-        className={clsx("flex", "gap-4")}
-        onSubmit={(e) => {
-          e.preventDefault();
-          router.push(`/rooms/${roomId}`);
-        }}
-      >
-        <Input
-          onChange={(e) => setRoomId(e.target.value)}
-          placeholder="Room id"
-        />
-        <Button disabled={isPending || roomId === ""} type="submit">
-          Join room
+        <div
+          className={clsx(
+            "mx-auto",
+            "m-4",
+            "flex-grow",
+            "flex",
+            "items-center",
+          )}
+        >
+          <Logo size={180} />
+        </div>
+        <Button disabled={isPending} onClick={() => mutate()}>
+          New room
         </Button>
-      </form>
-      <div className={clsx("flex-grow", "h-36", "m-4")} />
-    </div>
+        <form
+          className={clsx("flex", "gap-4")}
+          onSubmit={(e) => {
+            e.preventDefault();
+            router.push(`/rooms/${roomId}`);
+          }}
+        >
+          <Input
+            onChange={(e) => setRoomId(e.target.value)}
+            placeholder="Room id"
+          />
+          <Button disabled={isPending || roomId === ""} type="submit">
+            Join room
+          </Button>
+        </form>
+        <div className={clsx("flex-grow", "h-36", "m-4")} />
+      </div>
+    </Main>
   );
 };
 
