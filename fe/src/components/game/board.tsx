@@ -58,7 +58,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
         const pieceMoves = moveMap[Square.toString(piece.square)] ?? {};
         const routeItem = pieceMoves[Square.toString(destination)];
 
-        if (routeItem === undefined) throw new Error("invalid move")
+        if (routeItem === undefined) return
 
         choose(routeItem);
       }}

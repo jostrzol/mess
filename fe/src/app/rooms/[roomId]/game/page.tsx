@@ -12,7 +12,6 @@ import { OptionProvider } from "@/contexts/optionContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { StaticDataProvider } from "@/contexts/staticDataContext";
 import { Route } from "@/model/game/options";
-import { Resolution } from "@/model/game/resolution";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RoomPageParams } from "../layout";
 import {PieceTypePopup} from "@/components/game/pieceTypePopup";

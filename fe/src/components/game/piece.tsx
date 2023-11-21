@@ -82,6 +82,7 @@ export const PieceIcon = ({
       <svg
         viewBox="0 0 100 100"
         className={clsx(
+          "p-3",
           color == "white" ? "player-white" : "player-black",
           "text-player",
         )}

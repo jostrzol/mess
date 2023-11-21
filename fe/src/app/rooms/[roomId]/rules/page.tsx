@@ -41,8 +41,11 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
     mutationFn: (src: string) => rulesApi.format(src),
   });
   const { mutate: save } = useMutation({
-    mutationFn: (src: string) => roomApi.saveRules(roomId, filename, src),
-    onSuccess: () => setIsDirty(false),
+    mutationFn: () => roomApi.saveRules(roomId, filename, editor.getValue()),
+    onSuccess: () => {
+      setIsDirty(false)
+      client.setQueryData(["room", roomId], {...room, rulesFilename: filename})
+    },
   });
 
   useEffect(() => {
@@ -51,13 +54,6 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
       setIsDirty(false);
     }
   }, [room]);
-
-  useRoomWebsocket<RoomChanged>({
-    type: "RoomChanged",
-    onEvent: () => {
-      client.invalidateQueries({ queryKey: ["room", roomId] });
-    },
-  });
 
   if (!isSuccess) {
     return null;
@@ -72,7 +68,7 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
         className="w-full flex p-2 gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          save(editor.getValue());
+          save();
         }}
       >
         <Back />
@@ -88,8 +84,9 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
           onChange={async (e) => {
             const file = e.currentTarget.files?.[0];
             if (file) {
+              setFilename(file.name)
               editor.setValue(await file.text());
-              save(file.name)
+              save()
             }
           }}
         >
