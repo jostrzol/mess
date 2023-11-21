@@ -88,8 +88,8 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
           onChange={async (e) => {
             const file = e.currentTarget.files?.[0];
             if (file) {
-              setFilename(file.name);
               editor.setValue(await file.text());
+              save(file.name)
             }
           }}
         >
