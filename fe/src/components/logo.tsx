@@ -11,7 +11,7 @@ export const Logo = ({ size, className }: LogoProps) => {
   const router = useRouter();
   return (
     <Image
-      src="./favicon.svg"
+      src="/favicon.svg"
       alt="logo"
       width={size}
       height={size}

@@ -24,7 +24,7 @@ board {
 
 piece_types {
   piece_type "king" {
-    representation {
+    presentation {
       white {
         symbol = "♔"
         icon   = "/piece_types/king.svg"
@@ -44,7 +44,7 @@ piece_types {
   }
 
   piece_type "queen" {
-    representation {
+    presentation {
       white {
         symbol = "♕"
         icon   = "/piece_types/queen.svg"
@@ -63,7 +63,7 @@ piece_types {
   }
 
   piece_type "rook" {
-    representation {
+    presentation {
       white {
         symbol = "♖"
         icon   = "/piece_types/rook.svg"
@@ -79,7 +79,7 @@ piece_types {
   }
 
   piece_type "knight" {
-    representation {
+    presentation {
       white {
         symbol = "♘"
         icon   = "/piece_types/knight.svg"
@@ -95,7 +95,7 @@ piece_types {
   }
 
   piece_type "bishop" {
-    representation {
+    presentation {
       white {
         symbol = "♗"
         icon   = "/piece_types/bishop.svg"
@@ -111,7 +111,7 @@ piece_types {
   }
 
   piece_type "pawn" {
-    representation {
+    presentation {
       white {
         symbol = "♙"
         icon   = "/piece_types/pawn.svg"

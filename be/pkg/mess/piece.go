@@ -37,11 +37,11 @@ func (p *Piece) Type() *PieceType {
 	return p.ty
 }
 
-func (p *Piece) Representation() Representation {
+func (p *Piece) Presentation() Presentation {
 	if p.owner == nil {
-		return Representation{Symbol: rune('?')}
+		return Presentation{Symbol: rune('?')}
 	}
-	return p.ty.Representation(p.Color())
+	return p.ty.Presentation(p.Color())
 }
 
 func (p *Piece) Owner() *Player {

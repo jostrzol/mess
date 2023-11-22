@@ -24,7 +24,7 @@ board {
 
 piece_types {
   piece_type "piece" {
-    representation {
+    presentation {
       white {
         symbol = "○"
         icon = "/piece_types/disk.svg"

@@ -82,29 +82,31 @@ func piecesFromDomain(pieces []*mess.Piece) []Piece {
 }
 
 type PieceType struct {
-	Name           string
-	Representation map[string]Representation
+	Name         string
+	Presentation map[string]Presentation
 }
 
 func pieceTypeFromDomain(pieceType *mess.PieceType) PieceType {
 	return PieceType{
 		Name: pieceType.Name(),
-		Representation: map[string]Representation{
-			color.Black.String(): representationFromDomain(pieceType.Representation(color.Black)),
-			color.White.String(): representationFromDomain(pieceType.Representation(color.White)),
+		Presentation: map[string]Presentation{
+			color.Black.String(): presentationFromDomain(pieceType.Presentation(color.Black)),
+			color.White.String(): presentationFromDomain(pieceType.Presentation(color.White)),
 		},
 	}
 }
 
-type Representation struct {
+type Presentation struct {
 	Symbol string
 	Icon   string `json:",omitempty"`
+	Rotate bool
 }
 
-func representationFromDomain(representation mess.Representation) Representation {
-	return Representation{
-		Symbol: string(representation.Symbol),
-		Icon:   string(representation.Icon),
+func presentationFromDomain(presentation mess.Presentation) Presentation {
+	return Presentation{
+		Symbol: string(presentation.Symbol),
+		Icon:   string(presentation.Icon),
+		Rotate: presentation.Rotate,
 	}
 }
 

@@ -8,20 +8,21 @@ import (
 )
 
 type PieceType struct {
-	name           string
-	representation map[color.Color]Representation
-	motions        chainMotions
+	name         string
+	presentation map[color.Color]Presentation
+	motions      chainMotions
 }
 
-type Representation struct {
+type Presentation struct {
 	Symbol rune
 	Icon   AssetKey
+	Rotate bool
 }
 
 func NewPieceType(name string) *PieceType {
 	return &PieceType{
 		name: name,
-		representation: map[color.Color]Representation{
+		presentation: map[color.Color]Presentation{
 			color.Black: {Symbol: defaultSymbol(color.Black, name)},
 			color.White: {Symbol: defaultSymbol(color.White, name)},
 		},
@@ -33,15 +34,15 @@ func (t *PieceType) Name() string {
 	return t.name
 }
 
-func (t *PieceType) SetRepresentation(color color.Color, representation Representation) {
-	if representation.Symbol == 0 {
-		representation.Symbol = defaultSymbol(color, t.Name())
+func (t *PieceType) SetPresentation(color color.Color, presentation Presentation) {
+	if presentation.Symbol == 0 {
+		presentation.Symbol = defaultSymbol(color, t.Name())
 	}
-	t.representation[color] = representation
+	t.presentation[color] = presentation
 }
 
-func (t *PieceType) Representation(color color.Color) Representation {
-	return t.representation[color]
+func (t *PieceType) Presentation(color color.Color) Presentation {
+	return t.presentation[color]
 }
 
 func defaultSymbol(col color.Color, name string) rune {

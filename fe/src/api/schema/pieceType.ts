@@ -1,35 +1,37 @@
 import { Color } from "@/model/game/color";
-import { PieceType, Representation } from "@/model/game/pieceType";
+import { PieceType, Presentation } from "@/model/game/pieceType";
 import { ColorDto } from "./color";
 
 export interface PieceTypeDto {
   Name: string;
-  Representation: Record<ColorDto, RepresentationDto>;
+  Presentation: Record<ColorDto, PresentationDto>;
 }
 
-export interface RepresentationDto {
+export interface PresentationDto {
   Symbol: string;
   Icon?: string;
+  Rotate: boolean;
 }
 
 export const pieceTypeToModel = (pieceType: PieceTypeDto): PieceType => {
   return {
     name: pieceType.Name,
-    representation: Object.fromEntries(
-      Object.entries(pieceType.Representation).map(([color, repr]) => [
+    presentation: Object.fromEntries(
+      Object.entries(pieceType.Presentation).map(([color, presentation]) => [
         color,
-        representationToModel(repr),
+        presentationToModel(presentation),
       ]),
-    ) as Record<Color, Representation>,
+    ) as Record<Color, Presentation>,
   };
 };
 
-const representationToModel = (
-  representation: RepresentationDto,
-): Representation => {
+const presentationToModel = (
+  presentation: PresentationDto,
+): Presentation => {
   return {
-    symbol: representation.Symbol,
-    icon: representation.Icon,
+    symbol: presentation.Symbol,
+    icon: presentation.Icon,
+    rotate: presentation.Rotate,
   };
 };
 

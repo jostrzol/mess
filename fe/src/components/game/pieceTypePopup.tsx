@@ -27,7 +27,7 @@ export const PieceTypePopup = () => {
               >
                 <PieceIcon
                   color={myColor}
-                  representation={pieceType.representation[myColor]}
+                  presentation={pieceType.presentation[myColor]}
                 />
               </div>
               <p className="text-xs text-center select-none">

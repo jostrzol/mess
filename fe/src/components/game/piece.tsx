@@ -4,7 +4,7 @@ import { useOptions } from "@/contexts/optionContext";
 import { useStaticData } from "@/contexts/staticDataContext";
 import { Color } from "@/model/game/color";
 import * as model from "@/model/game/piece";
-import { Representation } from "@/model/game/pieceType";
+import { Presentation } from "@/model/game/pieceType";
 import { Square } from "@/model/game/square";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -26,7 +26,7 @@ export const Piece = ({ piece }: PieceProps) => {
   const canMove = isMyTurn && moves !== undefined;
   const canDrop =
     hoveredSquare && Square.toString(hoveredSquare) in (moves ?? {});
-  const representation = piece.type.representation[piece.color];
+  const presentation = piece.type.presentation[piece.color];
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -64,7 +64,7 @@ export const Piece = ({ piece }: PieceProps) => {
       >
         <PieceIcon
           className="p-1"
-          representation={representation}
+          presentation={presentation}
           color={piece.color}
         />
       </div>
@@ -73,17 +73,17 @@ export const Piece = ({ piece }: PieceProps) => {
 };
 
 export const PieceIcon = ({
-  representation,
+  presentation,
   color,
   className,
 }: {
-  representation: Representation;
+  presentation: Presentation;
   color: Color;
   className?: string;
 }) => {
   const { assetUrl } = useStaticData();
 
-  return representation.icon === undefined ? (
+  const icon = presentation.icon === undefined ? (
     <svg
       viewBox="0 0 100 100"
       className={clsx(
@@ -107,7 +107,7 @@ export const PieceIcon = ({
         dominantBaseline="central"
         style={{ fontSize: "80px" }}
       >
-        {representation.symbol}
+        {presentation.symbol}
       </text>
     </svg>
   ) : (
@@ -117,7 +117,11 @@ export const PieceIcon = ({
         "transition-transform",
         className,
       )}
-      src={assetUrl(representation.icon)}
+      src={assetUrl(presentation.icon)}
     />
   );
+
+  return <div className={clsx(presentation.rotate && "rotate-180")}>
+    {icon}
+  </div>
 };

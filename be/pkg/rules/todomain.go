@@ -85,39 +85,44 @@ func decodePieceType(controller *controller, pieceTypeRules pieceTypeRules) (*me
 			},
 		)
 	}
-	if pieceTypeRules.Representation != nil {
-		if pieceTypeRules.Representation.Black != nil {
-			representation, err := decodeRepresentation(pieceTypeRules.Representation.Black)
+	presentation := pieceTypeRules.Presentation
+	if presentation != nil {
+		if presentation.Black != nil {
+			presentation, err := decodePresentation(presentation.Black)
 			if err != nil {
-				return nil, fmt.Errorf("decoding representation: %w", err)
+				return nil, fmt.Errorf("decoding presentation: %w", err)
 			}
-			pieceType.SetRepresentation(color.Black, representation)
+			pieceType.SetPresentation(color.Black, presentation)
 		}
-		if pieceTypeRules.Representation.White != nil {
-			representation, err := decodeRepresentation(pieceTypeRules.Representation.White)
+		if presentation.White != nil {
+			presentation, err := decodePresentation(presentation.White)
 			if err != nil {
-				return nil, fmt.Errorf("decoding representation: %w", err)
+				return nil, fmt.Errorf("decoding presentation: %w", err)
 			}
-			pieceType.SetRepresentation(color.White, representation)
+			pieceType.SetPresentation(color.White, presentation)
 		}
 	}
 	return pieceType, nil
 }
 
-func decodeRepresentation(representation *representation) (mess.Representation, error) {
+func decodePresentation(presentation *presentation) (mess.Presentation, error) {
 	var symbol rune
 	var icon mess.AssetKey
+	var rotate bool
 	var err error
-	if representation.Symbol != nil {
-		symbol, err = decodeSymbol(*representation.Symbol)
+	if presentation.Symbol != nil {
+		symbol, err = decodeSymbol(*presentation.Symbol)
 		if err != nil {
-			return mess.Representation{}, fmt.Errorf("decoding symbol: %w", err)
+			return mess.Presentation{}, fmt.Errorf("decoding symbol: %w", err)
 		}
 	}
-	if representation.Icon != nil {
-		icon = mess.NewAssetKey(*representation.Icon)
+	if presentation.Icon != nil {
+		icon = mess.NewAssetKey(*presentation.Icon)
 	}
-	return mess.Representation{Symbol: symbol, Icon: icon}, err
+	if presentation.Rotate != nil {
+		rotate = *presentation.Rotate
+	}
+	return mess.Presentation{Symbol: symbol, Icon: icon, Rotate: rotate}, err
 }
 
 func decodeSymbol(symbol string) (rune, error) {

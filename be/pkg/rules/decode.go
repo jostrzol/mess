@@ -33,19 +33,20 @@ type pieceTypesRules struct {
 }
 
 type pieceTypeRules struct {
-	Name           string           `hcl:"piece_name,label"`
-	Representation *representations `hcl:"representation,block"`
-	Motions        []motionRules    `hcl:"motion,block"`
+	Name         string         `hcl:"piece_name,label"`
+	Presentation *presentations `hcl:"presentation,block"`
+	Motions      []motionRules  `hcl:"motion,block"`
 }
 
-type representations struct {
-	White *representation `hcl:"white,block"`
-	Black *representation `hcl:"black,block"`
+type presentations struct {
+	White *presentation `hcl:"white,block"`
+	Black *presentation `hcl:"black,block"`
 }
 
-type representation struct {
+type presentation struct {
 	Symbol *string `hcl:"symbol"`
 	Icon   *string `hcl:"icon"`
+	Rotate *bool   `hcl:"rotate"`
 }
 
 type motionRules struct {

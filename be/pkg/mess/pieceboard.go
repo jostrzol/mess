@@ -32,7 +32,7 @@ func (b *PieceBoard) PrettyString() string {
 		if p == nil {
 			return rune(' ')
 		}
-		return p.Representation().Symbol
+		return p.Presentation().Symbol
 	})
 }
 
