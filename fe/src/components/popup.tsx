@@ -37,7 +37,8 @@ export const Popup = ({
           "fixed",
           "z-50",
           position === "bottom" && "bottom-0 m-4 max-w-[90%]",
-          position === "middle" && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          position === "middle" &&
+            "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
           className,
         )}
       >

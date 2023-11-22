@@ -1,6 +1,6 @@
+import { Color } from "@/model/game/color";
 import { PieceType, Representation } from "@/model/game/pieceType";
 import { ColorDto } from "./color";
-import {Color} from "@/model/game/color";
 
 export interface PieceTypeDto {
   Name: string;
@@ -16,9 +16,10 @@ export const pieceTypeToModel = (pieceType: PieceTypeDto): PieceType => {
   return {
     name: pieceType.Name,
     representation: Object.fromEntries(
-      Object.entries(pieceType.Representation).map(
-        ([color, repr]) => [color, representationToModel(repr)],
-      ),
+      Object.entries(pieceType.Representation).map(([color, repr]) => [
+        color,
+        representationToModel(repr),
+      ]),
     ) as Record<Color, Representation>,
   };
 };

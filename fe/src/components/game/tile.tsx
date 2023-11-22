@@ -73,13 +73,15 @@ export const Tile = ({
             transform: `translate(-50%, -50%) scale(${ringScaleEffective}) `,
           }}
         >
-          <div className={clsx(
-            "w-full h-full",
-            "rounded-full",
-            "border-8 border-success-strong/90",
-            "transition-transform hover:scale-125",
-            "cursor-pointer",
-          )} />
+          <div
+            className={clsx(
+              "w-full h-full",
+              "rounded-full",
+              "border-8 border-success-strong/90",
+              "transition-transform hover:scale-125",
+              "cursor-pointer",
+            )}
+          />
         </div>
       </div>
       <div className="w-full h-full">{children}</div>

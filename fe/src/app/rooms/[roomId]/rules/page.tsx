@@ -67,7 +67,7 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
     <>
       <Navbar>
         <form
-          className="w-full flex p-2 gap-4"
+          className="w-full flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -91,7 +91,7 @@ const RoomPage = ({ params: { roomId } }: RoomPageParams) => {
               }
             }}
           >
-            Upload rules
+            Upload
           </UploadFile>
           <Button
             type="button"

@@ -62,7 +62,11 @@ export const Piece = ({ piece }: PieceProps) => {
           (canMove || isDragging) && "hover:scale-125",
         )}
       >
-        <PieceIcon className="p-1" representation={representation} color={piece.color} />
+        <PieceIcon
+          className="p-1"
+          representation={representation}
+          color={piece.color}
+        />
       </div>
     </div>
   );
@@ -75,37 +79,37 @@ export const PieceIcon = ({
 }: {
   representation: Representation;
   color: Color;
-  className?: string,
+  className?: string;
 }) => {
   const { assetUrl } = useStaticData();
 
   return representation.icon === undefined ? (
-      <svg
-        viewBox="0 0 100 100"
-        className={clsx(
-          color == "white" ? "player-white" : "player-black",
-          "text-player",
-          className,
-        )}
-        style={{
-          font: "bold 80px Century Gothic, Arial",
-          fill: "var(--player-color)",
-          stroke: "var(--opponent-color)",
-          strokeWidth: 4,
-          strokeLinejoin: "round",
-          strokeLinecap: "round",
-        }}
+    <svg
+      viewBox="0 0 100 100"
+      className={clsx(
+        color == "white" ? "player-white" : "player-black",
+        "text-player",
+        className,
+      )}
+      style={{
+        font: "bold 80px Century Gothic, Arial",
+        fill: "var(--player-color)",
+        stroke: "var(--opponent-color)",
+        strokeWidth: 4,
+        strokeLinejoin: "round",
+        strokeLinecap: "round",
+      }}
+    >
+      <text
+        y="50%"
+        x="50%"
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{ fontSize: "80px" }}
       >
-        <text
-          y="50%"
-          x="50%"
-          textAnchor="middle"
-          dominantBaseline="central"
-          style={{ fontSize: "80px" }}
-        >
-          {representation.symbol}
-        </text>
-      </svg>
+        {representation.symbol}
+      </text>
+    </svg>
   ) : (
     <ReactSVG
       className={clsx(

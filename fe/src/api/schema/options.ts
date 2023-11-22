@@ -1,8 +1,8 @@
 import { OptionNode, Route, RouteItem, Unit } from "@/model/game/options";
+import { Square } from "@/model/game/square";
 import { MoveDto, moveToDto, moveToModel } from "./move";
 import { PieceTypeDto, pieceTypeToDto, pieceTypeToModel } from "./pieceType";
 import { SquareDto, squareToDto, squareToModel } from "./square";
-import {Square} from "@/model/game/square";
 
 export type OptionNodeDto =
   | PieceTypeOptionNodeDto
@@ -75,7 +75,7 @@ const routeItemToDto = <T extends OptionNode>({
 }: RouteItem<T>): RouteItemDto => {
   const optionConverter: any = {
     PieceType: pieceTypeToDto,
-    Square: (square: Square) => ({Square: squareToDto(square)}),
+    Square: (square: Square) => ({ Square: squareToDto(square) }),
     Move: moveToDto,
     Unit: (_: Unit): UnitDto => ({}),
   }[node.type];

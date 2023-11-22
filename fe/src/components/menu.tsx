@@ -2,117 +2,51 @@
 
 import { themes } from "@/model/theme";
 import clsx from "clsx";
-import { ReactNode, useContext, useState } from "react";
-import { MdOutlineArrowForwardIos } from "react-icons/md";
+import { ReactNode, useContext } from "react";
+import { MdOutlineArrowBackIos } from "react-icons/md";
 import { ThemeContext } from "../contexts/themeContext";
 import { Logo } from "./logo";
 
-export const Menu = () => {
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const { theme: selectedTheme, setTheme } = useContext(ThemeContext);
+export const Menu = ({
+  open = true,
+  onClose,
+  children,
+}: {
+  open?: boolean;
+  onClose?: () => void;
+  children?: ReactNode;
+}) => {
   return (
-    <aside
-      className={clsx(
-        "flex",
-        "justify-start",
-        "sticky",
-        "max-w-fit",
-        "top-0",
-        "left-0",
-        "h-screen",
-        "-mb-[100vh]",
-        "z-40",
-      )}
-    >
-      <div
+    <>
+      <aside
         className={clsx(
-          "transition-[width]",
-          "duration-500",
-          isMenuExpanded && "w-96",
-          "w-0",
+          "fixed top-0 left-0",
+          "max-w-full w-96 h-screen",
           "flex",
-          "flex-col",
+          "z-50",
+          "transition-transform duration-500",
+          !open && "-translate-x-full",
           "overflow-hidden",
           "bg-background/80",
-          "whitespace-nowrap",
+          "border-r-2 border-dashed",
         )}
       >
-        <div className="m-5 flex flex-col gap-4">
-          <section
-            className={clsx(
-              "flex",
-              "m-2",
-              "py-2",
-              "px-3",
-              "bg-primary-dim/20",
-              "rounded-2xl",
-            )}
-          >
-            <Logo size={50} className={clsx("min-w-[50px]", "mr-2")} />
-            <h1>mess</h1>
-          </section>
-          <MenuSection title="Theme">
-            {Object.values(themes).map((theme) => {
-              const isSelected = theme.name == selectedTheme.name;
-              return (
-                <button
-                  onClick={() => setTheme(theme)}
-                  className={clsx(
-                    "mb-2",
-                    "bg-background",
-                    "border-primary",
-                    "max-w-fit",
-                  )}
-                  key={theme.name}
-                >
-                  <span
-                    className={clsx(
-                      "w-3",
-                      "h-3",
-                      "inline-block",
-                      "mr-2",
-                      "rounded-full",
-                      "border-2",
-                      "translate-y-[2px]",
-                      "transition-transform",
-                      isSelected && "scale-150",
-                    )}
-                    style={{
-                      backgroundColor: theme.colors.background,
-                      borderColor: theme.colors.primary,
-                    }}
-                  />
-                  <span className={clsx(isSelected || "text-txt-dim")}>
-                    {theme.name[0].toUpperCase() + theme.name.slice(1).toLowerCase()}
-                  </span>
-                </button>
-              );
-            })}
-          </MenuSection>
+        <div className="grow my-4 mr-2 ml-4 flex flex-col gap-4">
+          <MenuLogo />
+          {children}
+          <ThemeMenuSection />
         </div>
-      </div>
-      <button
-        className={clsx(
-          "flex-initial",
-          "shrink-0",
-          "p-2",
-          "h-full",
-          "bg-background/80",
-          "group",
-          "border-r-2",
-          "border-txt-dim",
-          "border-dashed",
-          "outline-none",
-        )}
-        onClick={() => setIsMenuExpanded(!isMenuExpanded)}
-      >
-        <div
+        <button
           className={clsx(
-            "transition-transform",
-            "duration-300",
-            "delay-300",
-            isMenuExpanded && "rotate-180",
+            "flex-initial",
+            "shrink-0",
+            "p-2",
+            "h-full",
+            "bg-background/80",
+            "group",
+            "outline-none",
           )}
+          onClick={() => onClose?.()}
         >
           <div
             className={clsx(
@@ -121,12 +55,81 @@ export const Menu = () => {
               "group-hover:animate-ping-1",
             )}
           >
-            <MdOutlineArrowForwardIos />
+            <MdOutlineArrowBackIos />
           </div>
-          <MdOutlineArrowForwardIos />
-        </div>
-      </button>
-    </aside>
+          <MdOutlineArrowBackIos />
+        </button>
+      </aside>
+      <div
+        className={clsx(
+          "fixed z-40 top-0 left-0 h-screen w-screen",
+          "bg-background/50",
+          "transition-opacity duration-500",
+          !open && ["opacity-0", "pointer-events-none"],
+        )}
+        onClick={() => onClose?.()}
+      />
+    </>
+  );
+};
+
+const MenuLogo = () => (
+  <section
+    className={clsx(
+      "flex",
+      "m-2",
+      "py-2",
+      "px-3",
+      "bg-primary-dim/20",
+      "rounded-2xl",
+    )}
+  >
+    <Logo size={50} className={clsx("min-w-[50px]", "mr-2")} />
+    <h1>mess</h1>
+  </section>
+);
+
+const ThemeMenuSection = () => {
+  const { theme: selectedTheme, setTheme } = useContext(ThemeContext);
+  return (
+    <MenuSection title="Theme">
+      {Object.values(themes).map((theme) => {
+        const isSelected = theme.name == selectedTheme.name;
+        return (
+          <button
+            onClick={() => setTheme(theme)}
+            className={clsx(
+              "mb-2",
+              "bg-background",
+              "border-primary",
+              "max-w-fit",
+            )}
+            key={theme.name}
+          >
+            <span
+              className={clsx(
+                "w-3",
+                "h-3",
+                "inline-block",
+                "mr-2",
+                "rounded-full",
+                "border-2",
+                "translate-y-[2px]",
+                "transition-transform",
+                isSelected && "scale-150",
+              )}
+              style={{
+                backgroundColor: theme.colors.background,
+                borderColor: theme.colors.primary,
+              }}
+            />
+            <span className={clsx(isSelected || "text-txt-dim")}>
+              {theme.name[0].toUpperCase() + theme.name.slice(1).toLowerCase()}
+            </span>
+          </button>
+        );
+      })}
+    </MenuSection>
   );
 };
 

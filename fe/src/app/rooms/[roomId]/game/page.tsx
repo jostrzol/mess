@@ -8,7 +8,7 @@ import { PieceTypePopup } from "@/components/game/pieceTypePopup";
 import { ResolutionPopup } from "@/components/game/resolutionPopup";
 import { UnitPopup } from "@/components/game/unitPopup";
 import { Main } from "@/components/main";
-import { Navbar, NavbarSpacer } from "@/components/navbar";
+import { Navbar } from "@/components/navbar";
 import { GameStateProvider } from "@/contexts/gameStateContext";
 import { useMessApi } from "@/contexts/messApiContext";
 import { OptionProvider } from "@/contexts/optionContext";

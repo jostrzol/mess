@@ -1,13 +1,13 @@
 import clsx from "clsx";
 import { InputHTMLAttributes } from "react";
-import {MdUploadFile} from "react-icons/md";
+import { MdUploadFile } from "react-icons/md";
 
 export const UploadFile = ({
   className,
   children,
   noIcon = false,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & {noIcon?: boolean}) => {
+}: InputHTMLAttributes<HTMLInputElement> & { noIcon?: boolean }) => {
   const { disabled } = props;
   return (
     <label

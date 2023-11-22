@@ -58,7 +58,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
         const pieceMoves = moveMap[Square.toString(piece.square)] ?? {};
         const routeItem = pieceMoves[Square.toString(destination)];
 
-        if (routeItem === undefined) return
+        if (routeItem === undefined) return;
 
         choose(routeItem);
       }}
@@ -72,7 +72,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
           "justify-center",
           draggedPiece && ["cursor-none", "[&_*]:cursor-none"],
         )}
-        style={{aspectRatio: `${board.width} / ${board.height}`}}
+        style={{ aspectRatio: `${board.width} / ${board.height}` }}
       >
         <div
           className={clsx("grid", "grid-flow-row")}
@@ -83,7 +83,7 @@ const BoardWrapped = ({ board }: BoardProps) => {
         >
           {BoardModel.MapSquares(board, (square, key) => {
             const piece = pieceMap[key];
-            const squareRouteItem = squareMap[key]
+            const squareRouteItem = squareMap[key];
             return (
               <Tile
                 key={key}

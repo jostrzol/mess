@@ -11,8 +11,15 @@ export const OptionIndicator = () => {
     theme: { colors },
   } = useTheme();
   const { isMyTurn } = useGameState();
-  const { isReady, route, currentNodes, selectedNode, select, isResetable, reset } =
-    useOptions();
+  const {
+    isReady,
+    route,
+    currentNodes,
+    selectedNode,
+    select,
+    isResetable,
+    reset,
+  } = useOptions();
 
   if (!isMyTurn) {
     return (

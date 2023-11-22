@@ -4,13 +4,13 @@ import { RoomApi } from "@/api/room";
 import { RoomChanged } from "@/api/schema/event";
 import { Button } from "@/components/form/button";
 import { Main } from "@/components/main";
+import { Navbar, NavbarSpacer } from "@/components/navbar";
 import { useMessApi } from "@/contexts/messApiContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { MdContentCopy } from "react-icons/md";
 import { RoomPageParams } from "./layout";
-import {Navbar, NavbarSpacer} from "@/components/navbar";
 
 const RoomPage = ({ params }: RoomPageParams) => {
   const router = useRouter();

@@ -1,8 +1,8 @@
 import { MessApi } from "@/api/messApi";
 import { StaticData } from "@/model/game/gameStaticData";
+import { UUID } from "crypto";
 import { ReactNode, createContext, useContext } from "react";
 import { useMessApi } from "./messApiContext";
-import {UUID} from "crypto";
 
 export const StaticDataContext = createContext<StaticDataContextValue>(null!);
 
@@ -28,7 +28,7 @@ export const StaticDataProvider = ({
     const url = messApi.url("/rooms/:id/game/assets" + assetKey, {
       params: { id: roomId },
     });
-    return url
+    return url;
   };
   return (
     <StaticDataContext.Provider value={{ assetUrl, ...staticData }}>

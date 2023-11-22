@@ -1,8 +1,8 @@
 import { useGameState } from "@/contexts/gameStateContext";
 import { useOptions } from "@/contexts/optionContext";
+import clsx from "clsx";
 import { MdPlayArrow } from "react-icons/md";
 import { Popup } from "../popup";
-import clsx from "clsx";
 
 export const UnitPopup = () => {
   const { isMyTurn } = useGameState();
