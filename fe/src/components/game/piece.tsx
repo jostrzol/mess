@@ -74,10 +74,12 @@ export const Piece = ({ piece }: PieceProps) => {
 
 export const PieceIcon = ({
   presentation,
+  blockRotation = false,
   color,
   className,
 }: {
   presentation: Presentation;
+  blockRotation?: boolean;
   color: Color;
   className?: string;
 }) => {
@@ -121,7 +123,7 @@ export const PieceIcon = ({
     />
   );
 
-  return <div className={clsx(presentation.rotate && "rotate-180")}>
+  return <div className={clsx(presentation.rotate && !blockRotation && "rotate-180")}>
     {icon}
   </div>
 };

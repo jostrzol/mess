@@ -26,6 +26,7 @@ export const PieceTypePopup = () => {
                 onClick={() => choose({ node: selectedNode, datum })}
               >
                 <PieceIcon
+                  blockRotation
                   color={myColor}
                   presentation={pieceType.presentation[myColor]}
                 />
