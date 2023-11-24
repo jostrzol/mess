@@ -52,7 +52,6 @@ type Resolution struct {
 }
 
 func New(event *event.GameStarted) (*Game, error) {
-	fmt.Printf("event.Rules: %v\n", event.Rules)
 	game, err := rules.DecodeRules(event.Rules, true)
 	if err != nil {
 		return nil, fmt.Errorf("decoding rules: %w", err)
