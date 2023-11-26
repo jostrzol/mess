@@ -24,6 +24,7 @@
     "react": "^18",
     "react-cookie": "^6.1.1",
     "react-dom": "^18",
+    "react-dropdown": "^1.11.0",
     "react-icons": "^4.11.0",
     "react-svg": "^16.1.28",
     "react-use-websocket": "^4.5.0"

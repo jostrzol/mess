@@ -1,6 +1,7 @@
 "use client";
 
 import { RoomWebsocketProvider } from "@/contexts/roomWsContext";
+import { RuleFilesProvider } from "@/contexts/rulesContext";
 import { UUID } from "crypto";
 import { ReactNode } from "react";
 
@@ -11,7 +12,11 @@ export type RoomPageParams = {
 };
 
 const RoomLayout = ({ children }: { children: ReactNode }) => {
-  return <RoomWebsocketProvider>{children}</RoomWebsocketProvider>;
+  return (
+    <RoomWebsocketProvider>
+      <RuleFilesProvider>{children}</RuleFilesProvider>
+    </RoomWebsocketProvider>
+  );
 };
 
 export default RoomLayout;

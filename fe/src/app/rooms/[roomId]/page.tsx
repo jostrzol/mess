@@ -9,8 +9,10 @@ import { useMessApi } from "@/contexts/messApiContext";
 import { useRoomWebsocket } from "@/contexts/roomWsContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { MdContentCopy } from "react-icons/md";
+import ReactDropdown from "react-dropdown";
+import { MdArrowDropDown, MdArrowDropUp, MdContentCopy } from "react-icons/md";
 import { RoomPageParams } from "./layout";
+import {Dropdown} from "@/components/form/dropdown";
 
 const RoomPage = ({ params }: RoomPageParams) => {
   const router = useRouter();
@@ -68,7 +70,12 @@ const RoomPage = ({ params }: RoomPageParams) => {
           </div>
           <div className="flex justify-between">
             <p>Rules</p>
-            <pre>{room.rulesFilename}</pre>
+            <Dropdown
+              // arrowFloating
+              className="font-mono"
+              options={["one", "two", "three"]}
+              value="one"
+            />
           </div>
           <Button
             type="button"
