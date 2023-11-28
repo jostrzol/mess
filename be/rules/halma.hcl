@@ -1,9 +1,11 @@
+// ===== BOARD ================================================================
+// Board size definition.
 board {
   height = 8
   width  = 8
 }
 
-// ===== PIECE TYPES SPECIFICATION =============================
+// ===== PIECE TYPES SPECIFICATION ============================================
 // Each piece type should specify the motions it is able to perform.
 //
 // Motions are specified by giving a generator function name, which generates
@@ -11,16 +13,30 @@ board {
 //   * the current square of the piece,
 //   * the piece that is about to move.
 //
-// Motions can specify special actions that can alter the game state after the
-// motion is taken via attribute "actions", pointing to functions that receive:
+// Motions can specify special action, such as pawn promotion in chess, that
+// can alter the game state after the motion is taken. It can be defined via
+// the attribute named "action", which points to a function receiving:
 //   * the piece that moved,
 //   * the starting square,
 //   * the destination square,
-//   * the current game state.
-//  Such an action can be for example pawn promotion.
+//   * (optionally) user options.
+// Actions are not expected to produce any result, but can use builtin
+// functions to modify the game state.
 //
-// Both generator and action functions are specified below the piece types
+// The last argument to an action function contains the user's decisions
+// regarding the current action. Choice tree, from which such decisions
+// can be made, is specified via another attribute of motion configuration --
+// "choice_function". This function receives arguments:
+//   * the piece that moved,
+//   * the starting square,
+//   * the destination square,
+// and is expected to return a choice tree object.
+//
+// Generator, action and choice functions are implemented below the piece types
 // definition.
+//
+// Piece appearance can be also configured via the "presentation" block inside
+// the piece type's definition.
 
 piece_types {
   piece_type "piece" {
@@ -43,12 +59,11 @@ piece_types {
   }
 }
 
-
-// ===== MOTION GENERATOR FUNCTIONS ============================
+// ===== MOTION GENERATOR FUNCTIONS ===========================================
 // They receive 2 parameters:
 //  * square - the current square,
 //  * piece - the current piece,
-// and generate all the squares that the given piece can move to from the given
+// and generate list of squares that the given piece can move to from the given
 // square.
 
 // Generates motions to all the 8 neighbours of the current square,
@@ -155,13 +170,24 @@ function "opponent_color" {
   ][0]
 }
 
-// ===== INITIAL STATE =========================================
+// ===== GAME STATE VALIDATORS ================================================
+// Validators are called just after a move is taken. If any validator returns
+// false, then the move is reversed - it cannot be completed.
+//
+// Validators receive 1 parameter - the last move and return true if the state
+// is valid or false otherwise.
+
+// No state validators in Halma.
+
+// ===== INITIAL STATE ========================================================
+// Initial state block specifies the initial placement of all the pieces.
 initial_state {
   white_pieces = { for pos in starting_positions.white : pos => "piece" }
   black_pieces = { for pos in starting_positions.black : pos => "piece" }
 }
 
 // ===== VARIABLES =============================================
+// Variables contain arbitrary data, which can be accessed in other blocks.
 variables {
   starting_positions = {
     black = [
@@ -180,7 +206,11 @@ variables {
   max_moves_to_leave_start = 30
 }
 
-// ===== TURN ==================================================
+// ===== TURN =================================================================
+// Turn block designates a function which controls the flow of a single turn
+// (attribute "action"). Similarly to motion actions, turn action can interpret
+// player choices via a choice generator. Read piece_types description for a
+// more detailed description.
 turn {
   choice_function = "turn_choose_move"
   action          = "turn"
@@ -259,6 +289,12 @@ function "count_moves_by" {
   result = sum([for move in game.record : 1 if move.piece.color == color]...)
 }
 
+// ===== ASSETS ===============================================================
+// Assets are additional files, which can be used in rules. These files are
+// copressed via gzip, and then ascii-encoded via base64. Any whitespace is
+// ignored.
+//
+// Assets can be organized into an arbitrally nested tree.
 assets = {
   piece_types = {
     "disk.svg" = <<EOF
