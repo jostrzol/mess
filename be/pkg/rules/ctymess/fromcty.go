@@ -125,7 +125,7 @@ func ChoicesFromCty(state *mess.State, value cty.Value) (choices []*mess.Choice,
 	return result, nil
 }
 
-func ChoiceFromCty(state *mess.State, value cty.Value) (choice *mess.Choice, err error) {
+func ChoiceFromCty(state *mess.State, value cty.Value) (*mess.Choice, error) {
 	if value.IsNull() {
 		return nil, nil
 	}
@@ -147,7 +147,7 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice *mess.Choice, err
 		return nil, err
 	}
 
-	var choiceGenerator mess.ChoiceGenerator
+	var optionGenerator mess.OptionGenerator
 	switch choiceType {
 	case "piece_type":
 		pieceTypeNamesCty, err := getAttr(value, "options")
@@ -169,7 +169,7 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice *mess.Choice, err
 			}
 			pieceTypes[i] = pieceType
 		}
-		choiceGenerator = &mess.PieceTypeChoiceGenerator{PieceTypes: pieceTypes}
+		optionGenerator = &mess.PieceTypeChoice{PieceTypes: pieceTypes}
 	case "square":
 		squaresCty, err := getAttr(value, "squares")
 		if err != nil {
@@ -181,18 +181,18 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (choice *mess.Choice, err
 			return nil, err
 		}
 
-		choiceGenerator = &mess.SquareChoiceGenerator{Squares: squares}
+		optionGenerator = &mess.SquareChoice{Squares: squares}
 	case "move":
-		choiceGenerator = &mess.MoveChoiceGenerator{State: state}
+		optionGenerator = &mess.MoveChoice{State: state}
 	case "unit":
-		choiceGenerator = &mess.UnitChoiceGenerator{}
+		optionGenerator = &mess.UnitChoice{}
 	default:
 		return nil, fmt.Errorf("invalid choice type: %v", choiceType)
 	}
 	return &mess.Choice{
-		Message:     message,
-		NextChoices: nextChoices,
-		Generator:   choiceGenerator,
+		Message:         message,
+		NextChoices:     nextChoices,
+		OptionGenerator: optionGenerator,
 	}, nil
 }
 

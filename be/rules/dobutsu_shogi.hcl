@@ -26,7 +26,7 @@ board {
 // The last argument to an action function contains the user's decisions
 // regarding the current action. Choice tree, from which such decisions
 // can be made, is specified via another attribute of motion configuration --
-// "choice_function". This function receives arguments:
+// "choice". This function receives arguments:
 //   * the piece that moved,
 //   * the starting square,
 //   * the destination square,
@@ -45,7 +45,7 @@ piece_types {
         icon = "/piece_types/lion.svg"
       }
       black {
-        icon = "/piece_types/lion.svg"
+        icon   = "/piece_types/lion.svg"
         rotate = true
       }
     }
@@ -60,7 +60,7 @@ piece_types {
         icon = "/piece_types/hen.svg"
       }
       black {
-        icon = "/piece_types/hen.svg"
+        icon   = "/piece_types/hen.svg"
         rotate = true
       }
     }
@@ -75,7 +75,7 @@ piece_types {
         icon = "/piece_types/giraffe.svg"
       }
       black {
-        icon = "/piece_types/giraffe.svg"
+        icon   = "/piece_types/giraffe.svg"
         rotate = true
       }
     }
@@ -90,7 +90,7 @@ piece_types {
         icon = "/piece_types/elephant.svg"
       }
       black {
-        icon = "/piece_types/elephant.svg"
+        icon   = "/piece_types/elephant.svg"
         rotate = true
       }
     }
@@ -105,7 +105,7 @@ piece_types {
         icon = "/piece_types/chick.svg"
       }
       black {
-        icon = "/piece_types/chick.svg"
+        icon   = "/piece_types/chick.svg"
         rotate = true
       }
     }
@@ -266,8 +266,8 @@ initial_state {
 // player choices via a choice generator. Read piece_types description for a
 // more detailed description.
 turn {
-  choice_function = "turn_choices"
-  action          = "turn"
+  choice = "turn_choices"
+  action = "turn"
 }
 
 function "turn_choices" {
@@ -383,7 +383,7 @@ composite_function "is_in_final_rank" {
 // Assets can be organized into an arbitrally nested tree.
 assets = {
   piece_types = {
-    "lion.svg" = <<EOF
+    "lion.svg"     = <<EOF
       H4sIAJmAXmUAA61V227aQBB9z1es3JdGSpbd2TuFPNTP/YG+UTDg1sHIkBD+vmfWBWJU1KpqhLJ7
       9jJzZs6Md7J7XYm352azmxbr/X47Ho0Oh4M8GNl2qxEppUY4UYhl3TTT4sNyuSzEbt+1Pyog7DI6
       NgDtdjav98ex/sRHH7uXphpXr9WmXSz6lcuB/v7joV7s1xfY1JtqPtuOu/Zls3i/+L2tN8PV53pf
@@ -400,7 +400,7 @@ assets = {
       XYhdnwIHrnmAoDQAf2bLn+hb/DR8Zh8xd9QQgwGZxBm07M2AdOYejfsHr1XT1NtdJeZ4FVBOKYL6
       /Dgt4NO5WIiOXwt8gQKmx/N06Ca/NmcJTg5vukG68UW5uEn/w8tkhCdswg/1091PVJSuodEHAAA=
       EOF
-    "hen.svg" = <<EOF
+    "hen.svg"      = <<EOF
       H4sIAJKAXmUAA61VXW/aQBB8z684uS+NlBz3fbcu5KF5bf9A3ygYcOtgZBwI/76zZ4XEqGkrNQhk
       z/k8Ozu7e0z3h7V4emi2+1mx6ftdOZkcj0d5tLLt1hOjlJpgRyFWddPMig+r1aoQ+75rf1ZAeMro
       1AC0u/mi7k+l/sRbb7vHpiqrQ7Vtl8th5WXD8P7tsV72mxfY1NtqMd+VXfu4Xb5e/NHW2/HqQ91X
@@ -415,7 +415,7 @@ assets = {
       SHKIiI3+wp8/1mHkeNU09W5fiQXOVQhLfEYtTrMCDlnnCtHxeQsfsdydzrdj8nxen4t7GWY6wfE8
       5T+hu6tfclvXaK0GAAA=
       EOF
-    "giraffe.svg" = <<EOF
+    "giraffe.svg"  = <<EOF
       H4sIAACAXmUAA21Yy1IcSRK86yvKei87ZjNFPiJfjNBhOc8P6MaKFuodBjBghPj7dffIAhqNTCbw
       yqjMCI8Izyh9fPh+tfz46/rm4Wz37fHx7vTk5OnpaX3K6+391UkKIZzAYrd8PVxfn+3+9fXr193y
       8Hh/++ceCKtEz9cAt3cXXw6Pz6fxd5r+dv/39f50/31/c3t56U9eDfz9354Ol4/fXuH14Wb/5eLu
@@ -468,7 +468,7 @@ assets = {
       oqdrd8aLoPQHjZH3vtxH5Zq46VHdts3hWKsV7giZO3aVWp3nFckIVaqHWKYRW/fn6+9tlHL1XPm4
       xLtEmU1w08zkPn28+wtkv7QneAUAAA==
       EOF
-    "chick.svg" = <<EOF
+    "chick.svg"    = <<EOF
       H4sIAIJ+XmUAA51Uy27bMBC85ysI9dIAyYrk8qnaOdTX9gd6Uy3ZVqtIhqxY8d93l6qd2GhRoIZg
       cpaznOVwpcXhuBWvz213WGa7cdwXeT5NE0wI/bDNtZQyJ0YmNk3bLrMPm80mE4dx6H/WhGiV0akl
       0O/LdTOeCvWJqY/DS1sX9bHu+qqaI2+EOf9xaqpx9wbbpqvX5b4Y+peueh/80TfddfS5GeuhbWgo

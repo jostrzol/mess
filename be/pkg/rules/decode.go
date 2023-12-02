@@ -51,7 +51,7 @@ type presentation struct {
 
 type motionRules struct {
 	GeneratorName      string `hcl:"generator"`
-	ChoiceFunctionName string `hcl:"choice_function,optional"`
+	ChoiceFunctionName string `hcl:"choice,optional"`
 	ActionName         string `hcl:"action,optional"`
 }
 
@@ -74,7 +74,7 @@ type stateValidatorRules struct {
 }
 
 type turnRules struct {
-	ChoiceFunctionName string `hcl:"choice_function,optional"`
+	ChoiceFunctionName string `hcl:"choice,optional"`
 	ActionName         string `hcl:"action,optional"`
 }
 

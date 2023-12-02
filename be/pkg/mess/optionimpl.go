@@ -15,11 +15,11 @@ type OptionNodeDataVisitor interface {
 
 // Piece type
 
-type PieceTypeChoiceGenerator struct {
+type PieceTypeChoice struct {
 	PieceTypes []*PieceType
 }
 
-func (c *PieceTypeChoiceGenerator) GenerateOptions() IOptionNodeData {
+func (c *PieceTypeChoice) GenerateOptions() IOptionNodeData {
 	result := make(OptionNodeData[PieceTypeOption], len(c.PieceTypes))
 	for i, pieceType := range c.PieceTypes {
 		result[i] = &OptionNodeDatum[PieceTypeOption]{
@@ -52,11 +52,11 @@ func (o PieceTypeOption) String() string {
 
 // Square choice
 
-type SquareChoiceGenerator struct {
+type SquareChoice struct {
 	Squares []board.Square
 }
 
-func (c *SquareChoiceGenerator) GenerateOptions() IOptionNodeData {
+func (c *SquareChoice) GenerateOptions() IOptionNodeData {
 	result := make(OptionNodeData[SquareOption], len(c.Squares))
 	for i, square := range c.Squares {
 		result[i] = &OptionNodeDatum[SquareOption]{
@@ -89,11 +89,11 @@ func (o SquareOption) String() string {
 
 // Move choice
 
-type MoveChoiceGenerator struct {
+type MoveChoice struct {
 	State *State
 }
 
-func (c *MoveChoiceGenerator) GenerateOptions() IOptionNodeData {
+func (c *MoveChoice) GenerateOptions() IOptionNodeData {
 	validMoves := c.State.ValidMoves()
 	result := make(OptionNodeData[MoveOption], 0, len(validMoves))
 	for _, moveGroup := range validMoves {
@@ -125,10 +125,10 @@ func (o MoveOption) String() string {
 
 // Unit choice
 
-type UnitChoiceGenerator struct {
+type UnitChoice struct {
 }
 
-func (c *UnitChoiceGenerator) GenerateOptions() IOptionNodeData {
+func (c *UnitChoice) GenerateOptions() IOptionNodeData {
 	return UnitOptionNodeData{
 		OptionNodeData[UnitOption]{
 			&OptionNodeDatum[UnitOption]{

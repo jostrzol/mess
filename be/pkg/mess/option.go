@@ -1,12 +1,12 @@
 package mess
 
 type Choice struct {
-	Message     string
-	NextChoices []*Choice
-	Generator   ChoiceGenerator
+	Message         string
+	NextChoices     []*Choice
+	OptionGenerator OptionGenerator
 }
 
-type ChoiceGenerator interface {
+type OptionGenerator interface {
 	GenerateOptions() IOptionNodeData
 }
 
@@ -15,7 +15,7 @@ func (c *Choice) GenerateOptions() *OptionNode {
 		return nil
 	}
 
-	optionData := c.Generator.GenerateOptions()
+	optionData := c.OptionGenerator.GenerateOptions()
 	var children []*OptionNode
 	for _, choice := range c.NextChoices {
 		child := choice.GenerateOptions()

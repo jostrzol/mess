@@ -26,7 +26,7 @@ board {
 // The last argument to an action function contains the user's decisions
 // regarding the current action. Choice tree, from which such decisions
 // can be made, is specified via another attribute of motion configuration --
-// "choice_function". This function receives arguments:
+// "choice". This function receives arguments:
 //   * the piece that moved,
 //   * the starting square,
 //   * the destination square,
@@ -138,17 +138,17 @@ piece_types {
       }
     }
     motion {
-      generator       = "motion_forward_straight"
-      choice_function = "promote_choose_piece_type"
-      action          = "promote"
+      generator = "motion_forward"
+      choice    = "promote_choose_piece_type"
+      action    = "promote"
     }
     motion {
-      generator = "motion_forward_straight_double"
+      generator = "motion_forward_double"
     }
     motion {
-      generator       = "motion_forward_diagonal"
-      choice_function = "promote_choose_piece_type"
-      action          = "promote"
+      generator = "motion_forward_diagonal"
+      choice    = "promote_choose_piece_type"
+      action    = "promote"
     }
     motion {
       generator = "motion_en_passant"
@@ -207,18 +207,19 @@ composite_function "motion_castling" {
 
 // Generates a motion one square forwards, given that the destination square
 // is not occupied by any piece.
-composite_function "motion_forward_straight" {
+composite_function "motion_forward" {
   params = [square, piece]
   result = {
-    dest   = get_square_relative(square, owner_of(piece).forward_direction)
-    return = dest == null ? [] : piece_at(dest) != null ? [] : [dest]
+    forward = owner_of(piece).forward_direction
+    dest    = get_square_relative(square, forward)
+    return  = dest == null ? [] : piece_at(dest) != null ? [] : [dest]
   }
 }
 
 // Generates a motion two square forwards, given that both the destination
 // square and the transitional square are not occupied by any piece and that the
 // piece has not moved yet before.
-composite_function "motion_forward_straight_double" {
+composite_function "motion_forward_double" {
   params = [square, piece]
   result = {
     dpos   = [for dcoord in owner_of(piece).forward_direction : dcoord * 2]
@@ -250,7 +251,7 @@ composite_function "motion_forward_diagonal" {
 
 // Generates 2 motions (en passant): one square forwards and to either side,
 // given that the destination squares are free, and the last move was a
-// "forward_straight_double" by an opposing pawn placed the destination file.
+// "forward_double" by an opposing pawn placed the destination file.
 composite_function "motion_en_passant" {
   params = [square, piece]
   result = {
@@ -335,20 +336,15 @@ composite_function "motion_line_straight" {
 composite_function "promote_choose_piece_type" {
   params = [piece, src, dst]
   result = {
-    owner     = owner_of(piece)
-    forward_y = owner.forward_direction[1]
-    last_y    = forward_y == 1 ? board.height - 1 : 0
-    pos       = square_to_coords(dst)
-    options = [
-      for type in piece_types : type.name
-      if !contains(["king", "pawn"], type.name)
-    ]
     choice = {
       message = "Promote"
       type    = "piece_type"
-      options = options
+      options = [
+        for type in piece_types : type.name
+        if !contains(["king", "pawn"], type.name)
+      ]
     }
-    return = pos[1] == last_y ? choice : null
+    return = is_moving_to_last_rank(piece, dst) ? choice : null
   }
 }
 
@@ -480,6 +476,18 @@ function "opponent_color" {
   ][0]
 }
 
+// Checks whether the given piece is moving to the last rank.
+composite_function "is_moving_to_last_rank" {
+  params = [piece, dst]
+  result = {
+    owner     = owner_of(piece)
+    forward_y = owner.forward_direction[1]
+    last_y    = forward_y == 1 ? board.height - 1 : 0
+    pos       = square_to_coords(dst)
+    return    = pos[1] == last_y
+  }
+}
+
 // ===== INITIAL STATE ========================================================
 // Initial state block specifies the initial placement of all the pieces.
 initial_state {
@@ -527,8 +535,8 @@ initial_state {
 // player choices via a choice generator. Read piece_types description for a
 // more detailed description.
 turn {
-  choice_function = "turn_choose_move"
-  action          = "turn"
+  choice = "turn_choose_move"
+  action = "turn"
 }
 
 function "turn_choose_move" {

@@ -26,7 +26,7 @@ board {
 // The last argument to an action function contains the user's decisions
 // regarding the current action. Choice tree, from which such decisions
 // can be made, is specified via another attribute of motion configuration --
-// "choice_function". This function receives arguments:
+// "choice". This function receives arguments:
 //   * the piece that moved,
 //   * the starting square,
 //   * the destination square,
@@ -43,11 +43,11 @@ piece_types {
     presentation {
       white {
         symbol = "○"
-        icon = "/piece_types/disk.svg"
+        icon   = "/piece_types/disk.svg"
       }
       black {
         symbol = "●"
-        icon = "/piece_types/disk.svg"
+        icon   = "/piece_types/disk.svg"
       }
     }
     motion {
@@ -212,8 +212,8 @@ variables {
 // player choices via a choice generator. Read piece_types description for a
 // more detailed description.
 turn {
-  choice_function = "turn_choose_move"
-  action          = "turn"
+  choice = "turn_choose_move"
+  action = "turn"
 }
 
 function "turn_choose_move" {
