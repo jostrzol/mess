@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -11,11 +12,13 @@ import (
 const defaultSessionSecretLen = 64
 
 type Config struct {
-	IsProduction      bool   `mapstructure:"release"`
-	SessionSecret     string `mapstructure:"session_secret"`
-	Port              int    `mapstructure:"port"`
-	IncomingOrigin    string `mapstructure:"incoming_origin"`
-	AssetsCacheMaxAge int    `mapstructure:"assets_cache_max_age"`
+	IsProduction       bool          `mapstructure:"release"`
+	SessionSecret      string        `mapstructure:"session_secret"`
+	Port               int           `mapstructure:"port"`
+	IncomingOrigin     string        `mapstructure:"incoming_origin"`
+	AssetsCacheMaxAge  int           `mapstructure:"assets_cache_max_age"`
+	HeartbeatPeriod    time.Duration `mapstructure:"heartbeat_period"`
+	MaxWebsocketErrors int           `mapstructure:"max_websocket_errors"`
 }
 
 func setDefaults(v *viper.Viper) {
@@ -24,6 +27,8 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("port", 4000)
 	v.SetDefault("incoming_origin", "http://localhost:3000")
 	v.SetDefault("assets_cache_max_age", 600)
+	v.SetDefault("heartbeat_period", time.Second*5)
+	v.SetDefault("max_websocket_errors", 5)
 }
 
 func generateSessionSecret() string {

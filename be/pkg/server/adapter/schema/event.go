@@ -21,6 +21,10 @@ type GameChanged struct{}
 
 func (e *GameChanged) EventType() string { return "GameChanged" }
 
+type Heartbeat struct{}
+
+func (e *Heartbeat) EventType() string { return "Heartbeat" }
+
 func MarshalEvent(event Event) ([]byte, error) {
 	obj := struct {
 		Data      Event `json:",omitempty"`

@@ -65,9 +65,16 @@ func (h *WsHandler) handle(c *gin.Context) error {
 			continue
 		}
 
-		err = conn.WriteMessage(websocket.TextMessage, bytes)
+		if _, ok := event.(*schema.Heartbeat); ok {
+			err = conn.WriteControl(websocket.PingMessage, bytes, time.Now().Add(wsTimeout))
+		} else {
+
+			err = conn.WriteMessage(websocket.TextMessage, bytes)
+		}
+
 		if err != nil {
 			h.logger.Error("writing websocket message", zap.Error(err))
+			h.websockets.IndicateError(session.ID)
 			continue
 		}
 	}
