@@ -1,4 +1,4 @@
-// ===== CONSTANTS =============================================
+// ===== CONSTANTS ============================================================
 // Constants contain arbitrary data, which can be accessed in other blocks.
 constants {
   starting_positions = {
@@ -173,7 +173,7 @@ composite_function "motion_jump_step_impl" {
   }
 }
 
-// ===== HELPER FUNCTIONS ======================================
+// ===== HELPER FUNCTIONS =====================================================
 // Checks if square is occupied.
 function "is_occupied" {
   params = [square]
@@ -228,7 +228,7 @@ composite_function "turn" {
   }
 }
 
-// ===== GAME RESOLVING FUNCTIONS ==============================
+// ===== GAME RESOLVING FUNCTIONS =============================================
 // Namely the function "pick_winner" and its helpers.
 
 // This function is called at the start of every turn.

@@ -324,7 +324,7 @@ composite_function "turn" {
   }
 }
 
-// ===== GAME RESOLVING FUNCTIONS ==============================
+// ===== GAME RESOLVING FUNCTIONS =============================================
 // Namely the function "pick_winner" and its helpers
 
 // This function is called at the start of every turn.
