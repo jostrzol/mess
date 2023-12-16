@@ -1,3 +1,23 @@
+// ===== CONSTANTS =============================================
+// Constants contain arbitrary data, which can be accessed in other blocks.
+constants {
+  starting_positions = {
+    black = [
+      "A8", "B8", "C8", "D8",
+      "A7", "B7", "C7",
+      "A6", "B6",
+      "A5",
+    ]
+    white = [
+      /*             */ "H4",
+      /*       */ "G3", "H3",
+      /* */ "F2", "G2", "H2",
+      "E1", "F1", "G1", "H1",
+    ]
+  }
+  max_moves_to_leave_start = 30
+}
+
 // ===== BOARD ================================================================
 // Board size definition.
 board {
@@ -184,26 +204,6 @@ function "opponent_color" {
 initial_state {
   white_pieces = { for pos in starting_positions.white : pos => "piece" }
   black_pieces = { for pos in starting_positions.black : pos => "piece" }
-}
-
-// ===== VARIABLES =============================================
-// Variables contain arbitrary data, which can be accessed in other blocks.
-variables {
-  starting_positions = {
-    black = [
-      "A8", "B8", "C8", "D8",
-      "A7", "B7", "C7",
-      "A6", "B6",
-      "A5",
-    ]
-    white = [
-      /*             */ "H4",
-      /*       */ "G3", "H3",
-      /* */ "F2", "G2", "H2",
-      "E1", "F1", "G1", "H1",
-    ]
-  }
-  max_moves_to_leave_start = 30
 }
 
 // ===== TURN =================================================================

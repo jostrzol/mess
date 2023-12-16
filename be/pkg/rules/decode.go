@@ -60,13 +60,13 @@ type initialStateRules struct {
 	BlackPieces map[string]string `hcl:"black_pieces"`
 }
 
-type variablesRules struct {
-	VariablesBlock *variablesBlockRules `hcl:"variables,block"`
+type constantsRules struct {
+	ConstantsBlock *constantsBlockRules `hcl:"constants,block"`
 	Remain         hcl.Body             `hcl:",remain"`
 }
 
-type variablesBlockRules struct {
-	Variables hcl.Attributes `hcl:",remain"`
+type constantsBlockRules struct {
+	Constants hcl.Attributes `hcl:",remain"`
 }
 
 type stateValidatorRules struct {
@@ -98,9 +98,9 @@ func decodeRules(src []byte, filename string, ctx *hcl.EvalContext) (*rules, err
 	tmpDiags = mergeWithStd(ctx.Functions, userFuncs, "function")
 	diags = diags.Extend(tmpDiags)
 
-	userVariables, body, tmpDiags := decodeUserVariables(body, ctx)
+	userConstants, body, tmpDiags := decodeUserConstants(body, ctx)
 	diags = diags.Extend(tmpDiags)
-	tmpDiags = mergeWithStd(ctx.Variables, userVariables, "variable")
+	tmpDiags = mergeWithStd(ctx.Variables, userConstants, "variable")
 	diags = diags.Extend(tmpDiags)
 
 	rules := &rules{}
@@ -168,38 +168,38 @@ func decodeUserFunctions(
 	return userFuncs, remain, diags
 }
 
-func decodeUserVariables(
+func decodeUserConstants(
 	body hcl.Body, ctx *hcl.EvalContext,
 ) (map[string]cty.Value, hcl.Body, hcl.Diagnostics) {
 	diags := make(hcl.Diagnostics, 0)
-	var variablesRules variablesRules
+	var constantsRules constantsRules
 
-	tmpDiags := gohcl.DecodeBody(body, ctx, &variablesRules)
+	tmpDiags := gohcl.DecodeBody(body, ctx, &constantsRules)
 	diags = diags.Extend(tmpDiags)
 
-	userVariables := make(map[string]cty.Value)
+	userConstants := make(map[string]cty.Value)
 
-	if variablesRules.VariablesBlock == nil {
-		return userVariables, variablesRules.Remain, diags
+	if constantsRules.ConstantsBlock == nil {
+		return userConstants, constantsRules.Remain, diags
 	}
 
-	for _, variable := range variablesRules.VariablesBlock.Variables {
-		if _, ok := userVariables[variable.Name]; ok {
+	for _, constant := range constantsRules.ConstantsBlock.Constants {
+		if _, ok := userConstants[constant.Name]; ok {
 			diags = diags.Append(&hcl.Diagnostic{
 				Severity:    hcl.DiagError,
-				Subject:     variable.Expr.Range().Ptr(),
-				Expression:  variable.Expr,
+				Subject:     constant.Expr.Range().Ptr(),
+				Expression:  constant.Expr,
 				EvalContext: ctx,
-				Detail:      fmt.Sprintf("variable named %q already defined", variable.Name),
+				Detail:      fmt.Sprintf("constant named %q already defined", constant.Name),
 			})
 		} else {
-			value, evalDiags := variable.Expr.Value(ctx)
+			value, evalDiags := constant.Expr.Value(ctx)
 			diags = diags.Extend(evalDiags)
-			userVariables[variable.Name] = value
+			userConstants[constant.Name] = value
 		}
 	}
 
-	return userVariables, variablesRules.Remain, diags
+	return userConstants, constantsRules.Remain, diags
 }
 
 func mergeWithStd[V any](stdMap map[string]V, userMap map[string]V, kind string) hcl.Diagnostics {
