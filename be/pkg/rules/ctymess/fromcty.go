@@ -138,7 +138,7 @@ func ChoiceFromCty(state *mess.State, value cty.Value) (*mess.Choice, error) {
 	if err != nil {
 		message = ""
 	}
-	nextChoicesCty, err := getAttr(value, "next_choices")
+	nextChoicesCty, err := getAttr(value, "children")
 	if err != nil {
 		nextChoicesCty = cty.NullVal(cty.DynamicPseudoType)
 	}

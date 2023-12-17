@@ -274,18 +274,18 @@ function "turn_choices" {
   params = []
   result = {
     type = "unit"
-    next_choices = [
+    children = [
       {
-        message      = "Make a move"
-        type         = "move"
-        options      = []
-        next_choices = []
+        message  = "Make a move"
+        type     = "move"
+        options  = []
+        children = []
       },
       {
         message = "Place a captured piece"
         type    = "piece_type"
         options = captured_piece_types(game.current_player)
-        next_choices = [{
+        children = [{
           message = "Choose an empty square"
           type    = "square"
           squares = empty_squares()
