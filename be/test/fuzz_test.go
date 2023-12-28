@@ -22,8 +22,8 @@ func FuzzGameMax10Steps(f *testing.F) {
 		src := rand.NewSource(seed)
 		src.Int63()
 
-		isFinished, _ := game.PickWinner()
-		for i := 0; !isFinished && i < 10; i++ {
+		resolution := game.Resolution()
+		for i := 0; !resolution.DidEnd && i < 10; i++ {
 			moves := game.ValidMoves()
 			assert.NotEmpty(t, moves)
 
@@ -34,7 +34,7 @@ func FuzzGameMax10Steps(f *testing.F) {
 			err = move.Perform()
 			assert.NoError(t, err)
 
-			isFinished, _ = game.PickWinner()
+			resolution = game.Resolution()
 		}
 	})
 }

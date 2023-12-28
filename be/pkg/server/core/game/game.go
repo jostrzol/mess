@@ -151,7 +151,7 @@ func (g *Game) PlayTurn(session id.Session, turn int, route mess.Route) (event.E
 		return nil, ErrTurnTooBig
 	}
 
-	err := g.game.Turn(route)
+	err := g.game.PlayTurn(route)
 	if err != nil {
 		return nil, usrerr.Errorf("choosing turn options: %w", err)
 	}
@@ -179,14 +179,14 @@ func (g *Game) Resolution() *Resolution {
 	g.mutex.Lock()
 	defer func() { g.mutex.Unlock() }()
 
-	isResolved, winner := g.game.PickWinner()
+	resolution := g.game.Resolution()
 	var winnerSession id.Session
-	if winner != nil {
-		winnerSession = g.players[winner.Color()]
+	if resolution.Winner != nil {
+		winnerSession = g.players[resolution.Winner.Color()]
 	}
 
 	return &Resolution{
-		IsResolved: isResolved,
+		IsResolved: resolution.DidEnd,
 		Winner:     winnerSession,
 	}
 }

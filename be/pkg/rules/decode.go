@@ -79,7 +79,7 @@ type turnRules struct {
 }
 
 type callbackFunctionsRules struct {
-	PickWinnerFunc  function.Function            `mapstructure:"pick_winner"`
+	ResolutionFunc  function.Function            `mapstructure:"resolve"`
 	CustomFuncs     map[string]function.Function `mapstructure:",remain"`
 	StateValidators map[string]function.Function
 }

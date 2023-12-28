@@ -76,9 +76,9 @@ type optionTreeMarshaler struct {
 	result *OptionNode
 }
 
-func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.PieceTypeOptionNodeData) {
+func (o *optionTreeMarshaler) VisitPieceTypeData(message string, data mess.PieceTypeOptionData) {
 	dataMarshalled := []OptionNodeDatum{}
-	for _, datum := range data.OptionNodeData {
+	for _, datum := range data.OptionData {
 		pieceType := pieceTypeFromDomain(datum.Option.PieceType)
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
@@ -89,9 +89,9 @@ func (o *optionTreeMarshaler) VisitPieceTypeNodeData(message string, data mess.P
 	o.result = &OptionNode{Type: "PieceType", Message: message, Data: dataMarshalled}
 }
 
-func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.SquareOptionNodeData) {
+func (o *optionTreeMarshaler) VisitSquareData(message string, data mess.SquareOptionData) {
 	dataMarshalled := []OptionNodeDatum{}
-	for _, datum := range data.OptionNodeData {
+	for _, datum := range data.OptionData {
 		square := squareFromDomain(datum.Option.Square)
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
@@ -102,9 +102,9 @@ func (o *optionTreeMarshaler) VisitSquareNodeData(message string, data mess.Squa
 	o.result = &OptionNode{Type: "Square", Message: message, Data: dataMarshalled}
 }
 
-func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOptionNodeData) {
+func (o *optionTreeMarshaler) VisitMoveData(message string, data mess.MoveOptionData) {
 	dataMarshalled := []OptionNodeDatum{}
-	for _, datum := range data.OptionNodeData {
+	for _, datum := range data.OptionData {
 		vec := squareVecFromDomain(datum.Option.SquareVec)
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
@@ -115,9 +115,9 @@ func (o *optionTreeMarshaler) VisitMoveNodeData(message string, data mess.MoveOp
 	o.result = &OptionNode{Type: "Move", Message: message, Data: dataMarshalled}
 }
 
-func (o *optionTreeMarshaler) VisitUnitNodeData(message string, data mess.UnitOptionNodeData) {
+func (o *optionTreeMarshaler) VisitUnitData(message string, data mess.UnitOptionData) {
 	dataMarshalled := []OptionNodeDatum{}
-	for _, datum := range data.OptionNodeData {
+	for _, datum := range data.OptionData {
 		children := optionNodesFromDomain(datum.Children)
 		dataMarshalled = append(dataMarshalled, OptionNodeDatum{
 			Option:   UnitOption{},

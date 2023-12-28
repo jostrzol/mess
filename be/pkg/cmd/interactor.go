@@ -27,11 +27,10 @@ func newInteractor(game *mess.Game, scanner *bufio.Scanner) *interactor {
 }
 
 func (t *interactor) Run() (*mess.Player, error) {
-	var winner *mess.Player
-	isFinished := false
+	resolution := mess.Resolution{}
 
 	t.printState()
-	for !isFinished {
+	for !resolution.DidEnd {
 		optionTree, err := t.game.TurnOptions()
 		if err != nil {
 			return nil, err
@@ -51,16 +50,16 @@ func (t *interactor) Run() (*mess.Player, error) {
 			continue
 		}
 
-		err = t.game.Turn(options)
+		err = t.game.PlayTurn(options)
 		if err != nil {
 			return nil, fmt.Errorf("executing turn action: %v", err)
 		}
 
 		t.printState()
 
-		isFinished, winner = t.game.PickWinner()
+		resolution = t.game.Resolution()
 	}
-	return winner, nil
+	return resolution.Winner, nil
 }
 
 func (t *interactor) printState() {

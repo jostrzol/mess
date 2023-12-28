@@ -12,10 +12,6 @@ func NewGame(state *State, controller Controller) *Game {
 	}
 }
 
-func (g *Game) PickWinner() (bool, *Player) {
-	return g.controller.PickWinner(g.State)
-}
-
 func (g *Game) TurnOptions() (*OptionNode, error) {
 	choice, err := g.controller.TurnChoice(g.State)
 	if err != nil {
@@ -25,7 +21,7 @@ func (g *Game) TurnOptions() (*OptionNode, error) {
 	return optionTree, nil
 }
 
-func (g *Game) Turn(options []Option) error {
+func (g *Game) PlayTurn(options []Option) error {
 	err := g.controller.Turn(g.State, options)
 	if err != nil {
 		return err
@@ -34,8 +30,17 @@ func (g *Game) Turn(options []Option) error {
 	return nil
 }
 
+func (g *Game) Resolution() Resolution {
+	return g.controller.Resolution(g.State)
+}
+
 type Controller interface {
-	PickWinner(state *State) (bool, *Player)
 	TurnChoice(state *State) (*Choice, error)
 	Turn(state *State, options []Option) error
+	Resolution(state *State) Resolution
+}
+
+type Resolution struct {
+	DidEnd bool
+	Winner *Player
 }

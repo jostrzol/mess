@@ -381,7 +381,7 @@ func TestPromotionCheckMate(t *testing.T) {
 
 	game.EndTurn()
 
-	isFinished, winner := game.PickWinner()
-	assert.True(t, isFinished)
-	assert.Equal(t, winner, game.Player(color.White))
+	resolution := game.Resolution()
+	assert.True(t, resolution.DidEnd)
+	assert.Equal(t, resolution.Winner, game.Player(color.White))
 }

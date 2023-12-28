@@ -229,20 +229,25 @@ composite_function "turn" {
 }
 
 // ===== GAME RESOLVING FUNCTIONS =============================================
-// Namely the function "pick_winner" and its helpers.
+// Namely the function "resolve" and its helpers
 
-// This function is called at the start of every turn.
-// Returns a tuple in form [is_finished, winner_color]. If is_finished == true
-// and winner_color == null then draw is concluded.
-function "pick_winner" {
+// This function is called at the end of every turn.
+// Returns an object of type {did_end: bool, winner: color}. If did_end == true
+// and winner == null then draw is concluded.
+composite_function "resolve" {
   params = [game]
-  result = (
-    did_win("black")
-    ? [true, "black"]
-    : did_win("white")
-    ? [true, "white"]
-    : [false, null]
-  )
+  result = {
+    winner = (
+      did_win("black") ? "black"
+      : did_win("white") ? "white"
+      : null
+    )
+    return = (
+      winner != null
+      ? { did_end = true, winner = winner }
+      : { did_end = false, winner = null }
+    )
+  }
 }
 
 // Checks if the given player meets the winning conditions.

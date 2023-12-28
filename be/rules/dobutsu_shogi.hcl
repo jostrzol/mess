@@ -325,13 +325,12 @@ composite_function "turn" {
 }
 
 // ===== GAME RESOLVING FUNCTIONS =============================================
-// Namely the function "pick_winner" and its helpers
+// Namely the function "resolve" and its helpers
 
-// This function is called at the start of every turn.
-// Returns a tuple in form [is_finished, winner_color]. If is_finished == true
-// and winner_color == null then draw is concluded. Stalemate is "hardcoded"
-// into the game - the rules don't have to specify it explicitly.
-composite_function "pick_winner" {
+// This function is called at the end of every turn.
+// Returns an object of type {did_end: bool, winner: color}. If did_end == true
+// and winner == null then draw is concluded.
+composite_function "resolve" {
   params = [game]
   result = {
     winners = concat(
@@ -340,8 +339,8 @@ composite_function "pick_winner" {
     )
     return = (
       length(winners) > 0
-      ? [true, winners[0]]
-      : [false, null]
+      ? { did_end = true, winner = winners[0] }
+      : { did_end = false, winner = null }
     )
   }
 }

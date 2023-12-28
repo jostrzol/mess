@@ -6,11 +6,11 @@ import (
 
 // Visitor
 
-type OptionNodeDataVisitor interface {
-	VisitPieceTypeNodeData(message string, data PieceTypeOptionNodeData)
-	VisitSquareNodeData(message string, data SquareOptionNodeData)
-	VisitMoveNodeData(message string, data MoveOptionNodeData)
-	VisitUnitNodeData(message string, data UnitOptionNodeData)
+type OptionDataVisitor interface {
+	VisitPieceTypeData(message string, data PieceTypeOptionData)
+	VisitSquareData(message string, data SquareOptionData)
+	VisitMoveData(message string, data MoveOptionData)
+	VisitUnitData(message string, data UnitOptionData)
 }
 
 // Piece type
@@ -19,27 +19,27 @@ type PieceTypeChoice struct {
 	PieceTypes []*PieceType
 }
 
-func (c *PieceTypeChoice) GenerateOptions() IOptionNodeData {
-	result := make(OptionNodeData[PieceTypeOption], len(c.PieceTypes))
+func (c *PieceTypeChoice) GenerateOptionData() IOptionData {
+	result := make(OptionData[PieceTypeOption], len(c.PieceTypes))
 	for i, pieceType := range c.PieceTypes {
-		result[i] = &OptionNodeDatum[PieceTypeOption]{
+		result[i] = &OptionDatum[PieceTypeOption]{
 			Option:   PieceTypeOption{pieceType},
 			Children: nil,
 		}
 	}
-	return PieceTypeOptionNodeData{result}
+	return PieceTypeOptionData{result}
 }
 
-type PieceTypeOptionNodeData struct {
-	OptionNodeData[PieceTypeOption]
+type PieceTypeOptionData struct {
+	OptionData[PieceTypeOption]
 }
 
-func (n PieceTypeOptionNodeData) accept(message string, visitor OptionNodeDataVisitor) {
-	visitor.VisitPieceTypeNodeData(message, n)
+func (n PieceTypeOptionData) accept(message string, visitor OptionDataVisitor) {
+	visitor.VisitPieceTypeData(message, n)
 }
 
-func (n PieceTypeOptionNodeData) filter(parentRoute Route, predicate func(Route) bool) IOptionNodeData {
-	return PieceTypeOptionNodeData{n.OptionNodeData.filter(parentRoute, predicate)}
+func (n PieceTypeOptionData) filter(parentRoute Route, predicate func(Route) bool) IOptionData {
+	return PieceTypeOptionData{n.OptionData.filter(parentRoute, predicate)}
 }
 
 type PieceTypeOption struct {
@@ -56,27 +56,27 @@ type SquareChoice struct {
 	Squares []board.Square
 }
 
-func (c *SquareChoice) GenerateOptions() IOptionNodeData {
-	result := make(OptionNodeData[SquareOption], len(c.Squares))
+func (c *SquareChoice) GenerateOptionData() IOptionData {
+	result := make(OptionData[SquareOption], len(c.Squares))
 	for i, square := range c.Squares {
-		result[i] = &OptionNodeDatum[SquareOption]{
+		result[i] = &OptionDatum[SquareOption]{
 			Option:   SquareOption{square},
 			Children: nil,
 		}
 	}
-	return SquareOptionNodeData{result}
+	return SquareOptionData{result}
 }
 
-type SquareOptionNodeData struct {
-	OptionNodeData[SquareOption]
+type SquareOptionData struct {
+	OptionData[SquareOption]
 }
 
-func (n SquareOptionNodeData) accept(message string, visitor OptionNodeDataVisitor) {
-	visitor.VisitSquareNodeData(message, n)
+func (n SquareOptionData) accept(message string, visitor OptionDataVisitor) {
+	visitor.VisitSquareData(message, n)
 }
 
-func (n SquareOptionNodeData) filter(parentRoute Route, predicate func(Route) bool) IOptionNodeData {
-	return SquareOptionNodeData{n.OptionNodeData.filter(parentRoute, predicate)}
+func (n SquareOptionData) filter(parentRoute Route, predicate func(Route) bool) IOptionData {
+	return SquareOptionData{n.OptionData.filter(parentRoute, predicate)}
 }
 
 type SquareOption struct {
@@ -93,26 +93,26 @@ type MoveChoice struct {
 	State *State
 }
 
-func (c *MoveChoice) GenerateOptions() IOptionNodeData {
+func (c *MoveChoice) GenerateOptionData() IOptionData {
 	validMoves := c.State.ValidMoves()
-	result := make(OptionNodeData[MoveOption], 0, len(validMoves))
+	result := make(OptionData[MoveOption], 0, len(validMoves))
 	for _, moveGroup := range validMoves {
-		result = append(result, &OptionNodeDatum[MoveOption]{
+		result = append(result, &OptionDatum[MoveOption]{
 			Option:   MoveOption{moveGroup.SquareVec},
 			Children: []*OptionNode{moveGroup.optionTree},
 		})
 	}
-	return MoveOptionNodeData{result}
+	return MoveOptionData{result}
 }
 
-type MoveOptionNodeData struct{ OptionNodeData[MoveOption] }
+type MoveOptionData struct{ OptionData[MoveOption] }
 
-func (n MoveOptionNodeData) accept(message string, visitor OptionNodeDataVisitor) {
-	visitor.VisitMoveNodeData(message, n)
+func (n MoveOptionData) accept(message string, visitor OptionDataVisitor) {
+	visitor.VisitMoveData(message, n)
 }
 
-func (n MoveOptionNodeData) filter(parentRoute Route, predicate func(Route) bool) IOptionNodeData {
-	return MoveOptionNodeData{n.OptionNodeData.filter(parentRoute, predicate)}
+func (n MoveOptionData) filter(parentRoute Route, predicate func(Route) bool) IOptionData {
+	return MoveOptionData{n.OptionData.filter(parentRoute, predicate)}
 }
 
 type MoveOption struct {
@@ -128,10 +128,10 @@ func (o MoveOption) String() string {
 type UnitChoice struct {
 }
 
-func (c *UnitChoice) GenerateOptions() IOptionNodeData {
-	return UnitOptionNodeData{
-		OptionNodeData[UnitOption]{
-			&OptionNodeDatum[UnitOption]{
+func (c *UnitChoice) GenerateOptionData() IOptionData {
+	return UnitOptionData{
+		OptionData[UnitOption]{
+			&OptionDatum[UnitOption]{
 				Option:   UnitOption{},
 				Children: nil,
 			},
@@ -139,14 +139,14 @@ func (c *UnitChoice) GenerateOptions() IOptionNodeData {
 	}
 }
 
-type UnitOptionNodeData struct{ OptionNodeData[UnitOption] }
+type UnitOptionData struct{ OptionData[UnitOption] }
 
-func (n UnitOptionNodeData) accept(message string, visitor OptionNodeDataVisitor) {
-	visitor.VisitUnitNodeData(message, n)
+func (n UnitOptionData) accept(message string, visitor OptionDataVisitor) {
+	visitor.VisitUnitData(message, n)
 }
 
-func (n UnitOptionNodeData) filter(parentRoute Route, predicate func(Route) bool) IOptionNodeData {
-	return UnitOptionNodeData{n.OptionNodeData.filter(parentRoute, predicate)}
+func (n UnitOptionData) filter(parentRoute Route, predicate func(Route) bool) IOptionData {
+	return UnitOptionData{n.OptionData.filter(parentRoute, predicate)}
 }
 
 type UnitOption struct{}

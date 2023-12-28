@@ -27,44 +27,44 @@ func newController(state *mess.State, ctx *hcl.EvalContext, rules *rules) *contr
 	}
 }
 
-func (c *controller) PickWinner(state *mess.State) (bool, *mess.Player) {
+func (c *controller) Resolution(state *mess.State) mess.Resolution {
 	ctyState := c.refreshGameStateInContext()
-	resultCty, err := c.rules.Functions.PickWinnerFunc.Call([]cty.Value{ctyState})
+	resultCty, err := c.rules.Functions.ResolutionFunc.Call([]cty.Value{ctyState})
 	if err != nil {
-		log.Printf("calling pick_winner user-defined function: %v", err)
-		return false, nil
+		log.Printf("calling resolve user-defined function: %v", err)
+		return mess.Resolution{}
 	}
 
 	var result struct {
-		IsFinished     bool
-		WinnerColorCty cty.Value
+		DidEnd         bool      `cty:"did_end"`
+		WinnerColorCty cty.Value `cty:"winner"`
 	}
 	if err = gocty.FromCtyValue(resultCty, &result); err != nil {
-		log.Printf("parsing pick_winner user-defined function's result: %v", err)
-		return false, nil
+		log.Printf("parsing resolve user-defined function's result: %v", err)
+		return mess.Resolution{}
 	}
 
-	if !result.IsFinished || result.WinnerColorCty.IsNull() {
+	if !result.DidEnd || result.WinnerColorCty.IsNull() {
 		// check if the current player can move - if not it's a stalemate
 		if len(state.ValidMoves()) == 0 {
-			result.IsFinished = true
+			result.DidEnd = true
 		}
-		return result.IsFinished, nil
+		return mess.Resolution{DidEnd: result.DidEnd}
 	}
 
 	var winnerColor string
 	if err = gocty.FromCtyValue(result.WinnerColorCty, &winnerColor); err != nil {
-		log.Printf("parsing pick_winner user-defined function's result: winner color: %v", err)
-		return false, nil
+		log.Printf("parsing resolve user-defined function's result: winner color: %v", err)
+		return mess.Resolution{}
 	}
 
 	color, err := color.ColorString(winnerColor)
 	if err != nil {
 		log.Printf("parsing winner color: %v", err)
-		return false, nil
+		return mess.Resolution{}
 	}
 
-	return true, state.Player(color)
+	return mess.Resolution{DidEnd: true, Winner: state.Player(color)}
 }
 
 func (c *controller) TurnChoice(state *mess.State) (*mess.Choice, error) {

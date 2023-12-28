@@ -11,7 +11,7 @@ import (
 func (t *interactor) selectOptions(optionTree *mess.OptionNode) (result []mess.Option, err error) {
 	currentNode := optionTree
 	for currentNode != nil {
-		var datum mess.IOptionNodeDatum
+		var datum mess.IOptionDatum
 		datum, err = t.selectDatum(currentNode)
 		if err != nil {
 			return
@@ -29,7 +29,7 @@ func (t *interactor) selectOptions(optionTree *mess.OptionNode) (result []mess.O
 	return
 }
 
-func (t *interactor) selectDatum(node *mess.OptionNode) (mess.IOptionNodeDatum, error) {
+func (t *interactor) selectDatum(node *mess.OptionNode) (mess.IOptionDatum, error) {
 	selector := &optionSelector{interactor: t}
 	node.Accept(selector)
 	if selector.err != nil {
@@ -40,16 +40,16 @@ func (t *interactor) selectDatum(node *mess.OptionNode) (mess.IOptionNodeDatum, 
 
 type optionSelector struct {
 	interactor *interactor
-	result     mess.IOptionNodeDatum
+	result     mess.IOptionDatum
 	err        error
 }
 
-func (o *optionSelector) VisitPieceTypeNodeData(message string, data mess.PieceTypeOptionNodeData) {
+func (o *optionSelector) VisitPieceTypeData(message string, data mess.PieceTypeOptionData) {
 	fmt.Printf("%s:\n", message)
-	o.result, o.err = selectStringer(o.interactor, data.OptionNodeData)
+	o.result, o.err = selectStringer(o.interactor, data.OptionData)
 }
 
-func (o *optionSelector) VisitSquareNodeData(message string, data mess.SquareOptionNodeData) {
+func (o *optionSelector) VisitSquareData(message string, data mess.SquareOptionData) {
 	var square board.Square
 
 	fmt.Printf("%s:\n", message)
@@ -58,7 +58,7 @@ func (o *optionSelector) VisitSquareNodeData(message string, data mess.SquareOpt
 		return
 	}
 
-	for _, datum := range data.OptionNodeData {
+	for _, datum := range data.OptionData {
 		if square == datum.Option.Square {
 			o.result = datum
 			return
@@ -67,12 +67,12 @@ func (o *optionSelector) VisitSquareNodeData(message string, data mess.SquareOpt
 	o.err = fmt.Errorf("invalid option")
 }
 
-func (o *optionSelector) VisitMoveNodeData(_ string, data mess.MoveOptionNodeData) {
+func (o *optionSelector) VisitMoveData(_ string, data mess.MoveOptionData) {
 	o.result, o.err = o.interactor.selectMove(data)
 }
 
-func (o *optionSelector) VisitUnitNodeData(_ string, data mess.UnitOptionNodeData) {
-	o.result = utils.Single(data.OptionNodeData)
+func (o *optionSelector) VisitUnitData(_ string, data mess.UnitOptionData) {
+	o.result = utils.Single(data.OptionData)
 }
 
 type Option = interface {
@@ -101,15 +101,15 @@ func (t *interactor) selectChild(children []*mess.OptionNode) (*mess.OptionNode,
 	}
 }
 
-func (t *interactor) selectMove(data mess.MoveOptionNodeData) (*mess.OptionNodeDatum[mess.MoveOption], error) {
+func (t *interactor) selectMove(data mess.MoveOptionData) (*mess.OptionDatum[mess.MoveOption], error) {
 	println("Choose a square with your piece")
 	piece, err := t.selectOwnPiece()
 	if err != nil {
 		return nil, err
 	}
 
-	validForPiece := make(map[board.Square]*mess.OptionNodeDatum[mess.MoveOption], 0)
-	for _, datum := range data.OptionNodeData {
+	validForPiece := make(map[board.Square]*mess.OptionDatum[mess.MoveOption], 0)
+	for _, datum := range data.OptionData {
 		vec := datum.Option.SquareVec
 		if vec.From == piece.Square() {
 			validForPiece[vec.To] = datum
