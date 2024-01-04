@@ -24,8 +24,8 @@ export const ResolutionPopup = ({
         )}
         <h1>{message}</h1>
         <section className="mt-8 w-full flex flex-col items-stretch gap-2">
-          <Button disabled>Rematch</Button>
-          <Button disabled>Return to room</Button>
+          {/* <Button disabled>Rematch</Button> */}
+          {/* <Button disabled>Return to room</Button> */}
           <Button onClick={() => router.push("/")}>Exit to main menu</Button>
         </section>
       </div>
