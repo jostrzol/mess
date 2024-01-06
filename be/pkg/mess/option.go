@@ -55,15 +55,11 @@ func (n *OptionNode) Accept(visitor OptionDataVisitor) {
 	n.Data.accept(n.Message, visitor)
 }
 
-func (n *OptionNode) AllRoutes() <-chan Route {
-	result := make(chan Route)
-	go func() {
-		n.FilterRoutes(func(route Route) bool {
-			result <- route
-			return false
-		})
-		close(result)
-	}()
+func (n *OptionNode) AllRoutes() (result []Route) {
+	n.FilterRoutes(func(route Route) bool {
+		result = append(result, route)
+		return false
+	})
 	return result
 }
 

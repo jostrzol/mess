@@ -63,7 +63,7 @@ func (mg *MoveGroup) OptionTree() *OptionNode {
 }
 
 func (mg *MoveGroup) Moves() (result []*Move) {
-	for route := range mg.optionTree.AllRoutes() {
+	for _, route := range mg.optionTree.AllRoutes() {
 		result = append(result, mg.Move(route))
 	}
 	return

@@ -110,3 +110,50 @@ func MoveWithOptionTexts(optionTexts []string, moveGroup *mess.MoveGroup) *mess.
 	}
 	return moves[i]
 }
+
+func ChooseRandomRoute(src rand.Source, node *mess.OptionNode) mess.Route {
+	visitor := &randomOptionDataVisitor{src: src}
+	if node != nil {
+		node.Accept(visitor)
+	}
+	return visitor.result
+}
+
+type randomOptionDataVisitor struct {
+	src    rand.Source
+	result mess.Route
+}
+
+func (r *randomOptionDataVisitor) VisitPieceTypeData(_ string, data mess.PieceTypeOptionData) {
+	datum := getRandom(r.src, data.OptionData)
+	r.handleDatum(datum)
+}
+
+func (r *randomOptionDataVisitor) VisitSquareData(_ string, data mess.SquareOptionData) {
+	datum := getRandom(r.src, data.OptionData)
+	r.handleDatum(datum)
+}
+
+func (r *randomOptionDataVisitor) VisitMoveData(_ string, data mess.MoveOptionData) {
+	datum := getRandom(r.src, data.OptionData)
+	r.handleDatum(datum)
+}
+
+func (r *randomOptionDataVisitor) VisitUnitData(_ string, data mess.UnitOptionData) {
+	datum := getRandom(r.src, data.OptionData)
+	r.handleDatum(datum)
+}
+
+func (r *randomOptionDataVisitor) handleDatum(datum mess.IOptionDatum) {
+	r.result = append(r.result, datum.IOption())
+	children := datum.NonEmptyChildren()
+	if len(children) != 0 {
+		nextNode := getRandom(r.src, children)
+		nextNode.Accept(r)
+	}
+}
+
+func getRandom[T any](src rand.Source, slice []T) T {
+	index := int(src.Int63()) % len(slice)
+	return slice[index]
+}
