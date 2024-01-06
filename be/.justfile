@@ -14,3 +14,22 @@ covtotal:
       | cut -f 3; \
   done
 
+build-cli:
+  go build ./cmd/mess
+
+build-server:
+  go build ./cmd/mess-server
+
+build: build-cli build-server
+
+test:
+  go test ./...
+
+fuzz-chess:
+  go test ./test -fuzz=FuzzChess
+
+fuzz-dobutsu:
+  go test ./test -fuzz=FuzzDobutsuShogi -short
+
+fuzz-halma:
+  go test ./test -fuzz=FuzzHalma -short
