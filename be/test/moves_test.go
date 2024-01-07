@@ -369,7 +369,7 @@ func TestPromotionCheckMate(t *testing.T) {
 	moves := game.ValidMoves()
 	performed := false
 	for _, moveGroup := range moves {
-		if moveGroup.Piece.Type().Name() == "pawn" {
+		if moveGroup.To == boardtest.NewSquare("A8") {
 			move := messtest.MoveWithOptionTexts([]string{"knight"}, moveGroup)
 			err := move.Perform()
 			assert.NoError(t, err)
@@ -383,5 +383,6 @@ func TestPromotionCheckMate(t *testing.T) {
 
 	resolution := game.Resolution()
 	assert.True(t, resolution.DidEnd)
+	t.Log(game.String())
 	assert.Equal(t, resolution.Winner, game.Player(color.White))
 }
