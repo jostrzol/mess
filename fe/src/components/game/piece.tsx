@@ -85,45 +85,50 @@ export const PieceIcon = ({
 }) => {
   const { assetUrl } = useStaticData();
 
-  const icon = presentation.icon === undefined ? (
-    <svg
-      viewBox="0 0 100 100"
-      className={clsx(
-        color == "white" ? "player-white" : "player-black",
-        "text-player",
-        className,
-      )}
-      style={{
-        font: "bold 80px Century Gothic, Arial",
-        fill: "var(--player-color)",
-        stroke: "var(--opponent-color)",
-        strokeWidth: 4,
-        strokeLinejoin: "round",
-        strokeLinecap: "round",
-      }}
-    >
-      <text
-        y="50%"
-        x="50%"
-        textAnchor="middle"
-        dominantBaseline="central"
-        style={{ fontSize: "80px" }}
+  const icon =
+    presentation.icon === undefined ? (
+      <svg
+        viewBox="0 0 100 100"
+        className={clsx(
+          color == "white" ? "player-white" : "player-black",
+          "text-player",
+          className,
+        )}
+        style={{
+          font: "bold 80px Century Gothic, Arial",
+          fill: "var(--player-color)",
+          stroke: "var(--opponent-color)",
+          strokeWidth: 4,
+          strokeLinejoin: "round",
+          strokeLinecap: "round",
+        }}
       >
-        {presentation.symbol}
-      </text>
-    </svg>
-  ) : (
-    <ReactSVG
-      className={clsx(
-        color == "white" ? "player-white" : "player-black",
-        "transition-transform",
-        className,
-      )}
-      src={assetUrl(presentation.icon)}
-    />
-  );
+        <text
+          y="50%"
+          x="50%"
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ fontSize: "80px" }}
+        >
+          {presentation.symbol}
+        </text>
+      </svg>
+    ) : (
+      <ReactSVG
+        className={clsx(
+          color == "white" ? "player-white" : "player-black",
+          "transition-transform",
+          className,
+        )}
+        src={assetUrl(presentation.icon)}
+      />
+    );
 
-  return <div className={clsx(presentation.rotate && !blockRotation && "rotate-180")}>
-    {icon}
-  </div>
+  return (
+    <div
+      className={clsx(presentation.rotate && !blockRotation && "rotate-180")}
+    >
+      {icon}
+    </div>
+  );
 };

@@ -25,9 +25,7 @@ export const pieceTypeToModel = (pieceType: PieceTypeDto): PieceType => {
   };
 };
 
-const presentationToModel = (
-  presentation: PresentationDto,
-): Presentation => {
+const presentationToModel = (presentation: PresentationDto): Presentation => {
   return {
     symbol: presentation.Symbol,
     icon: presentation.Icon,
