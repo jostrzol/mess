@@ -17,6 +17,7 @@ jobs:
 
     - name: Set up Yarn
       uses: mskelton/setup-yarn@v1
+      working-directory: ./fe
 
     - name: Check
       run: yarn check-all
