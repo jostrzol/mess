@@ -43,7 +43,7 @@ fuzz-halma:
   go test ./test -fuzz=FuzzHalma -short
 
 lint:
-  if ! { which golangci-lint && golangci-lint --version | grep -q 'v1\.55\.2' } ; then \
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 \
+  if ! { which golangci-lint && golangci-lint --version | grep -q 'v1\.55\.2'; }; then \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2; \
   fi
   golangci-lint run -E revive,godot
