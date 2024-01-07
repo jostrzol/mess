@@ -115,10 +115,6 @@ func newHTTPClient(suite *suite.Suite, g *gin.Engine) *httpClient {
 	return &httpClient{Suite: suite, g: g, jar: jar}
 }
 
-func (c *httpClient) cloneWithEmptyJar() *httpClient {
-	return newHTTPClient(c.Suite, c.g)
-}
-
 func (c *httpClient) ServeJSONOkAs(method string, url string, body any, result interface{}) {
 	c.T().Helper()
 	res := c.ServeJSONOk(method, url, body)

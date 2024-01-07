@@ -605,7 +605,7 @@ func MakeMoveFunc(state *mess.State) function.Function {
 			var options []mess.Option
 			var err error
 
-			if squareVec, err = SquareVecFromCty(state, args[0]); err != nil {
+			if squareVec, err = SquareVecFromCty(args[0]); err != nil {
 				return cty.DynamicVal, fmt.Errorf("argument 'move': %w", err)
 			}
 			if options, err = OptionsFromCty(state, args[1]); err != nil {

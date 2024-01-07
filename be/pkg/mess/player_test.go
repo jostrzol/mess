@@ -128,7 +128,8 @@ func (s *PlayerSuiteRealBoard) TestMovesNone() {
 
 func (s *PlayerSuiteRealBoard) TestMovesOnePiece() {
 	king := mess.NewPiece(King(s.T()), s.white)
-	s.board.Place(king, boardtest.NewSquare("A1"))
+	err := s.board.Place(king, boardtest.NewSquare("A1"))
+	s.NoError(err)
 
 	moves := s.white.Moves()
 	messtest.MovesMatch(s.T(), moves, messtest.MovesMatcher(king, "A2", "B1"))
@@ -136,10 +137,12 @@ func (s *PlayerSuiteRealBoard) TestMovesOnePiece() {
 
 func (s *PlayerSuiteRealBoard) TestMovesOnePieceOneEnemy() {
 	kingW := mess.NewPiece(King(s.T()), s.white)
-	s.board.Place(kingW, boardtest.NewSquare("A1"))
+	err := s.board.Place(kingW, boardtest.NewSquare("A1"))
+	s.NoError(err)
 
 	kingB := mess.NewPiece(King(s.T()), s.black)
-	s.board.Place(kingB, boardtest.NewSquare("A3"))
+	err = s.board.Place(kingB, boardtest.NewSquare("A3"))
+	s.NoError(err)
 
 	moves := s.white.Moves()
 	messtest.MovesMatch(s.T(), moves, messtest.MovesMatcher(kingW, "A2", "B1"))
@@ -147,10 +150,12 @@ func (s *PlayerSuiteRealBoard) TestMovesOnePieceOneEnemy() {
 
 func (s *PlayerSuiteRealBoard) TestMovesTwoPieces() {
 	kingW1 := mess.NewPiece(King(s.T()), s.white)
-	s.board.Place(kingW1, boardtest.NewSquare("A1"))
+	err := s.board.Place(kingW1, boardtest.NewSquare("A1"))
+	s.NoError(err)
 
 	kingW2 := mess.NewPiece(King(s.T()), s.white)
-	s.board.Place(kingW2, boardtest.NewSquare("A3"))
+	err = s.board.Place(kingW2, boardtest.NewSquare("A3"))
+	s.NoError(err)
 
 	moves := s.white.Moves()
 	messtest.MovesMatch(s.T(), moves,

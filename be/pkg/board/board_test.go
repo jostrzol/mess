@@ -123,8 +123,10 @@ func (s *BoardSuite) TestPlaceReplace() {
 func (s *BoardSuite) TestAllPieces() {
 	square1 := boardtest.NewSquare("B3")
 	square2 := boardtest.NewSquare("D6")
-	s.board.Place(1, square1)
-	s.board.Place(2, square2)
+	_, err := s.board.Place(1, square1)
+	s.NoError(err)
+	_, err = s.board.Place(2, square2)
+	s.NoError(err)
 
 	items := s.board.AllItems()
 

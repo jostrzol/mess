@@ -258,7 +258,7 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 			return nil, err
 		}
 
-		vec, err := SquareVecFromCty(state, squareVecCty)
+		vec, err := SquareVecFromCty(squareVecCty)
 		if err != nil {
 			return nil, err
 		}
@@ -270,7 +270,7 @@ func OptionFromCty(state *mess.State, value cty.Value) (mess.Option, error) {
 	}
 }
 
-func SquareVecFromCty(state *mess.State, value cty.Value) (mess.SquareVec, error) {
+func SquareVecFromCty(value cty.Value) (mess.SquareVec, error) {
 	srcCty, err := getAttr(value, "src")
 	if err != nil {
 		return mess.SquareVec{}, err

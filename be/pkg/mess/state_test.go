@@ -53,10 +53,11 @@ func (s *StateSuite) TestUndoNothing() {
 func (s *StateSuite) TestUndo() {
 	rook := mess.NewPiece(Rook(s.T()), s.state.CurrentPlayer())
 	a1 := boardtest.NewSquare("A1")
-	rook.PlaceOn(s.state.Board(), a1)
+	err := rook.PlaceOn(s.state.Board(), a1)
+	s.NoError(err)
 
 	a2 := boardtest.NewSquare("A2")
-	err := rook.MoveTo(a2)
+	err = rook.MoveTo(a2)
 	s.NoError(err)
 
 	s.state.UndoTurn()
@@ -73,10 +74,11 @@ func (s *StateSuite) TestUndo() {
 func (s *StateSuite) TestUndoDoubleMove() {
 	rook := mess.NewPiece(Rook(s.T()), s.state.CurrentPlayer())
 	a1 := boardtest.NewSquare("A1")
-	rook.PlaceOn(s.state.Board(), a1)
+	err := rook.PlaceOn(s.state.Board(), a1)
+	s.NoError(err)
 
 	a2 := boardtest.NewSquare("A2")
-	err := rook.MoveTo(a2)
+	err = rook.MoveTo(a2)
 	s.NoError(err)
 
 	s.state.EndTurn()
@@ -103,13 +105,15 @@ func (s *StateSuite) TestUndoDoubleMove() {
 func (s *StateSuite) TestUndoCapture() {
 	rook := mess.NewPiece(Rook(s.T()), s.state.CurrentPlayer())
 	a1 := boardtest.NewSquare("A1")
-	rook.PlaceOn(s.state.Board(), a1)
+	err := rook.PlaceOn(s.state.Board(), a1)
+	s.NoError(err)
 
 	knight := mess.NewPiece(Knight(s.T()), s.state.CurrentPlayer())
 	a2 := boardtest.NewSquare("A2")
-	knight.PlaceOn(s.state.Board(), a2)
+	err = knight.PlaceOn(s.state.Board(), a2)
+	s.NoError(err)
 
-	err := rook.MoveTo(a2)
+	err = rook.MoveTo(a2)
 	s.NoError(err)
 
 	s.state.UndoTurn()

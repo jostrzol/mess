@@ -62,7 +62,10 @@ func (b Board[T]) printBar(w io.ByteWriter) {
 	width, _ := b.Size()
 	widthWithHeader := width + 1
 	for i := 0; i < widthWithHeader*3+1; i++ {
-		w.WriteByte('-')
+		err := w.WriteByte('-')
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -79,7 +82,10 @@ func (b Board[T]) printRow(w io.Writer, rank int, row []T, itemFormatter func(T)
 }
 
 func (b Board[T]) printFileHeader(w io.Writer) {
-	w.Write([]byte("|  |"))
+	_, err := w.Write([]byte("|  |"))
+	if err != nil {
+		return
+	}
 	width, _ := b.Size()
 	for i := 1; i <= width; i++ {
 		fmt.Fprintf(w, "%-2s|", fileString(i))

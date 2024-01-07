@@ -6,17 +6,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/jostrzol/mess/pkg/server/core/room"
 	"github.com/jostrzol/mess/pkg/server/ioc"
 )
 
 const HclContent = "application/hcl"
 
 type RulesHandler struct {
-	service *room.Service `container:"type"`
 }
 
-func FormatRules(h *RulesHandler, g *gin.Engine) {
+func FormatRules(_ *RulesHandler, g *gin.Engine) {
 	g.PUT("/rules/format", func(c *gin.Context) {
 		src, err := io.ReadAll(c.Request.Body)
 		if err != nil {
@@ -29,5 +27,5 @@ func FormatRules(h *RulesHandler, g *gin.Engine) {
 }
 
 func init() {
-	ioc.MustHandlerFill[RulesHandler](FormatRules)
+	ioc.MustHandlerFill(FormatRules)
 }

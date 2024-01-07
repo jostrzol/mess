@@ -146,7 +146,8 @@ func (s *PieceSuite) TestMoves() {
 		s.SetupTest()
 		s.Run(fmt.Sprintf("%v at %v", tt.pieceType, tt.square), func() {
 			piece := Noones(tt.pieceType)
-			piece.PlaceOn(s.board, boardtest.NewSquare(tt.square))
+			err := piece.PlaceOn(s.board, boardtest.NewSquare(tt.square))
+			s.NoError(err)
 
 			moves := piece.Moves()
 
@@ -160,10 +161,11 @@ func (s *PieceSuite) TestMove() {
 	endSquare := boardtest.NewSquare("C4")
 
 	knight := Noones(Knight(s.T()))
-	knight.PlaceOn(s.board, startSquare)
+	err := knight.PlaceOn(s.board, startSquare)
+	s.NoError(err)
 
 	s.observer.Reset()
-	err := knight.MoveTo(endSquare)
+	err = knight.MoveTo(endSquare)
 	s.NoError(err)
 
 	s.Equal(endSquare, knight.Square())
@@ -189,12 +191,14 @@ func (s *PieceSuite) TestMoveReplace() {
 	players := mess.NewPlayers(s.board)
 
 	knight := mess.NewPiece(Knight(s.T()), players[color.White])
-	knight.PlaceOn(s.board, startSquare)
+	err := knight.PlaceOn(s.board, startSquare)
+	s.NoError(err)
 	rook := mess.NewPiece(Rook(s.T()), players[color.Black])
-	rook.PlaceOn(s.board, endSquare)
+	err = rook.PlaceOn(s.board, endSquare)
+	s.NoError(err)
 
 	s.observer.Reset()
-	err := knight.MoveTo(endSquare)
+	err = knight.MoveTo(endSquare)
 	s.NoError(err)
 
 	s.Equal(endSquare, knight.Square())
@@ -226,15 +230,17 @@ func (s *PieceSuite) TestMoveOutOfBounds() {
 	endSquare := boardtest.NewSquare("Z1")
 
 	knight := Noones(Knight(s.T()))
-	knight.PlaceOn(s.board, startSquare)
+	err := knight.PlaceOn(s.board, startSquare)
+	s.NoError(err)
 
-	err := knight.MoveTo(endSquare)
+	err = knight.MoveTo(endSquare)
 	s.Error(err)
 }
 
 func (s *PieceSuite) TestIsOnBoard() {
 	knight := Noones(Knight(s.T()))
-	knight.PlaceOn(s.board, boardtest.NewSquare("A1"))
+	err := knight.PlaceOn(s.board, boardtest.NewSquare("A1"))
+	s.NoError(err)
 
 	s.True(knight.IsOnBoard())
 }

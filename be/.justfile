@@ -40,3 +40,6 @@ fuzz-dobutsu:
   go test ./test -fuzz=FuzzDobutsuShogi -short
 fuzz-halma:
   go test ./test -fuzz=FuzzHalma -short
+
+lint:
+  golangci-lint run -E revive,godot
