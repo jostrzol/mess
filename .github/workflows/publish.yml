@@ -5,9 +5,17 @@ on:
     types: [published]
 
 jobs:
-
-  publish-container-be:
+  publish-containers:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - context: ./be
+            image: jostrzol/mess-backend
+          # - context: ./fe
+          #   image: jostrzol/mess-frontend
+          # - context: ./proxy
+          #   image: jostrzol/mess-proxy
     steps:
     - uses: actions/checkout@v3
 
@@ -23,8 +31,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
-        context: ./be
+        context: ${{ matrix.context }}
         push: true
-        tags: jostrzol/mess-backend:latest
-        cache-from: type=registry,ref=jostrzol/mess-backend:latest
+        tags: ${{ matrix.image }}:latest
+        cache-from: type=registry,ref=${{ matrix.image }}:latest
         cache-to: type=inline
