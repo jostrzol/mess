@@ -10,11 +10,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  check:
+  setup:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./be
     steps:
     - uses: actions/checkout@v3
 
@@ -23,14 +20,29 @@ jobs:
       with:
         go-version: 1.21
 
-    - name: Install Go tools
-      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
-
+  build:
+    runs-on: ubuntu-latest
+    needs: [ setup ]
+    steps:
     - name: Build
       run: go build -v ./...
+      working-directory: ./be
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: [ setup ]
+    steps:
+    - name: Install golangci-lint
+      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
 
     - name: Lint
       run: golangci-lint run -E revive,godot
+      working-directory: ./be
 
+  test:
+    runs-on: ubuntu-latest
+    needs: [ setup ]
+    steps:
     - name: Test
       run: go test -v ./...
+      working-directory: ./be
