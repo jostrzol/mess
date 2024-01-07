@@ -23,6 +23,13 @@ jobs:
       with:
         go-version: 1.21
 
+    - name: Cache deb index
+      id: cache-primes
+      uses: actions/cache@v3
+      with:
+        path: /var/lib/apt/lists
+        key: ${{ runner.os }}-deb-index
+
     - name: Set up makedeb
       run: |
         wget -qO - 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr.pub' \
