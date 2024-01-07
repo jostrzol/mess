@@ -12,10 +12,10 @@ jobs:
         include:
           - context: ./be
             image: jostrzol/mess-backend
-          # - context: ./fe
-          #   image: jostrzol/mess-frontend
-          # - context: ./proxy
-          #   image: jostrzol/mess-proxy
+          - context: ./fe
+            image: jostrzol/mess-frontend
+          - context: ./proxy
+            image: jostrzol/mess-proxy
     steps:
     - uses: actions/checkout@v3
 
