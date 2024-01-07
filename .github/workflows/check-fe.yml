@@ -21,6 +21,10 @@ jobs:
         cache: yarn
         cache-dependency-path: ./fe/yarn.lock
 
+    - name: Install dependencies
+      run: yarn install
+      working-directory: ./fe
+
     - name: Check
       run: yarn check-all
       working-directory: ./fe
