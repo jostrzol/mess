@@ -26,13 +26,14 @@ _covhtml src:
   {{browser}} {{without_extension(src) + ".html"}}
 
 build-cli:
-  go build ./cmd/mess
+  go build -v ./cmd/mess
 build-server:
-  go build ./cmd/mess-server
-build: build-cli build-server
+  go build -v ./cmd/mess-server
+build:
+  go build -v ./...
 
 test:
-  go test ./...
+  go test -v ./...
 
 fuzz-chess:
   go test ./test -fuzz=FuzzChess
@@ -42,4 +43,7 @@ fuzz-halma:
   go test ./test -fuzz=FuzzHalma -short
 
 lint:
+  if ! { which golangci-lint && golangci-lint --version | grep -q 'v1\.55\.2' } ; then \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 \
+  fi
   golangci-lint run -E revive,godot

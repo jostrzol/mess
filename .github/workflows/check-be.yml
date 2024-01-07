@@ -37,14 +37,11 @@ jobs:
       with:
         packages: just
 
-    - name: Install Go tools
-      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
-
     - name: Build
-      run: go build -v ./...
+      run: just build
 
     - name: Lint
-      run: golangci-lint run -E revive,godot
+      run: just lint
 
     - name: Test
-      run: go test -v ./...
+      run: just test
