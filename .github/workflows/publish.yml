@@ -34,3 +34,5 @@ jobs:
         context: ${{ matrix.context }}
         push: true
         tags: ${{ matrix.image }}:latest,${{ matrix.image }}:${{ github.ref_name }}
+        cache-from: type=registry,ref=${{ matrix.image }}:latest
+        cache-to: type=inline
