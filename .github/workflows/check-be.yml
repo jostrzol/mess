@@ -23,6 +23,20 @@ jobs:
       with:
         go-version: 1.21
 
+    - name: Set up makedeb
+      run: |
+        wget -qO - 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr.pub' \
+          | gpg --dearmor \
+          | sudo tee /usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg 1> /dev/null
+        echo "deb [arch=all,$(dpkg --print-architecture) signed-by=/usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg] https://proget.makedeb.org prebuilt-mpr $(lsb_release -cs)" \
+          | sudo tee /etc/apt/sources.list.d/prebuilt-mpr.list
+        sudo apt update
+
+    - name: Install Just
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: just
+
     - name: Install Go tools
       run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
 
